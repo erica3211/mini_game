@@ -1,7 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
-  BASIC_CONSONANTS,
-  BASIC_VOWELS,
   HANGUL_LENGTH,
   KEYBOARD_ROW_1,
   KEYBOARD_ROW_2,
