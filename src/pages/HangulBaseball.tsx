@@ -158,6 +158,9 @@ export function HangulBaseball() {
                   </button>
                 )
               })}
+              <button type="button" className="key key-wide" onClick={pressBackspace}>
+                ⌫
+              </button>
             </div>
             <div className="key-row">
               {KEYBOARD_ROW_2.map((jamo) => {
@@ -194,9 +197,7 @@ export function HangulBaseball() {
               })}
             </div>
             <div className="key-row key-row-actions">
-              <button type="button" className="key key-wide" onClick={pressBackspace}>
-                ⌫
-              </button>
+              
               <button type="button" className="btn btn-primary" onClick={handleSubmit}>
                 던지기!
               </button>

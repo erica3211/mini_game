@@ -321,7 +321,25 @@ button {
 }
 
 .key-row-actions {
-  margin-top: 0.25rem;
+  /* margin-top: 0.25rem; */
+  margin-top: 0.5rem;
+  width: 100%;         
+  display: flex;
+  justify-content: center;
+}
+
+.key-row-actions .btn {
+  flex: 1;              
+  max-width: 16rem;     
+  height: 2.8rem;      
+  border-radius: 8px;   
+  font-size: 1.05rem;
+  font-weight: 700;     
+  border: none;
+  background: var(--primary);
+  color: #ffffff;
+  cursor: pointer;
+  transition: background 0.15s;
 }
 
 .key.key-strike {
