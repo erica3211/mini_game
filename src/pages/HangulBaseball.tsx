@@ -195,7 +195,7 @@ export function HangulBaseball() {
             </div>
             <div className="key-row key-row-actions">
               <button type="button" className="key key-wide" onClick={pressBackspace}>
-                ⌫ 지우기
+                ⌫
               </button>
               <button type="button" className="btn btn-primary" onClick={handleSubmit}>
                 던지기!

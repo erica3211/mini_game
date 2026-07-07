@@ -284,13 +284,16 @@ button {
 
 .key-row {
   display: flex;
-  flex-wrap: wrap;
+  /* flex-wrap: wrap; */
+  flex-wrap: nowrap; /* 모바일에서 강제로 줄바꿈이 일어나지 않도록 막기 */
   gap: 0.35rem;
   justify-content: center;
 }
 
 .key {
-  min-width: 2.3rem;
+  /* min-width: 2.3rem; */
+  flex: 1;               /* 남은 공간을 평등하게 나눠 가져서 화면 크기에 맞게 자동으로 줄어들게 조절 */
+  max-width: 2.8rem;     /* 넓은 화면에서는 무한정 커지지 않도록 최대 너비 제한 */
   height: 2.6rem;
   border: 1px solid var(--border);
   border-radius: 8px;
@@ -313,6 +316,8 @@ button {
 .key-wide {
   padding: 0 0.9rem;
   font-size: 0.9rem;
+  flex: none;         /* 강제로 쪼그라들지 않도록 방어 */
+  white-space: nowrap; /* 줄바꿈되지 않도록 고정 */
 }
 
 .key-row-actions {
