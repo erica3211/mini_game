@@ -1,0 +1,450 @@
+/* 미니멀 다크 테마 (다크 전용) */
+:root {
+  --bg: #0d1117;
+  --surface: #161b22;
+  --surface-raised: #21262d;
+  --text: #e6edf3;
+  --text-muted: #8b949e;
+  --primary: #1f6feb;
+  --primary-hover: #388bfd;
+  --accent: #58a6ff;
+  --strike: #238636;
+  --ball: #9e6a03;
+  --out: #21262d;
+  --danger: #f85149;
+  --border: #30363d;
+  --border-strong: #8b949e;
+  --radius: 12px;
+  color-scheme: dark;
+  font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', system-ui, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+}
+
+button {
+  font: inherit;
+  cursor: pointer;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* 레이아웃 */
+.site-header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 0.75rem 1.25rem;
+}
+
+.site-logo {
+  font-weight: 700;
+  font-size: 1.1rem;
+  text-decoration: none;
+  color: var(--text);
+}
+
+.site-main {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 2rem 1.25rem 4rem;
+}
+
+.page-title {
+  font-size: 1.75rem;
+  margin: 0 0 0.25rem;
+}
+
+.page-subtitle {
+  color: var(--text-muted);
+  margin: 0 0 1.5rem;
+}
+
+/* 홈: 게임 카드 */
+.game-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 1rem;
+}
+
+.game-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.25rem;
+  text-decoration: none;
+  color: var(--text);
+  transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
+}
+
+.game-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--border-strong);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+.game-card-soon {
+  opacity: 0.5;
+}
+
+.game-card-soon:hover {
+  transform: none;
+  border-color: var(--border);
+  box-shadow: none;
+}
+
+.game-emoji {
+  font-size: 1.75rem;
+}
+
+.game-title {
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.game-description {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+/* 게임 공통 */
+.rules {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.875rem 1rem;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.rules strong {
+  color: var(--text);
+}
+
+.attempts {
+  font-size: 1rem;
+}
+
+.attempts strong {
+  color: var(--accent);
+  font-size: 1.2rem;
+}
+
+.banner {
+  border-radius: var(--radius);
+  padding: 1.25rem;
+  text-align: center;
+  margin: 1rem 0;
+}
+
+.banner-won {
+  background: rgba(46, 160, 67, 0.12);
+  border: 1px solid rgba(46, 160, 67, 0.45);
+}
+
+.banner-lost {
+  background: rgba(248, 81, 73, 0.1);
+  border: 1px solid rgba(248, 81, 73, 0.4);
+}
+
+.banner-title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin: 0 0 0.25rem;
+}
+
+.banner-answer {
+  margin: 0 0 1rem;
+  color: var(--text-muted);
+}
+
+.banner-answer strong {
+  color: var(--text);
+  letter-spacing: 0.15em;
+}
+
+.btn {
+  border: none;
+  border-radius: 8px;
+  padding: 0.6rem 1.2rem;
+  font-weight: 600;
+  transition: background 0.15s;
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background: var(--primary-hover);
+}
+
+.error {
+  color: var(--danger);
+  font-size: 0.875rem;
+  margin: 0.5rem 0;
+}
+
+/* 숫자야구 입력 */
+.guess-form {
+  display: flex;
+  gap: 0.5rem;
+  margin: 1rem 0;
+}
+
+.guess-input {
+  flex: 1;
+  max-width: 200px;
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.6rem 0.9rem;
+  font-size: 1.25rem;
+  letter-spacing: 0.35em;
+  text-align: center;
+}
+
+.guess-input::placeholder {
+  color: var(--text-muted);
+  opacity: 0.6;
+}
+
+.guess-input:focus {
+  outline: 2px solid var(--accent);
+  border-color: transparent;
+}
+
+/* 한글야구: 입력 칸 */
+.slots {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  margin: 1.25rem 0 0.75rem;
+}
+
+.slot {
+  width: 3rem;
+  height: 3.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem;
+  font-weight: 700;
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.slot-filled {
+  border-color: var(--border-strong);
+}
+
+.slot-active {
+  border-color: var(--accent);
+  background: rgba(88, 166, 255, 0.08);
+}
+
+/* 한글야구: 조합 미리보기 (ㄱㅏㅣㅁㅣ → 개미) */
+.preview {
+  min-height: 2.4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  color: var(--accent);
+  margin-top: 1rem;
+}
+
+/* 한글야구: 키보드 */
+.keyboard {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.key-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  justify-content: center;
+}
+
+.key {
+  min-width: 2.3rem;
+  height: 2.6rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-raised);
+  color: var(--text);
+  font-size: 1.05rem;
+  font-weight: 600;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.key:hover {
+  background: var(--surface);
+  border-color: var(--border-strong);
+}
+
+.key:active {
+  background: var(--bg);
+}
+
+.key-wide {
+  padding: 0 0.9rem;
+  font-size: 0.9rem;
+}
+
+.key-row-actions {
+  margin-top: 0.25rem;
+}
+
+/* 기록 */
+.history {
+  list-style: none;
+  padding: 0;
+  margin: 1.25rem 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.history-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.6rem 0.9rem;
+}
+
+.history-turn {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  width: 2.5rem;
+}
+
+.history-guess {
+  font-weight: 700;
+  font-size: 1.15rem;
+  letter-spacing: 0.1em;
+  flex: 1;
+}
+
+.history-result {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.history-empty {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  margin-top: 1.25rem;
+}
+
+.badge {
+  display: inline-block;
+  min-width: 2.2rem;
+  text-align: center;
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.badge-strike {
+  background: var(--strike);
+}
+
+.badge-ball {
+  background: var(--ball);
+}
+
+.badge-out {
+  background: var(--out);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+}
+
+/* 한글야구: 자리별 색깔 타일 */
+.history-tiles {
+  display: flex;
+  gap: 0.35rem;
+  flex: 1;
+}
+
+.tile {
+  width: 2.2rem;
+  height: 2.2rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.tile-strike {
+  background: var(--strike);
+}
+
+.tile-ball {
+  background: var(--ball);
+}
+
+.tile-out {
+  background: var(--out);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  margin: 0.75rem 0;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.legend-tile {
+  width: 1.6rem;
+  height: 1.6rem;
+  font-size: 0.9rem;
+}
+
+/* 기록 줄의 조합 단어 라벨 */
+.history-word {
+  font-weight: 700;
+  color: var(--text-muted);
+  min-width: 3.5rem;
+  text-align: right;
+}

@@ -1,0 +1,155 @@
+import { useEffect, useState } from 'react'
+import {
+  BASIC_CONSONANTS,
+  BASIC_VOWELS,
+  HANGUL_LENGTH,
+  KEY_TO_JAMO,
+  SHIFT_KEY_TO_JAMO,
+  assembleJamo,
+  decomposeWord,
+  toBasicJamo,
+} from '../lib/jamo'
+import { HANGUL_WORDS } from '../lib/words'
+import { useBaseballGame } from '../hooks/useBaseballGame'
+import { GuessHistory } from '../components/GuessHistory'
+import { GameStatusBanner } from '../components/GameStatusBanner'
+
+const generateHangulAnswer = () =>
+  decomposeWord(HANGUL_WORDS[Math.floor(Math.random() * HANGUL_WORDS.length)])
+
+export function HangulBaseball() {
+  const game = useBaseballGame(generateHangulAnswer)
+  const [slots, setSlots] = useState<string[]>([])
+  const [error, setError] = useState<string | null>(null)
+
+  const pressJamo = (jamo: string) => {
+    setError(null)
+    // ㅐ·ㄲ 같은 복합 자모는 기본 자모 여러 칸으로 풀어서 넣는다
+    setSlots((prev) => [...prev, ...toBasicJamo(jamo)].slice(0, HANGUL_LENGTH))
+  }
+
+  const pressBackspace = () => {
+    setError(null)
+    setSlots((prev) => prev.slice(0, -1))
+  }
+
+  const clearInput = () => {
+    setSlots([])
+    setError(null)
+  }
+
+  const handleSubmit = () => {
+    if (slots.length !== HANGUL_LENGTH) {
+      setError(`자모 ${HANGUL_LENGTH}개를 모두 채워주세요.`)
+      return
+    }
+    game.submitGuess(slots)
+    clearInput()
+  }
+
+  const handleReset = () => {
+    game.reset()
+    clearInput()
+  }
+
+  // 물리 키보드 입력 (두벌식). 핸들러가 최신 상태를 참조하도록 매 렌더마다 다시 등록한다.
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.ctrlKey || event.metaKey || event.altKey || event.repeat) return
+      if (event.key === 'Enter') {
+        if (game.status === 'playing') handleSubmit()
+        else handleReset()
+        return
+      }
+      if (game.status !== 'playing') return
+      if (event.key === 'Backspace') {
+        pressBackspace()
+        return
+      }
+      const jamo =
+        (event.shiftKey ? SHIFT_KEY_TO_JAMO[event.code] : undefined) ?? KEY_TO_JAMO[event.code]
+      if (jamo) pressJamo(jamo)
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  })
+
+  return (
+    <section className="game-page">
+      <h1 className="page-title">🇰🇷 한글야구</h1>
+      <p className="rules">
+        기본 자음·모음 <strong>5개</strong>로 풀리는 <strong>실제 단어</strong>를 맞혀보세요. 예:
+        개미 = <strong>ㄱ ㅏ ㅣ ㅁ ㅣ</strong> (ㅐ는 ㅏ+ㅣ 두 칸, ㄲ은 ㄱ+ㄱ 두 칸). 같은 자모가
+        여러 번 나올 수 있고, 기회는 5번! PC에서는 키보드로도 입력할 수 있어요 (한/영 상태 무관,{' '}
+        <strong>Enter</strong> 던지기 · <strong>Backspace</strong> 지우기).
+      </p>
+      <div className="legend">
+        <span className="legend-item">
+          <span className="tile tile-strike legend-tile">ㄱ</span>자모·자리 모두 맞음
+        </span>
+        <span className="legend-item">
+          <span className="tile tile-ball legend-tile">ㄱ</span>자모는 있지만 자리가 다름
+        </span>
+        <span className="legend-item">
+          <span className="tile tile-out legend-tile">ㄱ</span>없는 자모
+        </span>
+      </div>
+
+      <GameStatusBanner
+        status={game.status}
+        answer={game.answer}
+        answerLabel={`${assembleJamo(game.answer)} (${game.answer.join(' ')})`}
+        attemptsLeft={game.attemptsLeft}
+        onReset={handleReset}
+      />
+
+      {game.status === 'playing' && (
+        <>
+          <div className="preview" aria-live="polite">
+            {slots.length > 0 ? assembleJamo(slots) : ' '}
+          </div>
+          <div className="slots">
+            {Array.from({ length: HANGUL_LENGTH }, (_, i) => (
+              <span
+                key={i}
+                className={`slot ${i === slots.length ? 'slot-active' : ''} ${
+                  slots[i] ? 'slot-filled' : ''
+                }`}
+              >
+                {slots[i] ?? ''}
+              </span>
+            ))}
+          </div>
+          {error && <p className="error">{error}</p>}
+
+          <div className="keyboard">
+            <div className="key-row">
+              {BASIC_CONSONANTS.map((jamo) => (
+                <button key={jamo} type="button" className="key" onClick={() => pressJamo(jamo)}>
+                  {jamo}
+                </button>
+              ))}
+            </div>
+            <div className="key-row">
+              {BASIC_VOWELS.map((jamo) => (
+                <button key={jamo} type="button" className="key" onClick={() => pressJamo(jamo)}>
+                  {jamo}
+                </button>
+              ))}
+            </div>
+            <div className="key-row key-row-actions">
+              <button type="button" className="key key-wide" onClick={pressBackspace}>
+                ⌫ 지우기
+              </button>
+              <button type="button" className="btn btn-primary" onClick={handleSubmit}>
+                던지기!
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+
+      <GuessHistory history={game.history} display="tiles" formatGuess={assembleJamo} />
+    </section>
+  )
+}
