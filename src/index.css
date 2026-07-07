@@ -5,12 +5,13 @@
   --surface-raised: #21262d;
   --text: #e6edf3;
   --text-muted: #8b949e;
-  --primary: #1f6feb;
-  --primary-hover: #388bfd;
-  --accent: #58a6ff;
+  --primary: #143c74;
+  --primary-hover: #375783; 
+  --accent: #649ae2;
   --strike: #238636;
-  --ball: #9e6a03;
-  --out: #21262d;
+  --ball: #c2b223;
+  /* --out: #21262d; */
+  --out: #3e4244;
   --danger: #f85149;
   --border: #30363d;
   --border-strong: #8b949e;
@@ -316,6 +317,25 @@ button {
 
 .key-row-actions {
   margin-top: 0.25rem;
+}
+
+.key.key-strike {
+  background: var(--strike);
+  border-color: var(--strike);
+  color: #ffffff; /* 가독성을 위해 흰색 글자 적용 */
+}
+
+.key.key-ball {
+  background: var(--ball);
+  border-color: var(--ball);
+  color: #ffffff;
+}
+
+.key.key-out {
+  background: var(--out);
+  border-color: var(--out);
+  color: var(--text-muted); /* 아웃된 자모는 흐릿하게 처리 */
+  opacity: 0.6;              /* 시각적으로 확실히 제외되었음을 명시 */
 }
 
 /* 기록 */

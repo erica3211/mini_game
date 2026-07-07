@@ -12,6 +12,10 @@ export const BASIC_VOWELS = [
   'ㅏ', 'ㅑ', 'ㅓ', 'ㅕ', 'ㅗ', 'ㅛ', 'ㅜ', 'ㅠ', 'ㅡ', 'ㅣ',
 ] as const
 
+export const KEYBOARD_ROW_1 = ['ㅂ', 'ㅈ', 'ㄷ', 'ㄱ', 'ㅅ', 'ㅛ', 'ㅕ', 'ㅑ'] as const;
+export const KEYBOARD_ROW_2 = ['ㅁ', 'ㄴ', 'ㅇ', 'ㄹ', 'ㅎ', 'ㅗ', 'ㅓ', 'ㅏ', 'ㅣ'] as const;
+export const KEYBOARD_ROW_3 = ['ㅋ', 'ㅌ', 'ㅊ', 'ㅍ', 'ㅠ', 'ㅜ', 'ㅡ'] as const;
+
 export const HANGUL_LENGTH = 5
 
 // 유니코드 한글 음절(가~힣) 분해·조합용 표준 자모 목록

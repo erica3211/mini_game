@@ -1,8 +1,11 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   BASIC_CONSONANTS,
   BASIC_VOWELS,
   HANGUL_LENGTH,
+  KEYBOARD_ROW_1,
+  KEYBOARD_ROW_2,
+  KEYBOARD_ROW_3,
   KEY_TO_JAMO,
   SHIFT_KEY_TO_JAMO,
   assembleJamo,
@@ -51,6 +54,24 @@ export function HangulBaseball() {
     game.reset()
     clearInput()
   }
+
+  const jamoStatuses = useMemo(() => {
+    const score = { strike: 3, ball: 2, out: 1 };
+    const acc: Record<string, 'strike' | 'ball' | 'out'> = {};
+    game.history.forEach(({ guess, marks }) => {
+      guess.forEach((jamo, index) => {
+        const currentMark = marks[index]; // 'strike' | 'ball' | 'out'
+        if (!currentMark) return;
+
+        // 기존 점수보다 지금 들어온 자모의 점수가 더 높을 때만 갱신
+        const prevScore = acc[jamo] ? score[acc[jamo]] : 0;
+        if (score[currentMark] > prevScore) {
+          acc[jamo] = currentMark;
+        }
+      });
+    });
+    return acc;
+  }, [game.history]);
 
   // 물리 키보드 입력 (두벌식). 핸들러가 최신 상태를 참조하도록 매 렌더마다 다시 등록한다.
   useEffect(() => {
@@ -124,18 +145,55 @@ export function HangulBaseball() {
 
           <div className="keyboard">
             <div className="key-row">
-              {BASIC_CONSONANTS.map((jamo) => (
-                <button key={jamo} type="button" className="key" onClick={() => pressJamo(jamo)}>
-                  {jamo}
-                </button>
-              ))}
+              {KEYBOARD_ROW_1.map((jamo) => {
+                const status = jamoStatuses[jamo]; // 'strike', 'ball', 'out' 또는 undefined
+                const statusClass = status ? `key-${status}` : ''; // 예: key-strike, key-ball, key-out
+
+                return (
+                  <button 
+                    key={jamo} 
+                    type="button" 
+                    className={`key ${statusClass}`} 
+                    onClick={() => pressJamo(jamo)}
+                  >
+                    {jamo}
+                  </button>
+                )
+              })}
             </div>
             <div className="key-row">
-              {BASIC_VOWELS.map((jamo) => (
-                <button key={jamo} type="button" className="key" onClick={() => pressJamo(jamo)}>
-                  {jamo}
-                </button>
-              ))}
+              {KEYBOARD_ROW_2.map((jamo) => {
+                const status = jamoStatuses[jamo]; // 'strike', 'ball', 'out' 또는 undefined
+                const statusClass = status ? `key-${status}` : ''; // 예: key-strike, key-ball, key-out
+
+                return (
+                  <button 
+                    key={jamo} 
+                    type="button" 
+                    className={`key ${statusClass}`} 
+                    onClick={() => pressJamo(jamo)}
+                  >
+                    {jamo}
+                  </button>
+                )
+              })}
+            </div>
+            <div className="key-row">
+              {KEYBOARD_ROW_3.map((jamo) => {
+                const status = jamoStatuses[jamo]; // 'strike', 'ball', 'out' 또는 undefined
+                const statusClass = status ? `key-${status}` : ''; // 예: key-strike, key-ball, key-out
+
+                return (
+                  <button 
+                    key={jamo} 
+                    type="button" 
+                    className={`key ${statusClass}`} 
+                    onClick={() => pressJamo(jamo)}
+                  >
+                    {jamo}
+                  </button>
+                )
+              })}
             </div>
             <div className="key-row key-row-actions">
               <button type="button" className="key key-wide" onClick={pressBackspace}>
