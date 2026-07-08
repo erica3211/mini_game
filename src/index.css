@@ -315,7 +315,7 @@ button {
 .key-wide {
   width: calc((100% - (0.35rem * 8)) / 9);
   max-width: 2.8rem;
-  font-size: 1.2rem;
+  font-size: 1rem;
   flex: none;         /* 강제로 쪼그라들지 않도록 방어 */
   white-space: nowrap; /* 줄바꿈되지 않도록 고정 */
 }
