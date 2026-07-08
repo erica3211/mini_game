@@ -291,8 +291,7 @@ button {
 }
 
 .key {
-  /* min-width: 2.3rem; */
-  flex: 1;               /* 남은 공간을 평등하게 나눠 가져서 화면 크기에 맞게 자동으로 줄어들게 조절 */
+  width: calc((100% - (0.35rem * 8)) / 9); /* 전체 너비에서 간격을 뺀 후 9등분 */
   max-width: 2.8rem;     /* 넓은 화면에서는 무한정 커지지 않도록 최대 너비 제한 */
   height: 2.6rem;
   border: 1px solid var(--border);
@@ -314,6 +313,9 @@ button {
 }
 
 .key-wide {
+  width: calc((100% - (0.35rem * 8)) / 9);
+  max-width: 2.8rem;
+  /* border: 2px solid var(--text); */
   padding: 0 0.9rem;
   font-size: 0.9rem;
   flex: none;         /* 강제로 쪼그라들지 않도록 방어 */
