@@ -14,6 +14,9 @@ import { HANGUL_WORDS } from '../lib/words'
 import { useBaseballGame } from '../hooks/useBaseballGame'
 import { GuessHistory } from '../components/GuessHistory'
 import { GameStatusBanner } from '../components/GameStatusBanner'
+import { xmlToJson } from '../lib/xml'
+
+const API_KEY = import.meta.env.VITE_KOREAN_BASIC_DICTIONARY_API_SECRET_KEY;
 
 const generateHangulAnswer = () =>
   decomposeWord(HANGUL_WORDS[Math.floor(Math.random() * HANGUL_WORDS.length)])
@@ -39,9 +42,55 @@ export function HangulBaseball() {
     setError(null)
   }
 
-  const handleSubmit = () => {
+  const isCheckInDictionary = async (guess: string[]): Promise<boolean> => {
+    const word = assembleJamo(guess);
+
+    if (HANGUL_WORDS.includes(word)) {
+      return true;
+    }
+    else {
+      try {
+        // 한국어기초사전 API 주소와 파라미터 세팅 (자바스크립트의 URLSearchParams 활용)
+        const baseUrl = 'https://krdict.korean.go.kr/api/search';
+        const params = new URLSearchParams({
+          key: API_KEY,
+          q: word,
+          advanced: 'y',
+          method: 'exact',  // 정확히 일치하는 단어만 검색
+          target: '1'       // 표제어 검색
+        });
+
+        const response = await fetch(`${baseUrl}?${params.toString()}`);
+
+        if (!response.ok) {
+          throw new Error('API 요청 실패');
+        }
+
+        const parser = new DOMParser();
+        const xmlDoc = parser.parseFromString(await response.text(), "text/xml");
+
+        const data = xmlToJson(xmlDoc.documentElement);
+
+        // 데이터가 1개 이상이라도 있을 경우
+        if (data && data.total && parseInt(data.total, 10) > 0) {
+          return true; // 사전에 존재하는 단어임
+        }
+
+        return false; // 사전에 없는 단어임
+      } catch (error) {
+        console.error("사전 API 조회 중 에러 발생:", error);
+        return false; 
+      }
+    }
+  }
+
+  const handleSubmit = async () => {
     if (slots.length !== HANGUL_LENGTH) {
       setError(`자모 ${HANGUL_LENGTH}개를 모두 채워주세요.`)
+      return
+    }
+    if (!await isCheckInDictionary(slots)) {
+      setError('사전에 없는 단어입니다.')
       return
     }
     game.submitGuess(slots)
@@ -71,7 +120,7 @@ export function HangulBaseball() {
     return acc;
   }, [game.history]);
 
-  // 물리 키보드 입력 (두벌식). 핸들러가 최신 상태를 참조하도록 매 렌더마다 다시 등록한다.
+  // 물리 키보드 입력 (두벌식). 핸들러가 최신 상태를 참조하도록 매 렌더마다 다시 등록
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.ctrlKey || event.metaKey || event.altKey || event.repeat) return
@@ -131,9 +180,8 @@ export function HangulBaseball() {
             {Array.from({ length: HANGUL_LENGTH }, (_, i) => (
               <span
                 key={i}
-                className={`slot ${i === slots.length ? 'slot-active' : ''} ${
-                  slots[i] ? 'slot-filled' : ''
-                }`}
+                className={`slot ${i === slots.length ? 'slot-active' : ''} ${slots[i] ? 'slot-filled' : ''
+                  }`}
               >
                 {slots[i] ?? ''}
               </span>
@@ -148,10 +196,10 @@ export function HangulBaseball() {
                 const statusClass = status ? `key-${status}` : ''; // 예: key-strike, key-ball, key-out
 
                 return (
-                  <button 
-                    key={jamo} 
-                    type="button" 
-                    className={`key ${statusClass}`} 
+                  <button
+                    key={jamo}
+                    type="button"
+                    className={`key ${statusClass}`}
                     onClick={() => pressJamo(jamo)}
                   >
                     {jamo}
@@ -168,10 +216,10 @@ export function HangulBaseball() {
                 const statusClass = status ? `key-${status}` : ''; // 예: key-strike, key-ball, key-out
 
                 return (
-                  <button 
-                    key={jamo} 
-                    type="button" 
-                    className={`key ${statusClass}`} 
+                  <button
+                    key={jamo}
+                    type="button"
+                    className={`key ${statusClass}`}
                     onClick={() => pressJamo(jamo)}
                   >
                     {jamo}
@@ -185,10 +233,10 @@ export function HangulBaseball() {
                 const statusClass = status ? `key-${status}` : ''; // 예: key-strike, key-ball, key-out
 
                 return (
-                  <button 
-                    key={jamo} 
-                    type="button" 
-                    className={`key ${statusClass}`} 
+                  <button
+                    key={jamo}
+                    type="button"
+                    className={`key ${statusClass}`}
                     onClick={() => pressJamo(jamo)}
                   >
                     {jamo}
@@ -197,7 +245,6 @@ export function HangulBaseball() {
               })}
             </div>
             <div className="key-row key-row-actions">
-              
               <button type="button" className="btn btn-primary" onClick={handleSubmit}>
                 던지기!
               </button>
