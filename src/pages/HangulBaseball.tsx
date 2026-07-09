@@ -73,9 +73,16 @@ export function HangulBaseball() {
 
         // 데이터가 1개 이상이라도 있을 경우
         if (data && data.total && parseInt(data.total, 10) > 0) {
-          return true; // 사전에 존재하는 단어임
+          const items = Array.isArray(data.item) ? data.item : [data.item];
+          const hasNoun = items.some((item: any) => item && item.pos === '명사');
+          if (hasNoun) {
+            return true; // 사전에 존재하고 명사
+          } else {
+            setError('명사만 입력할 수 있습니다.'); 
+            return false; // 사전에 있지만 명사가 아님
+          }
         }
-
+        setError('사전에 없는 단어입니다.')
         return false; // 사전에 없는 단어임
       } catch (error) {
         console.error("사전 API 조회 중 에러 발생:", error);
@@ -90,7 +97,6 @@ export function HangulBaseball() {
       return
     }
     if (!await isCheckInDictionary(slots)) {
-      setError('사전에 없는 단어입니다.')
       return
     }
     game.submitGuess(slots)
