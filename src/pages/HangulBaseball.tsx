@@ -20,7 +20,6 @@ import { xmlToJson } from '../lib/xml'
 
 export function HangulBaseball() {
   const today = new Date().toISOString().split('T')[0];
-  const API_KEY = import.meta.env.VITE_KOREAN_BASIC_DICTIONARY_API_SECRET_KEY;
   const generateHangulAnswer = () =>
     decomposeWord(HANGUL_WORDS[Math.floor(Math.random() * HANGUL_WORDS.length)])
 
