@@ -48,54 +48,47 @@ export function HangulBaseball() {
     setError(null)
   }
 
-  const isCheckInDictionary = async (guess: string[]): Promise<boolean> => {
-    const word = assembleJamo(guess);
+const isCheckInDictionary = async (guess: string[]): Promise<boolean> => {
+  const word = assembleJamo(guess);
 
-    if (HANGUL_WORDS.includes(word)) {
-      return true;
-    }
-    else {
-      try {
-        // 한국어기초사전 API 주소와 파라미터 세팅 (자바스크립트의 URLSearchParams 활용)
-        const baseUrl = 'https://krdict.korean.go.kr/api/search';
-        const params = new URLSearchParams({
-          key: API_KEY,
-          q: word,
-          advanced: 'y',
-          method: 'exact',  // 정확히 일치하는 단어만 검색
-          target: '1'       // 표제어 검색
-        });
+  if (HANGUL_WORDS.includes(word)) {
+    return true;
+  } else {
+    try {
+      // 🔒 중요: 국립국어원 주소가 아니라, 내 Vercel API 서버 주소로 요청을 보냅니다.
+      // API 키는 서버가 숨겨서 처리하므로 여기서는 단어(q)만 보냅니다.
+      const params = new URLSearchParams({ q: word });
+      const response = await fetch(`/api/search?${params.toString()}`);
 
-        const response = await fetch(`${baseUrl}?${params.toString()}`);
-
-        if (!response.ok) {
-          throw new Error('API 요청 실패');
-        }
-
-        const parser = new DOMParser();
-        const xmlDoc = parser.parseFromString(await response.text(), "text/xml");
-
-        const data = xmlToJson(xmlDoc.documentElement);
-
-        // 데이터가 1개 이상이라도 있을 경우
-        if (data && data.total && parseInt(data.total, 10) > 0) {
-          const items = Array.isArray(data.item) ? data.item : [data.item];
-          const hasNoun = items.some((item: any) => item && item.pos === '명사');
-          if (hasNoun) {
-            return true; // 사전에 존재하고 명사
-          } else {
-            setError('명사만 입력할 수 있습니다.');
-            return false; // 사전에 있지만 명사가 아님
-          }
-        }
-        setError('사전에 없는 단어입니다.')
-        return false; // 사전에 없는 단어임
-      } catch (error) {
-        console.error("사전 API 조회 중 에러 발생:", error);
-        return false;
+      if (!response.ok) {
+        throw new Error('API 요청 실패');
       }
+
+      const parser = new DOMParser();
+      // 서버가 보내준 XML 텍스트를 파싱합니다.
+      const xmlDoc = parser.parseFromString(await response.text(), "text/xml");
+
+      const data = xmlToJson(xmlDoc.documentElement);
+
+      // 데이터가 1개 이상이라도 있을 경우 (기존 로직 동일)
+      if (data && data.total && parseInt(data.total, 10) > 0) {
+        const items = Array.isArray(data.item) ? data.item : [data.item];
+        const hasNoun = items.some((item: any) => item && item.pos === '명사');
+        if (hasNoun) {
+          return true; // 사전에 존재하고 명사
+        } else {
+          setError('명사만 입력할 수 있습니다.');
+          return false; // 사전에 있지만 명사가 아님
+        }
+      }
+      setError('사전에 없는 단어입니다.');
+      return false; // 사전에 없는 단어임
+    } catch (error) {
+      console.error("사전 API 조회 중 에러 발생:", error);
+      return false;
     }
   }
+};
 
   const handleSubmit = async () => {
     if (slots.length !== HANGUL_LENGTH) {
