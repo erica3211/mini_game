@@ -3,13 +3,13 @@ import type { GameStatus } from '../hooks/useBaseballGame'
 interface Props {
   status: GameStatus
   answer: string[]
-  /** 정답 표시 문구. 생략하면 answer를 공백으로 이어 보여준다 */
   answerLabel?: string
   attemptsLeft: number
+  error: string | null
   onReset: () => void
 }
 
-export function GameStatusBanner({ status, answer, answerLabel, attemptsLeft, onReset }: Props) {
+export function GameStatusBanner({ status, answer, answerLabel, attemptsLeft, error, onReset }: Props) {
   if (status === 'playing') {
     return (
       <p className="attempts">
@@ -23,9 +23,12 @@ export function GameStatusBanner({ status, answer, answerLabel, attemptsLeft, on
       <p className="banner-answer">
         정답은 <strong>{answerLabel ?? answer.join(' ')}</strong>
       </p>
+
       <button type="button" className="btn btn-primary" onClick={onReset}>
         다시 하기
       </button>
+      {error && <p className="error">{error}</p>
+      }
     </div>
   )
 }

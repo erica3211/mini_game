@@ -11,7 +11,7 @@ function validate(value: string): string | null {
 }
 
 export function NumberBaseball() {
-  const game = useBaseballGame(generateNumberAnswer)
+  const game = useBaseballGame(generateNumberAnswer, 0);
   const [input, setInput] = useState('')
   const [error, setError] = useState<string | null>(null)
 
@@ -46,6 +46,7 @@ export function NumberBaseball() {
         status={game.status}
         answer={game.answer}
         attemptsLeft={game.attemptsLeft}
+        error={null}
         onReset={handleReset}
       />
 

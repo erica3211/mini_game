@@ -16,19 +16,25 @@ import { GuessHistory } from '../components/GuessHistory'
 import { GameStatusBanner } from '../components/GameStatusBanner'
 import { xmlToJson } from '../lib/xml'
 
-const API_KEY = import.meta.env.VITE_KOREAN_BASIC_DICTIONARY_API_SECRET_KEY;
 
-const generateHangulAnswer = () =>
-  decomposeWord(HANGUL_WORDS[Math.floor(Math.random() * HANGUL_WORDS.length)])
 
 export function HangulBaseball() {
-  const game = useBaseballGame(generateHangulAnswer)
+  const today = new Date().toISOString().split('T')[0];
+  const API_KEY = import.meta.env.VITE_KOREAN_BASIC_DICTIONARY_API_SECRET_KEY;
+  const generateHangulAnswer = () =>
+    decomposeWord(HANGUL_WORDS[Math.floor(Math.random() * HANGUL_WORDS.length)])
+
+  const [submitCount, setSubmitCount] = useState(() => {
+    return Number(localStorage.getItem('game_count')) || 0;
+  });
+
+  const game = useBaseballGame(generateHangulAnswer, submitCount)
   const [slots, setSlots] = useState<string[]>([])
   const [error, setError] = useState<string | null>(null)
 
   const pressJamo = (jamo: string) => {
     setError(null)
-    // ㅐ·ㄲ 같은 복합 자모는 기본 자모 여러 칸으로 풀어서 넣는다
+    // ㅐ·ㄲ 같은 복합 자모는 기본 자모 여러 칸으로 풀어서 넣음
     setSlots((prev) => [...prev, ...toBasicJamo(jamo)].slice(0, HANGUL_LENGTH))
   }
 
@@ -78,7 +84,7 @@ export function HangulBaseball() {
           if (hasNoun) {
             return true; // 사전에 존재하고 명사
           } else {
-            setError('명사만 입력할 수 있습니다.'); 
+            setError('명사만 입력할 수 있습니다.');
             return false; // 사전에 있지만 명사가 아님
           }
         }
@@ -86,7 +92,7 @@ export function HangulBaseball() {
         return false; // 사전에 없는 단어임
       } catch (error) {
         console.error("사전 API 조회 중 에러 발생:", error);
-        return false; 
+        return false;
       }
     }
   }
@@ -100,19 +106,24 @@ export function HangulBaseball() {
       return
     }
     game.submitGuess(slots)
-    clearInput()
+    clearInput();
   }
 
   const handleReset = () => {
+    if (submitCount >= 3) {
+      setError('오늘 기회를 모두 소진하셨습니다. 내일 다시 도전해주세요.');
+      return;
+    }
+
     game.reset()
     clearInput()
   }
 
   const jamoStatuses = useMemo(() => {
-    const score = { strike: 3, ball: 2, out: 1 };
+    const score: Record<'strike' | 'ball' | 'out', number> = { strike: 3, ball: 2, out: 1 };
     const acc: Record<string, 'strike' | 'ball' | 'out'> = {};
-    game.history.forEach(({ guess, marks }) => {
-      guess.forEach((jamo, index) => {
+    game.history.forEach(({ guess, marks }: { guess: string[]; marks: ('strike' | 'ball' | 'out')[] }) => {
+      guess.forEach((jamo: string, index: number) => {
         const currentMark = marks[index]; // 'strike' | 'ball' | 'out'
         if (!currentMark) return;
 
@@ -126,8 +137,46 @@ export function HangulBaseball() {
     return acc;
   }, [game.history]);
 
-  // 물리 키보드 입력 (두벌식). 핸들러가 최신 상태를 참조하도록 매 렌더마다 다시 등록
+  // 첫 진입 시, 딱 한 번만 작동
   useEffect(() => {
+    const savedDate = localStorage.getItem('game_date');
+    const savedCount = localStorage.getItem('game_count');
+
+    // 🚨 여기서 'today' 변수가 제대로 정의되어 있나요?
+    if (savedDate === today && savedCount) {
+      setSubmitCount(parseInt(savedCount, 10));
+    } else {
+      setSubmitCount(0);
+    }
+  }, []);
+
+  useEffect(() => {
+    // 게임 상태가 'won' 또는 'lost'일 때만 실행 (진행 중인 'playing'일 때는 무시)
+    if (game.status === 'won' || game.status === 'lost') {
+
+      const savedStatus = localStorage.getItem('game_status');
+      const savedHistory = localStorage.getItem('game_history');
+
+      if (savedStatus === game.status && savedHistory === JSON.stringify(game.history)) {
+        return;
+      }
+
+      const nextCount = submitCount + 1;
+
+      // 로컬 스토리지에 저장
+      localStorage.setItem('game_date', today);
+      localStorage.setItem('game_count', nextCount.toString());
+      localStorage.setItem('game_history', JSON.stringify(game.history));
+      localStorage.setItem('current_answer', JSON.stringify(game.answer))
+      localStorage.setItem('game_status', game.status);
+
+      // State 반영해서 화면 업데이트
+      setSubmitCount(nextCount);
+    }
+  }, [game.status]);
+
+  useEffect(() => {
+    // 물리 키보드 입력 (두벌식). 핸들러가 최신 상태를 참조하도록 매 렌더마다 다시 등록
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.ctrlKey || event.metaKey || event.altKey || event.repeat) return
       if (event.key === 'Enter') {
@@ -169,11 +218,15 @@ export function HangulBaseball() {
         </span>
       </div>
 
+      <div className="game-status-info" style={{ marginBottom: '15px', textAlign: 'center' }}>
+        <p style={{ fontWeight: 'bold' }}>오늘 시도 횟수: {submitCount} / 3</p>
+      </div>
       <GameStatusBanner
         status={game.status}
         answer={game.answer}
         answerLabel={`${assembleJamo(game.answer)} (${game.answer.join(' ')})`}
         attemptsLeft={game.attemptsLeft}
+        error={error}
         onReset={handleReset}
       />
 
