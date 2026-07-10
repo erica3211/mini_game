@@ -23,8 +23,15 @@ export function HangulBaseball() {
   const generateHangulAnswer = () =>
     decomposeWord(HANGUL_WORDS[Math.floor(Math.random() * HANGUL_WORDS.length)])
 
-  const [submitCount, setSubmitCount] = useState(() => {
-    return Number(localStorage.getItem('game_count')) || 0;
+  const [submitCount, setSubmitCount] = useState<number>(() => {
+    const savedDate = localStorage.getItem('game_date');
+    const savedCount = localStorage.getItem('game_count');
+
+    // 날짜가 오늘과 일치할 때만 저장된 카운트를 쓰고 다르면 0으로 시작
+    if (savedDate === today && savedCount) {
+      return Number(savedCount);
+    }
+    return 0;
   });
 
   const game = useBaseballGame(generateHangulAnswer, submitCount)
@@ -141,6 +148,25 @@ const isCheckInDictionary = async (guess: string[]): Promise<boolean> => {
       setSubmitCount(0);
     }
   }, []);
+
+  useEffect(() => {
+    const savedDate = localStorage.getItem('game_date');
+    
+    // 다른날 되면 로컬스토리지 데이터 초기화
+    if (savedDate && savedDate !== today) {
+      localStorage.removeItem('game_date');
+      localStorage.removeItem('game_count');
+      localStorage.removeItem('game_status');
+      localStorage.removeItem('game_history');
+      localStorage.removeItem('current_answer');
+      
+      setSubmitCount(0);
+      
+      setError(null);
+
+      game.reset(); 
+    }
+  }, [today]); 
 
   useEffect(() => {
     // 게임 상태가 'won' 또는 'lost'일 때만 실행 (진행 중인 'playing'일 때는 무시)
