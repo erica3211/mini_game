@@ -14,6 +14,7 @@ import { HANGUL_WORDS } from '../lib/words'
 import { useBaseballGame } from '../hooks/useBaseballGame'
 import { GuessHistory } from '../components/GuessHistory'
 import { GameStatusBanner } from '../components/GameStatusBanner'
+import { RulesBox } from '../components/RulesBox'
 
 
 
@@ -221,12 +222,84 @@ const isCheckInDictionary = async (guess: string[]): Promise<boolean> => {
   return (
     <section className="game-page">
       <h1 className="page-title">🇰🇷 한글야구</h1>
-      <p className="rules">
-        기본 자음·모음 <strong>5개</strong>로 풀리는 <strong>실제 단어</strong>를 맞혀보세요. 예:
-        개미 = <strong>ㄱ ㅏ ㅣ ㅁ ㅣ</strong> (ㅐ는 ㅏ+ㅣ 두 칸, ㄲ은 ㄱ+ㄱ 두 칸). 같은 자모가
-        여러 번 나올 수 있고, 기회는 5번! PC에서는 키보드로도 입력할 수 있어요 (한/영 상태 무관,{' '}
-        <strong>Enter</strong> 던지기 · <strong>Backspace</strong> 지우기).
-      </p>
+      <RulesBox
+        summary={
+          <>
+            기본 자음·모음 <strong>5개</strong>로 풀리는 <strong>실제 단어</strong>를 맞혀보세요. 예:
+            개미 = <strong>ㄱ ㅏ ㅣ ㅁ ㅣ</strong> (ㅐ는 ㅏ+ㅣ 두 칸, ㄲ은 ㄱ+ㄱ 두 칸). 같은 자모가
+            여러 번 나올 수 있고, 기회는 5번! PC에서는 키보드로도 입력할 수 있어요 (한/영 상태 무관,{' '}
+            <strong>Enter</strong> 던지기 · <strong>Backspace</strong> 지우기).
+          </>
+        }
+        example={
+          <>
+            <p className="rules-example-title">
+              예시: 정답이 <strong>가족(ㄱ ㅏ ㅈ ㅗ ㄱ)</strong>일 때{' '}
+              <strong>고집(ㄱ ㅗ ㅈ ㅣ ㅂ)</strong>을 입력하면?
+            </p>
+            <table className="rules-example-table">
+              <thead>
+                <tr>
+                  <th>자리</th>
+                  <th>정답</th>
+                  <th>입력</th>
+                  <th>판정</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>1</td>
+                  <td>ㄱ</td>
+                  <td>ㄱ</td>
+                  <td>
+                    <span className="badge badge-strike">S</span> 자모·자리 모두 일치
+                  </td>
+                </tr>
+                <tr>
+                  <td>2</td>
+                  <td>ㅏ</td>
+                  <td>ㅗ</td>
+                  <td>
+                    <span className="badge badge-ball">B</span> ㅗ는 정답에 있지만 4번째 자리
+                    자모예요
+                  </td>
+                </tr>
+                <tr>
+                  <td>3</td>
+                  <td>ㅈ</td>
+                  <td>ㅈ</td>
+                  <td>
+                    <span className="badge badge-strike">S</span> 자모·자리 모두 일치
+                  </td>
+                </tr>
+                <tr>
+                  <td>4</td>
+                  <td>ㅗ</td>
+                  <td>ㅣ</td>
+                  <td>
+                    <span className="badge badge-out">OUT</span> ㅣ는 정답에 없어요
+                  </td>
+                </tr>
+                <tr>
+                  <td>5</td>
+                  <td>ㄱ</td>
+                  <td>ㅂ</td>
+                  <td>
+                    <span className="badge badge-out">OUT</span> ㅂ는 정답에 없어요
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+            <p>
+              → 자리마다 <span className="tile tile-strike legend-tile">ㄱ</span>
+              <span className="tile tile-ball legend-tile">ㅗ</span>
+              <span className="tile tile-strike legend-tile">ㅈ</span>
+              <span className="tile tile-out legend-tile">ㅣ</span>
+              <span className="tile tile-out legend-tile">ㅂ</span> 처럼 색이 표시돼요.
+            </p>
+          </>
+        }
+      />
       <div className="legend">
         <span className="legend-item">
           <span className="tile tile-strike legend-tile">ㄱ</span>자모·자리 모두 맞음
