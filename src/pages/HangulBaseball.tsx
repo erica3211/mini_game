@@ -61,8 +61,6 @@ const isCheckInDictionary = async (guess: string[]): Promise<boolean> => {
     return true;
   } else {
     try {
-      // 🔒 중요: 국립국어원 주소가 아니라, 내 Vercel API 서버 주소로 요청을 보냅니다.
-      // API 키는 서버가 숨겨서 처리하므로 여기서는 단어(q)만 보냅니다.
       const params = new URLSearchParams({ q: word });
       const response = await fetch(`/api/search?${params.toString()}`);
 
@@ -70,25 +68,20 @@ const isCheckInDictionary = async (guess: string[]): Promise<boolean> => {
         throw new Error('API 요청 실패');
       }
 
-      const parser = new DOMParser();
-      // 서버가 보내준 XML 텍스트를 파싱합니다.
-      const xmlDoc = parser.parseFromString(await response.text(), "text/xml");
+      // 💡 서버에서 이미 정제된 JSON을 받으므로 파싱 부담 Zero!
+      const data = await response.json(); // { total: 1, hasNoun: true } 구조
 
-      const data = xmlToJson(xmlDoc.documentElement);
-
-      // 데이터가 1개 이상이라도 있을 경우 (기존 로직 동일)
-      if (data && data.total && parseInt(data.total, 10) > 0) {
-        const items = Array.isArray(data.item) ? data.item : [data.item];
-        const hasNoun = items.some((item: any) => item && item.pos === '명사');
-        if (hasNoun) {
-          return true; // 사전에 존재하고 명사
+      if (data && data.total > 0) {
+        if (data.hasNoun) {
+          return true; // 사전에 존재하고 명사임
         } else {
           setError('명사만 입력할 수 있습니다.');
-          return false; // 사전에 있지만 명사가 아님
+          return false;
         }
       }
+      
       setError('사전에 없는 단어입니다.');
-      return false; // 사전에 없는 단어임
+      return false;
     } catch (error) {
       console.error("사전 API 조회 중 에러 발생:", error);
       return false;
