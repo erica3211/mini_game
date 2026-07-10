@@ -252,7 +252,7 @@ const isCheckInDictionary = async (guess: string[]): Promise<boolean> => {
                   <td>ㄱ</td>
                   <td>ㄱ</td>
                   <td>
-                    <span className="badge badge-strike">S</span> 자모·자리 모두 일치
+                    <span className="badge badge-strike">ㄱ</span> 자모·자리 모두 일치
                   </td>
                 </tr>
                 <tr>
@@ -260,7 +260,7 @@ const isCheckInDictionary = async (guess: string[]): Promise<boolean> => {
                   <td>ㅏ</td>
                   <td>ㅗ</td>
                   <td>
-                    <span className="badge badge-ball">B</span> ㅗ는 정답에 있지만 4번째 자리
+                    <span className="badge badge-ball">ㅗ</span> ㅗ는 정답에 있지만 4번째 자리
                     자모예요
                   </td>
                 </tr>
@@ -269,7 +269,7 @@ const isCheckInDictionary = async (guess: string[]): Promise<boolean> => {
                   <td>ㅈ</td>
                   <td>ㅈ</td>
                   <td>
-                    <span className="badge badge-strike">S</span> 자모·자리 모두 일치
+                    <span className="badge badge-strike">ㅈ</span> 자모·자리 모두 일치
                   </td>
                 </tr>
                 <tr>
@@ -277,7 +277,7 @@ const isCheckInDictionary = async (guess: string[]): Promise<boolean> => {
                   <td>ㅗ</td>
                   <td>ㅣ</td>
                   <td>
-                    <span className="badge badge-out">OUT</span> ㅣ는 정답에 없어요
+                    <span className="badge badge-out">ㅣ</span> ㅣ는 정답에 없어요
                   </td>
                 </tr>
                 <tr>
@@ -285,7 +285,7 @@ const isCheckInDictionary = async (guess: string[]): Promise<boolean> => {
                   <td>ㄱ</td>
                   <td>ㅂ</td>
                   <td>
-                    <span className="badge badge-out">OUT</span> ㅂ는 정답에 없어요
+                    <span className="badge badge-out">ㅂ</span> ㅂ는 정답에 없어요
                   </td>
                 </tr>
               </tbody>
