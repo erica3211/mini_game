@@ -14,7 +14,6 @@ import { HANGUL_WORDS } from '../lib/words'
 import { useBaseballGame } from '../hooks/useBaseballGame'
 import { GuessHistory } from '../components/GuessHistory'
 import { GameStatusBanner } from '../components/GameStatusBanner'
-import { xmlToJson } from '../lib/xml'
 
 
 
