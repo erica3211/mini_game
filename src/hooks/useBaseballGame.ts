@@ -12,16 +12,36 @@ export interface GuessRecord extends JudgeResult {
 
 /** 정답 생성 함수를 받아 숫자/한글 공용으로 쓰는 게임 상태 훅 */
 export function useBaseballGame(generateAnswer: () => string[], submitCount: number) {
+
+  const generateUniqueAnswer = useCallback(() => {
+    const savedTodayAnswers = localStorage.getItem('today_answers');
+    const todayAnswersList: string[][] = savedTodayAnswers ? JSON.parse(savedTodayAnswers) : [];
+    
+    let newAnswer = generateAnswer();
+    let attempts = 0;
+
+    // 새로 뽑은 단어가 오늘 이미 풀었던 단어 목록에 있으면 최대 10번 재시도
+    while (
+      todayAnswersList.some(savedAns => JSON.stringify(savedAns) === JSON.stringify(newAnswer)) && 
+      attempts < 10
+    ) {
+      newAnswer = generateAnswer();
+      attempts++;
+    }
+    
+    return newAnswer;
+  }, [generateAnswer]);
+
   const [answer, setAnswer] = useState<string[]>(() => {
     const saved = localStorage.getItem('current_answer');
     if (saved) {
       try {
         return JSON.parse(saved);
       } catch (e) {
-        return generateAnswer();
+        return generateUniqueAnswer();
       }
     }
-    return generateAnswer();
+    return generateUniqueAnswer();
   });
 
   const [history, setHistory] = useState<any[]>(() => {
@@ -41,8 +61,8 @@ export function useBaseballGame(generateAnswer: () => string[], submitCount: num
 
     if (savedStatus) return savedStatus;
 
-    // 진입 시점에 이미 오늘 3번 다 채웠다면 무조건 'finish'
-    if (submitCount >= 3) return 'finish';
+    // 진입 시점에 이미 오늘 3번 다 채웠다면 무조건 'lost'
+    if (submitCount >= 3) return 'lost';
 
     // 그렇지 않다면 기존 저장된 게임 상태가 있는지 확인
     return 'playing';
@@ -63,11 +83,12 @@ export function useBaseballGame(generateAnswer: () => string[], submitCount: num
   const reset = useCallback(() => {
     localStorage.removeItem('game_status');
     localStorage.removeItem('game_history');
+    localStorage.removeItem('current_answer');
 
-    setAnswer(generateAnswer());
+    setAnswer(generateUniqueAnswer());
     setHistory([]);
     setStatus('playing');
-  }, [generateAnswer]);
+  }, [generateUniqueAnswer]);
 
   return {
     answer,

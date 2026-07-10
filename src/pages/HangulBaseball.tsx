@@ -151,6 +151,7 @@ const isCheckInDictionary = async (guess: string[]): Promise<boolean> => {
       localStorage.removeItem('game_status');
       localStorage.removeItem('game_history');
       localStorage.removeItem('current_answer');
+      localStorage.removeItem('today_answers');
       
       setSubmitCount(0);
       
@@ -173,17 +174,27 @@ const isCheckInDictionary = async (guess: string[]): Promise<boolean> => {
 
       const nextCount = submitCount + 1;
 
+      // 기존에 저장된 오늘 나온 단어 목록(배열) 가져오기
+      const savedTodayAnswers = localStorage.getItem('today_answers');
+      const todayAnswersList = savedTodayAnswers ? JSON.parse(savedTodayAnswers) : [];
+      
+      // 현재 정답 단어가 목록에 없을 때만 추가 
+      if (!todayAnswersList.some((a: string[]) => JSON.stringify(a) === JSON.stringify(game.answer))) {
+        todayAnswersList.push(game.answer);
+      }
+
       // 로컬 스토리지에 저장
       localStorage.setItem('game_date', today);
       localStorage.setItem('game_count', nextCount.toString());
       localStorage.setItem('game_history', JSON.stringify(game.history));
-      localStorage.setItem('current_answer', JSON.stringify(game.answer))
+      localStorage.setItem('current_answer', JSON.stringify(game.answer));
       localStorage.setItem('game_status', game.status);
+      localStorage.setItem('today_answers', JSON.stringify(todayAnswersList));
 
       // State 반영해서 화면 업데이트
       setSubmitCount(nextCount);
     }
-  }, [game.status]);
+  }, [game.status, game.history, submitCount]); 
 
   useEffect(() => {
     // 물리 키보드 입력 (두벌식). 핸들러가 최신 상태를 참조하도록 매 렌더마다 다시 등록
