@@ -12,7 +12,7 @@ function validate(value: string): string | null {
 }
 
 export function NumberBaseball() {
-  const game = useBaseballGame(generateNumberAnswer, 0);
+  const game = useBaseballGame(generateNumberAnswer, 0, 'number');
   const [input, setInput] = useState('')
   const [error, setError] = useState<string | null>(null)
 

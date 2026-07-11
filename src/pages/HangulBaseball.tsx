@@ -24,8 +24,8 @@ export function HangulBaseball() {
     decomposeWord(HANGUL_WORDS[Math.floor(Math.random() * HANGUL_WORDS.length)])
 
   const [submitCount, setSubmitCount] = useState<number>(() => {
-    const savedDate = localStorage.getItem('game_date');
-    const savedCount = localStorage.getItem('game_count');
+    const savedDate = localStorage.getItem('hangul_game_date');
+    const savedCount = localStorage.getItem('hangul_game_count');
 
     // 날짜가 오늘과 일치할 때만 저장된 카운트를 쓰고 다르면 0으로 시작
     if (savedDate === today && savedCount) {
@@ -34,7 +34,7 @@ export function HangulBaseball() {
     return 0;
   });
 
-  const game = useBaseballGame(generateHangulAnswer, submitCount)
+  const game = useBaseballGame(generateHangulAnswer, submitCount, 'hangul')
   const [slots, setSlots] = useState<string[]>([])
   const [error, setError] = useState<string | null>(null)
 
@@ -131,8 +131,8 @@ const isCheckInDictionary = async (guess: string[]): Promise<boolean> => {
 
   // 첫 진입 시, 딱 한 번만 작동
   useEffect(() => {
-    const savedDate = localStorage.getItem('game_date');
-    const savedCount = localStorage.getItem('game_count');
+    const savedDate = localStorage.getItem('hangul_game_date');
+    const savedCount = localStorage.getItem('hangul_game_count');
 
     // 🚨 여기서 'today' 변수가 제대로 정의되어 있나요?
     if (savedDate === today && savedCount) {
@@ -143,31 +143,31 @@ const isCheckInDictionary = async (guess: string[]): Promise<boolean> => {
   }, []);
 
   useEffect(() => {
-    const savedDate = localStorage.getItem('game_date');
-    
+    const savedDate = localStorage.getItem('hangul_game_date');
+
     // 다른날 되면 로컬스토리지 데이터 초기화
     if (savedDate && savedDate !== today) {
-      localStorage.removeItem('game_date');
-      localStorage.removeItem('game_count');
-      localStorage.removeItem('game_status');
-      localStorage.removeItem('game_history');
-      localStorage.removeItem('current_answer');
-      localStorage.removeItem('today_answers');
-      
+      localStorage.removeItem('hangul_game_date');
+      localStorage.removeItem('hangul_game_count');
+      localStorage.removeItem('hangul_game_status');
+      localStorage.removeItem('hangul_game_history');
+      localStorage.removeItem('hangul_current_answer');
+      localStorage.removeItem('hangul_today_answers');
+
       setSubmitCount(0);
-      
+
       setError(null);
 
-      game.reset(); 
+      game.reset();
     }
-  }, [today]); 
+  }, [today]);
 
   useEffect(() => {
     // 게임 상태가 'won' 또는 'lost'일 때만 실행 (진행 중인 'playing'일 때는 무시)
     if (game.status === 'won' || game.status === 'lost') {
 
-      const savedStatus = localStorage.getItem('game_status');
-      const savedHistory = localStorage.getItem('game_history');
+      const savedStatus = localStorage.getItem('hangul_game_status');
+      const savedHistory = localStorage.getItem('hangul_game_history');
 
       if (savedStatus === game.status && savedHistory === JSON.stringify(game.history)) {
         return;
@@ -176,26 +176,26 @@ const isCheckInDictionary = async (guess: string[]): Promise<boolean> => {
       const nextCount = submitCount + 1;
 
       // 기존에 저장된 오늘 나온 단어 목록(배열) 가져오기
-      const savedTodayAnswers = localStorage.getItem('today_answers');
+      const savedTodayAnswers = localStorage.getItem('hangul_today_answers');
       const todayAnswersList = savedTodayAnswers ? JSON.parse(savedTodayAnswers) : [];
-      
-      // 현재 정답 단어가 목록에 없을 때만 추가 
+
+      // 현재 정답 단어가 목록에 없을 때만 추가
       if (!todayAnswersList.some((a: string[]) => JSON.stringify(a) === JSON.stringify(game.answer))) {
         todayAnswersList.push(game.answer);
       }
 
       // 로컬 스토리지에 저장
-      localStorage.setItem('game_date', today);
-      localStorage.setItem('game_count', nextCount.toString());
-      localStorage.setItem('game_history', JSON.stringify(game.history));
-      localStorage.setItem('current_answer', JSON.stringify(game.answer));
-      localStorage.setItem('game_status', game.status);
-      localStorage.setItem('today_answers', JSON.stringify(todayAnswersList));
+      localStorage.setItem('hangul_game_date', today);
+      localStorage.setItem('hangul_game_count', nextCount.toString());
+      localStorage.setItem('hangul_game_history', JSON.stringify(game.history));
+      localStorage.setItem('hangul_current_answer', JSON.stringify(game.answer));
+      localStorage.setItem('hangul_game_status', game.status);
+      localStorage.setItem('hangul_today_answers', JSON.stringify(todayAnswersList));
 
       // State 반영해서 화면 업데이트
       setSubmitCount(nextCount);
     }
-  }, [game.status, game.history, submitCount]); 
+  }, [game.status, game.history, submitCount]);
 
   useEffect(() => {
     // 물리 키보드 입력 (두벌식). 핸들러가 최신 상태를 참조하도록 매 렌더마다 다시 등록
