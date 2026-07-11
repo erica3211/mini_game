@@ -40,7 +40,7 @@ export function HangulBaseball() {
 
   const pressJamo = (jamo: string) => {
     setError(null)
-    // ㅐ·ㄲ 같은 복합 자모는 기본 자모 여러 칸으로 풀어서 넣음
+    // ㅐ·ㄲ 같은 복합 자/모음은 기본 자/모음 여러 칸으로 풀어서 넣음
     setSlots((prev) => [...prev, ...toBasicJamo(jamo)].slice(0, HANGUL_LENGTH))
   }
 
@@ -91,7 +91,7 @@ const isCheckInDictionary = async (guess: string[]): Promise<boolean> => {
 
   const handleSubmit = async () => {
     if (slots.length !== HANGUL_LENGTH) {
-      setError(`자모 ${HANGUL_LENGTH}개를 모두 채워주세요.`)
+      setError(`자/모음 ${HANGUL_LENGTH}개를 모두 채워주세요.`)
       return
     }
     if (!await isCheckInDictionary(slots)) {
@@ -119,7 +119,7 @@ const isCheckInDictionary = async (guess: string[]): Promise<boolean> => {
         const currentMark = marks[index]; // 'strike' | 'ball' | 'out'
         if (!currentMark) return;
 
-        // 기존 점수보다 지금 들어온 자모의 점수가 더 높을 때만 갱신
+        // 기존 점수보다 지금 들어온 자/모음의 점수가 더 높을 때만 갱신
         const prevScore = acc[jamo] ? score[acc[jamo]] : 0;
         if (score[currentMark] > prevScore) {
           acc[jamo] = currentMark;
@@ -252,7 +252,7 @@ const isCheckInDictionary = async (guess: string[]): Promise<boolean> => {
                   <td>ㄱ</td>
                   <td>ㄱ</td>
                   <td>
-                    <span className="badge badge-strike">ㄱ</span> 자모·자리 모두 일치
+                    <span className="badge badge-strike">ㄱ</span> 자/모음과 자리 모두 일치
                   </td>
                 </tr>
                 <tr>
@@ -261,7 +261,7 @@ const isCheckInDictionary = async (guess: string[]): Promise<boolean> => {
                   <td>ㅗ</td>
                   <td>
                     <span className="badge badge-ball">ㅗ</span> ㅗ는 정답에 있지만 4번째 자리
-                    자모예요
+                    자/모음이에요
                   </td>
                 </tr>
                 <tr>
@@ -269,7 +269,7 @@ const isCheckInDictionary = async (guess: string[]): Promise<boolean> => {
                   <td>ㅈ</td>
                   <td>ㅈ</td>
                   <td>
-                    <span className="badge badge-strike">ㅈ</span> 자모·자리 모두 일치
+                    <span className="badge badge-strike">ㅈ</span> 자/모음과 자리 모두 일치
                   </td>
                 </tr>
                 <tr>
@@ -302,13 +302,13 @@ const isCheckInDictionary = async (guess: string[]): Promise<boolean> => {
       />
       <div className="legend">
         <span className="legend-item">
-          <span className="tile tile-strike legend-tile">ㄱ</span>자모·자리 모두 맞음
+          <span className="tile tile-strike legend-tile">ㄱ</span>자/모음과 자리 모두 맞음
         </span>
         <span className="legend-item">
-          <span className="tile tile-ball legend-tile">ㄱ</span>자모는 있지만 자리가 다름
+          <span className="tile tile-ball legend-tile">ㄱ</span>자/모음은 있지만 자리가 다름
         </span>
         <span className="legend-item">
-          <span className="tile tile-out legend-tile">ㄱ</span>없는 자모
+          <span className="tile tile-out legend-tile">ㄱ</span>없는 자/모음
         </span>
       </div>
 

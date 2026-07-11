@@ -40,7 +40,7 @@ export function NumberBaseball() {
       <RulesBox
         summary={
           <>
-            서로 다른 숫자로 이루어진 세 자리 수를 맞혀보세요. 숫자와 자리가 모두 맞으면{' '}
+            컴퓨터가 생각하는 0부터 9까지의 서로 다른 숫자로 이루어진 세 자리 수를 맞혀보세요. 숫자와 자리가 모두 맞으면{' '}
             <strong>스트라이크(S)</strong>, 숫자만 있으면 <strong>볼(B)</strong>, 하나도 없으면{' '}
             <strong>아웃(OUT)</strong>! 기회는 5번이에요.
           </>
