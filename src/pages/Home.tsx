@@ -13,6 +13,12 @@ const games = [
     title: '한글야구',
     description: '자음·모음 5개로 이루어진 조합을 5번 안에 맞혀보세요.',
   },
+  {
+    path: '/black-jack',
+    emoji: '🂡🂢🂣',
+    title: '블랙잭',
+    description: '21에 가장 가까운 숫자를 만들어 5명의 딜러를 파산시켜보세요.',
+  },
 ] as const
 
 export function Home() {

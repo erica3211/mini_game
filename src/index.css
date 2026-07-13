@@ -188,6 +188,19 @@ button {
   color: var(--text);
 }
 
+.rules-example-cards {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.25rem;
+}
+
+.rules-example-score {
+  margin-top: 0.3rem;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
 .attempts {
   font-size: 1rem;
 }
@@ -467,6 +480,7 @@ button {
   font-size: 0.85rem;
   font-weight: 700;
   color: #fff;
+  white-space: nowrap;
 }
 
 .badge-strike {
@@ -481,6 +495,20 @@ button {
   background: var(--out);
   border: 1px solid var(--border);
   color: var(--text-muted);
+}
+
+.badge-win {
+  background: var(--strike);
+}
+
+.badge-push {
+  background: var(--out);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+}
+
+.badge-lose {
+  background: var(--danger);
 }
 
 /* 한글야구: 자리별 색깔 타일 */
@@ -543,4 +571,286 @@ button {
   color: var(--text-muted);
   min-width: 3.5rem;
   text-align: right;
+}
+
+/* 블랙잭 */
+.bj-screen {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.bj-status-bar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.75rem 1rem;
+  font-size: 0.9rem;
+}
+
+.bj-status-bar strong {
+  color: var(--accent);
+}
+
+.bj-inventory-preview {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.bj-slot {
+  width: 1.8rem;
+  height: 1.8rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+}
+
+.bj-slot-empty {
+  color: var(--text-muted);
+  opacity: 0.5;
+}
+
+.bj-section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem;
+}
+
+.bj-section-title {
+  margin: 0 0 0.65rem;
+  font-size: 1rem;
+}
+
+.bj-enemy-row {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.bj-enemy-img {
+  width: 6.5rem;
+  height: 6.5rem;
+  flex: none;
+  object-fit: contain;
+}
+
+.bj-enemy {
+  margin: 0 0 0.3rem;
+}
+
+.bj-enemy-ability {
+  color: var(--accent);
+}
+
+.bj-enemy-desc {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.bj-shop-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.bj-shop-item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.75rem;
+  text-align: left;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.6rem 0.85rem;
+  color: var(--text);
+  transition: border-color 0.15s, opacity 0.15s;
+}
+
+.bj-shop-item:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.bj-shop-item:not(:disabled):hover {
+  border-color: var(--border-strong);
+}
+
+.bj-shop-item-name {
+  font-weight: 700;
+  flex: 0 0 auto;
+}
+
+.bj-shop-item-desc {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  flex: 1 1 220px;
+}
+
+.bj-shop-item-price {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.bj-bet-amount {
+  margin: 0 0 0.65rem;
+}
+
+.bj-bet-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.bj-start-btn {
+  padding: 1rem;
+  font-size: 1.05rem;
+}
+
+.bj-table-area {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem;
+}
+
+.bj-table-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+  font-weight: 700;
+}
+
+.bj-cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.bj-card {
+  width: 3.4rem;
+  height: 4.6rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface-raised);
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  font-weight: 700;
+}
+
+.bj-card-suit {
+  font-size: 1.3rem;
+}
+
+.bj-card-rank {
+  font-size: 1rem;
+}
+
+.bj-card-red {
+  color: var(--danger);
+}
+
+.bj-card-hidden {
+  background: var(--surface);
+  color: var(--text-muted);
+  font-size: 1.6rem;
+}
+
+.bj-card-sm {
+  width: 2rem;
+  height: 2.7rem;
+  border-radius: 6px;
+}
+
+.bj-card-sm .bj-card-suit {
+  font-size: 0.85rem;
+}
+
+.bj-card-sm .bj-card-rank {
+  font-size: 0.7rem;
+}
+
+.bj-card-sm.bj-card-hidden {
+  font-size: 1rem;
+}
+
+.bj-notification {
+  background: rgba(88, 166, 255, 0.08);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.75rem 1rem;
+  font-size: 0.9rem;
+}
+
+.bj-empty {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.bj-inventory-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.bj-item-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.55rem 0.85rem;
+  color: var(--text);
+  font-weight: 600;
+}
+
+.bj-item-btn:not(:disabled):hover {
+  border-color: var(--accent);
+}
+
+.bj-item-btn:disabled {
+  cursor: not-allowed;
+}
+
+.bj-item-passive {
+  opacity: 0.6;
+}
+
+.bj-item-tag {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.1rem 0.5rem;
+}
+
+.bj-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.bj-stand-btn {
+  flex: 1;
+  background: var(--out);
+  color: var(--text);
+}
+
+.bj-hit-btn {
+  flex: 1;
 }

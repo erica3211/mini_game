@@ -2,6 +2,7 @@ import { BrowserRouter, Link, Route, Routes } from 'react-router-dom'
 import { Home } from './pages/Home'
 import { NumberBaseball } from './pages/NumberBaseball'
 import { HangulBaseball } from './pages/HangulBaseball'
+import { BlackJack } from './pages/BlackJack'
 
 export function App() {
   return (
@@ -16,6 +17,7 @@ export function App() {
           <Route path="/" element={<Home />} />
           <Route path="/number-baseball" element={<NumberBaseball />} />
           <Route path="/hangul-baseball" element={<HangulBaseball />} />
+          <Route path="/black-jack" element={<BlackJack />} />
         </Routes>
       </main>
     </BrowserRouter>
