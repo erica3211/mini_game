@@ -18,8 +18,13 @@ import { RulesBox } from '../components/RulesBox'
 
 
 
+const getLocalDateString = () => {
+  const now = new Date()
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
+}
+
 export function HangulBaseball() {
-  const today = new Date().toISOString().split('T')[0];
+  const today = getLocalDateString();
   const generateHangulAnswer = () =>
     decomposeWord(HANGUL_WORDS[Math.floor(Math.random() * HANGUL_WORDS.length)])
 
@@ -128,19 +133,6 @@ const isCheckInDictionary = async (guess: string[]): Promise<boolean> => {
     });
     return acc;
   }, [game.history]);
-
-  // 첫 진입 시, 딱 한 번만 작동
-  useEffect(() => {
-    const savedDate = localStorage.getItem('hangul_game_date');
-    const savedCount = localStorage.getItem('hangul_game_count');
-
-    // 🚨 여기서 'today' 변수가 제대로 정의되어 있나요?
-    if (savedDate === today && savedCount) {
-      setSubmitCount(parseInt(savedCount, 10));
-    } else {
-      setSubmitCount(0);
-    }
-  }, []);
 
   useEffect(() => {
     const savedDate = localStorage.getItem('hangul_game_date');
