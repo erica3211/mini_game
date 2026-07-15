@@ -298,10 +298,10 @@ export function BlackJack() {
       <RulesBox
         summary={
           <>
-            카드 합이 <strong>21을 넘지 않는 선에서 최대한 21에 가깝게</strong> 만들어 딜러를 이겨보세요. J·Q·K는{' '}
-            <strong>10</strong>, A는 <strong>1 또는 11</strong>(유리한 쪽)로 계산돼요. 21을 넘기면 즉시{' '}
-            <strong>버스트(패배)</strong>! 5단계에 걸쳐 딜러가 점점 강력한 특수 능력을 갖고, 매 스테이지 시작 전
-            상점에서 아이템을 최대 3개까지 사서 대비할 수 있어요. 소지금이 <strong>0원</strong>이 되면 즉시 게임
+            카드 합이 <strong>21을 넘지 않는 선에서 최대한 21에 가깝게</strong> 만들어 딜러를 이겨보세요.<br /> <strong>J·Q·K</strong>는{' '}
+            <strong>10</strong>, <strong>A</strong>는 <strong>1 또는 11</strong>(유리한 쪽)로 계산돼요.<br />  21을 넘기면 즉시{' '}
+            <strong>버스트(패배)</strong>! <br /> 5단계에 걸쳐 딜러가 점점 강력한 특수 능력을 갖고, 매 스테이지 시작 전
+            상점에서 아이템을 최대 3개까지 사서 대비할 수 있어요.<br />  소지금이 <strong>0원</strong>이 되면 즉시 게임
             오버, <strong>5스테이지</strong>를 모두 깨면 최종 승리예요!
           </>
         }

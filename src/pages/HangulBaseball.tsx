@@ -217,9 +217,9 @@ const isCheckInDictionary = async (guess: string[]): Promise<boolean> => {
       <RulesBox
         summary={
           <>
-            기본 자음·모음 <strong>5개</strong>로 풀리는 <strong>실제 단어</strong>를 맞혀보세요. 예:
-            개미 = <strong>ㄱ ㅏ ㅣ ㅁ ㅣ</strong> (ㅐ는 ㅏ+ㅣ 두 칸, ㄲ은 ㄱ+ㄱ 두 칸). 같은 자모가
-            여러 번 나올 수 있고, 기회는 5번! PC에서는 키보드로도 입력할 수 있어요 (한/영 상태 무관,{' '}
+            기본 자음·모음 <strong>5개</strong>로 풀리는 <strong>실제 단어</strong>를 맞혀보세요.<br /> &nbsp;&nbsp;예:
+            개미 = <strong>ㄱ ㅏ ㅣ ㅁ ㅣ</strong> (<strong>ㅐ</strong>는 <strong>ㅏ</strong>+<strong>ㅣ</strong> 두 칸, <strong>ㄲ</strong>은 <strong>ㄱ</strong>+<strong>ㄱ</strong> 두 칸).<br />  같은 자모가
+            여러 번 나올 수 있고, 기회는 5번!<br /> PC에서는 키보드로도 입력할 수 있어요. (한/영 상태 무관,{' '}
             <strong>Enter</strong> 던지기 · <strong>Backspace</strong> 지우기).
           </>
         }
