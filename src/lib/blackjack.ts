@@ -209,7 +209,7 @@ export function resolveRound(
 }
 
 function buildRoundSummary(result: RoundResult, delta: number): string {
-  if (result === 'win') return `승리! ${delta >= 0 ? '+' : ''}${delta}원을 획득했습니다.`
-  if (result === 'lose') return `패배... ${delta}원을 잃었습니다.`
+  if (result === 'win') return `승리! ${delta.toLocaleString()}원을 획득했습니다.`
+  if (result === 'lose') return `패배... ${(-1 * delta).toLocaleString()}원을 잃었습니다.`
   return delta === 0 ? '무승부! 승부가 나지 않았습니다.' : `무승부지만 ${delta}원이 정산되었습니다.`
 }

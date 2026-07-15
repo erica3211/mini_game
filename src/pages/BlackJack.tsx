@@ -231,7 +231,11 @@ function GameOverScreen({ game }: { game: Game }) {
   return (
     <div className="banner banner-lost">
       <p className="banner-title">게임 오버 💸</p>
-      <p className="banner-answer">소지금이 0원이 되었습니다. STAGE {game.state.stage}에서 파산했어요.</p>
+      <p className="banner-answer">
+        소지금이 0원이 되었습니다.
+        <br />
+        STAGE {game.state.stage}에서 파산했어요.
+      </p>
       <button type="button" className="btn btn-primary" onClick={game.resetGame}>
         다시 시작
       </button>
@@ -244,7 +248,9 @@ function VictoryScreen({ game }: { game: Game }) {
     <div className="banner banner-won">
       <p className="banner-title">최종 승리! 🏆</p>
       <p className="banner-answer">
-        5명의 딜러를 모두 물리쳤습니다! 최종 소지금 {game.state.money.toLocaleString()}원
+        5명의 딜러를 모두 물리쳤습니다!
+        <br />
+        최종 소지금 {game.state.money.toLocaleString()}원
       </p>
       <button type="button" className="btn btn-primary" onClick={game.resetGame}>
         다시 시작

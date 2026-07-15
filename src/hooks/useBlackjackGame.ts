@@ -89,6 +89,9 @@ function resolveAfterStand(state: BlackjackState, emergencyClamped: boolean): Bl
   const dealerScore = calculateScore(dealerHand)
   const outcome = resolveRound(playerScore, dealerScore, state.bet, state.insuranceActive)
   const money = state.money + outcome.moneyDelta
+  const message = emergencyClamped
+    ? `🩹 긴급 수술 키트가 발동해 점수를 21로 고정했습니다!\n${outcome.summary}`
+    : outcome.summary
 
   if (outcome.result === 'win') {
     if (state.stage >= STAGES.length) {
@@ -100,7 +103,7 @@ function resolveAfterStand(state: BlackjackState, emergencyClamped: boolean): Bl
         phase: 'roundEnd',
         pendingPhase: 'victory',
         roundResult: outcome.result,
-        message: outcome.summary,
+        message,
       }
     }
     return {
@@ -112,7 +115,7 @@ function resolveAfterStand(state: BlackjackState, emergencyClamped: boolean): Bl
       phase: 'roundEnd',
       pendingPhase: 'shop',
       roundResult: outcome.result,
-      message: outcome.summary,
+      message,
     }
   }
 
@@ -125,7 +128,7 @@ function resolveAfterStand(state: BlackjackState, emergencyClamped: boolean): Bl
       phase: 'roundEnd',
       pendingPhase: 'gameOver',
       roundResult: outcome.result,
-      message: outcome.summary,
+      message,
     }
   }
   return {
@@ -136,7 +139,7 @@ function resolveAfterStand(state: BlackjackState, emergencyClamped: boolean): Bl
     phase: 'roundEnd',
     pendingPhase: 'shop',
     roundResult: outcome.result,
-    message: outcome.summary,
+    message,
   }
 }
 

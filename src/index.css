@@ -236,6 +236,7 @@ button {
 .banner-answer {
   margin: 0 0 1rem;
   color: var(--text-muted);
+  white-space: pre-line;
 }
 
 .banner-answer strong {
@@ -807,6 +808,7 @@ button {
   border-radius: var(--radius);
   padding: 0.75rem 1rem;
   font-size: 0.9rem;
+  white-space: pre-line;
 }
 
 .bj-empty {
