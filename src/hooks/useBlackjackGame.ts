@@ -12,6 +12,8 @@ import {
 } from '../lib/blackjack'
 
 export type Phase = 'shop' | 'playing' | 'roundEnd' | 'gameOver' | 'victory'
+/** roundEnd 배너에서 '확인'을 눌렀을 때 이동할 다음 화면 */
+export type PendingPhase = 'shop' | 'gameOver' | 'victory'
 
 export interface InventoryItem {
   uid: string
@@ -27,6 +29,7 @@ export interface BlackjackState {
   playerHand: Card[]
   dealerHand: Card[]
   phase: Phase
+  pendingPhase: PendingPhase
   roundResult: RoundResult | null
   message: string
   xrayActive: boolean
@@ -48,6 +51,7 @@ function createInitialState(): BlackjackState {
     playerHand: [],
     dealerHand: [],
     phase: 'shop',
+    pendingPhase: 'shop',
     roundResult: null,
     message: '',
     xrayActive: false,
@@ -88,7 +92,16 @@ function resolveAfterStand(state: BlackjackState, emergencyClamped: boolean): Bl
 
   if (outcome.result === 'win') {
     if (state.stage >= STAGES.length) {
-      return { ...state, deck, dealerHand, money, phase: 'victory', roundResult: outcome.result, message: outcome.summary }
+      return {
+        ...state,
+        deck,
+        dealerHand,
+        money,
+        phase: 'roundEnd',
+        pendingPhase: 'victory',
+        roundResult: outcome.result,
+        message: outcome.summary,
+      }
     }
     return {
       ...state,
@@ -97,15 +110,34 @@ function resolveAfterStand(state: BlackjackState, emergencyClamped: boolean): Bl
       money,
       stage: state.stage + 1,
       phase: 'roundEnd',
+      pendingPhase: 'shop',
       roundResult: outcome.result,
       message: outcome.summary,
     }
   }
 
   if (money <= 0) {
-    return { ...state, deck, dealerHand, money, phase: 'gameOver', roundResult: outcome.result, message: outcome.summary }
+    return {
+      ...state,
+      deck,
+      dealerHand,
+      money,
+      phase: 'roundEnd',
+      pendingPhase: 'gameOver',
+      roundResult: outcome.result,
+      message: outcome.summary,
+    }
   }
-  return { ...state, deck, dealerHand, money, phase: 'roundEnd', roundResult: outcome.result, message: outcome.summary }
+  return {
+    ...state,
+    deck,
+    dealerHand,
+    money,
+    phase: 'roundEnd',
+    pendingPhase: 'shop',
+    roundResult: outcome.result,
+    message: outcome.summary,
+  }
 }
 
 export function useBlackjackGame() {
@@ -255,7 +287,8 @@ export function useBlackjackGame() {
   const continueRound = useCallback(() => {
     setState((prev) => ({
       ...prev,
-      phase: 'shop',
+      phase: prev.pendingPhase,
+      pendingPhase: 'shop',
       roundResult: null,
       bet: Math.min(MIN_BET, prev.money),
       playerHand: [],
