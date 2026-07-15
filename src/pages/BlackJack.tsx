@@ -38,17 +38,6 @@ function ShopScreen({ game }: { game: Game }) {
         <span>
           소지금 <strong>{state.money.toLocaleString()}원</strong>
         </span>
-        <span className="bj-inventory-preview">아이템
-          {Array.from({ length: MAX_INVENTORY }, (_, i) => {
-            const item = state.inventory[i]
-            const config = item ? ITEMS.find((entry) => entry.id === item.id) : null
-            return (
-              <span key={i} className={`bj-slot ${config ? '' : 'bj-slot-empty'}`}>
-                {config ? config.emoji : ''}
-              </span>
-            )
-          })}
-        </span>
       </div>
 
       <div className="bj-section">
@@ -67,6 +56,18 @@ function ShopScreen({ game }: { game: Game }) {
 
       <div className="bj-section">
         <h2 className="bj-section-title">🛒 암시장 상점 (최대 {MAX_INVENTORY}개 소지)</h2>
+        <div className="bj-inventory-preview">
+          <span className="bj-inventory-preview-label">소지한 아이템</span>
+          {Array.from({ length: MAX_INVENTORY }, (_, i) => {
+            const item = state.inventory[i]
+            const config = item ? ITEMS.find((entry) => entry.id === item.id) : null
+            return (
+              <span key={i} className={`bj-slot ${config ? '' : 'bj-slot-empty'}`}>
+                {config ? config.emoji : ''}
+              </span>
+            )
+          })}
+        </div>
         <div className="bj-shop-list">
           {ITEMS.map((item) => {
             const disabled = state.inventory.length >= MAX_INVENTORY || state.money < item.price
@@ -78,10 +79,12 @@ function ShopScreen({ game }: { game: Game }) {
                 disabled={disabled}
                 onClick={() => buyItem(item.id)}
               >
-                <span className="bj-shop-item-name">
-                  {item.emoji} {item.name}
+                <span className="bj-shop-item-info">
+                  <span className="bj-shop-item-name">
+                    {item.emoji} {item.name}
+                  </span>
+                  <span className="bj-shop-item-desc">{item.description}</span>
                 </span>
-                <span className="bj-shop-item-desc">{item.description}</span>
                 <span className="bj-shop-item-price">{item.price}원</span>
               </button>
             )
