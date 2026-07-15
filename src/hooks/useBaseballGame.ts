@@ -86,7 +86,9 @@ export function useBaseballGame(
   )
 
   const reset = useCallback(() => {
-    localStorage.removeItem(key('game_status'));
+    // 'playing'으로 즉시 기록해둬야, 새로고침 시 이번 판이 아직 끝나지 않았음을 알 수 있음
+    // (미기록 시 마지막 판이라면 아래 submitCount>=3 분기에 걸려 'lost'로 잘못 판정됨)
+    localStorage.setItem(key('game_status'), 'playing');
     localStorage.removeItem(key('game_history'));
     localStorage.removeItem(key('current_answer'));
 

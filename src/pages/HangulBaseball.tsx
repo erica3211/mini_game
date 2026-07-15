@@ -32,11 +32,11 @@ export function HangulBaseball() {
     const savedDate = localStorage.getItem('hangul_game_date');
     const savedCount = localStorage.getItem('hangul_game_count');
 
-    // 날짜가 오늘과 일치할 때만 저장된 카운트를 쓰고 다르면 0으로 시작
+    // 날짜가 오늘과 일치할 때만 저장된 카운트를 쓰고, 다르면 오늘의 1번째 시도로 시작
     if (savedDate === today && savedCount) {
       return Number(savedCount);
     }
-    return 0;
+    return 1;
   });
 
   const game = useBaseballGame(generateHangulAnswer, submitCount, 'hangul')
@@ -112,6 +112,11 @@ const isCheckInDictionary = async (guess: string[]): Promise<boolean> => {
       return;
     }
 
+    const nextCount = submitCount + 1;
+    localStorage.setItem('hangul_game_date', today);
+    localStorage.setItem('hangul_game_count', nextCount.toString());
+    setSubmitCount(nextCount);
+
     game.reset()
     clearInput()
   }
@@ -146,7 +151,7 @@ const isCheckInDictionary = async (guess: string[]): Promise<boolean> => {
       localStorage.removeItem('hangul_current_answer');
       localStorage.removeItem('hangul_today_answers');
 
-      setSubmitCount(0);
+      setSubmitCount(1);
 
       setError(null);
 
@@ -165,8 +170,6 @@ const isCheckInDictionary = async (guess: string[]): Promise<boolean> => {
         return;
       }
 
-      const nextCount = submitCount + 1;
-
       // 기존에 저장된 오늘 나온 단어 목록(배열) 가져오기
       const savedTodayAnswers = localStorage.getItem('hangul_today_answers');
       const todayAnswersList = savedTodayAnswers ? JSON.parse(savedTodayAnswers) : [];
@@ -176,16 +179,13 @@ const isCheckInDictionary = async (guess: string[]): Promise<boolean> => {
         todayAnswersList.push(game.answer);
       }
 
-      // 로컬 스토리지에 저장
+      // 시도 번호(submitCount)는 새 판이 시작될 때만 증가하므로 여기서는 그대로 저장
       localStorage.setItem('hangul_game_date', today);
-      localStorage.setItem('hangul_game_count', nextCount.toString());
+      localStorage.setItem('hangul_game_count', submitCount.toString());
       localStorage.setItem('hangul_game_history', JSON.stringify(game.history));
       localStorage.setItem('hangul_current_answer', JSON.stringify(game.answer));
       localStorage.setItem('hangul_game_status', game.status);
       localStorage.setItem('hangul_today_answers', JSON.stringify(todayAnswersList));
-
-      // State 반영해서 화면 업데이트
-      setSubmitCount(nextCount);
     }
   }, [game.status, game.history, submitCount]);
 
