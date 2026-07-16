@@ -261,7 +261,7 @@ function GameOverScreen({ game }: { game: Game }) {
     <div className="banner banner-lost">
       <p className="banner-title">게임 오버 💸</p>
       <p className="banner-answer">
-        소지금이 0만원이 되었습니다.
+        소지금이 0원이 되었습니다.
         <br />
         STAGE {game.state.stage}에서 파산했어요.
       </p>
