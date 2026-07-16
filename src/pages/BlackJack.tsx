@@ -99,16 +99,16 @@ function ShopScreen({ game }: { game: Game }) {
         </p>
         <div className="bj-bet-buttons">
           <button type="button" className="btn" onClick={() => addBet(1000)}>
-            +1,000
+            +1,000만원
           </button>
           <button type="button" className="btn" onClick={() => addBet(5000)}>
-            +5,000
+            +5,000만원
           </button>
           <button type="button" className="btn" onClick={allIn}>
             🔥 ALL-IN
           </button>
           <button type="button" className="btn" onClick={resetBet}>
-            초기화({MIN_BET.toLocaleString()})
+            초기화({MIN_BET.toLocaleString()}만원)
           </button>
         </div>
       </div>
