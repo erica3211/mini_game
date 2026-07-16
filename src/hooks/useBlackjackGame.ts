@@ -34,11 +34,12 @@ export interface BlackjackState {
   message: string
   xrayActive: boolean
   insuranceActive: boolean
+  awaitingCardRemoval: boolean
 }
 
 const STORAGE_KEY = 'blackjack_save'
-const STARTING_MONEY = 1000
-const MIN_BET = 100
+const STARTING_MONEY = 3000
+export const MIN_BET = 1000
 const MAX_INVENTORY = 3
 
 function createInitialState(): BlackjackState {
@@ -56,6 +57,7 @@ function createInitialState(): BlackjackState {
     message: '',
     xrayActive: false,
     insuranceActive: false,
+    awaitingCardRemoval: false,
   }
 }
 
@@ -87,7 +89,7 @@ function resolveAfterStand(state: BlackjackState, emergencyClamped: boolean): Bl
   }
 
   const dealerScore = calculateScore(dealerHand)
-  const outcome = resolveRound(playerScore, dealerScore, state.bet, state.insuranceActive)
+  const outcome = resolveRound(playerScore, dealerScore, state.bet)
   const money = state.money + outcome.moneyDelta
   const message = emergencyClamped
     ? `🩹 긴급 수술 키트가 발동해 점수를 21로 고정했습니다!\n${outcome.summary}`
@@ -195,6 +197,7 @@ export function useBlackjackGame() {
         dealerHand,
         xrayActive: false,
         insuranceActive: false,
+        awaitingCardRemoval: false,
         roundResult: null,
         message: '플레이어님의 차례입니다. HIT 또는 STAND를 선택하세요.',
       }
@@ -203,7 +206,7 @@ export function useBlackjackGame() {
 
   const hit = useCallback(() => {
     setState((prev) => {
-      if (prev.phase !== 'playing') return prev
+      if (prev.phase !== 'playing' || prev.awaitingCardRemoval) return prev
       const stage = currentStage(prev)
       const deck = [...prev.deck]
       let playerHand = [...prev.playerHand]
@@ -220,28 +223,63 @@ export function useBlackjackGame() {
       }
 
       const next = { ...prev, deck, playerHand, dealerHand, message }
-      if (calculateScore(playerHand) <= 21) return next
+      if (calculateScore(playerHand) <= 21) {
+        // 반쪽짜리 보험은 발동 직후의 카드 한 장에만 적용되고, 버스트가 아니면 그대로 소모된다
+        if (prev.insuranceActive) {
+          return {
+            ...next,
+            insuranceActive: false,
+            message: '🛡️ 보험이 걸린 카드였지만 버스트되지 않아 보험 기회가 사라졌습니다.',
+          }
+        }
+        return next
+      }
 
       const emergencyIndex = prev.inventory.findIndex((entry) => entry.id === 'emergency')
-      if (emergencyIndex === -1) {
-        return resolveAfterStand({ ...next, message: '버스트! 21을 초과했습니다.' }, false)
+      if (emergencyIndex !== -1) {
+        const inventory = [...prev.inventory]
+        inventory.splice(emergencyIndex, 1)
+        return resolveAfterStand(
+          { ...next, inventory, message: '🩹 긴급 수술 키트가 발동해 점수를 21로 고정했습니다!' },
+          true,
+        )
       }
-      const inventory = [...prev.inventory]
-      inventory.splice(emergencyIndex, 1)
-      return resolveAfterStand(
-        { ...next, inventory, message: '🩹 긴급 수술 키트가 발동해 점수를 21로 고정했습니다!' },
-        true,
-      )
+
+      if (prev.insuranceActive) {
+        return {
+          ...next,
+          awaitingCardRemoval: true,
+          message: '🛡️ 반쪽짜리 보험 발동! 버스트를 막을 카드를 한 장 골라 제거하세요.',
+        }
+      }
+
+      return resolveAfterStand({ ...next, message: '버스트! 21을 초과했습니다.' }, false)
+    })
+  }, [])
+
+  const removeCard = useCallback((index: number) => {
+    setState((prev) => {
+      if (!prev.awaitingCardRemoval) return prev
+      const playerHand = prev.playerHand.filter((_, i) => i !== index)
+      const next = {
+        ...prev,
+        playerHand,
+        awaitingCardRemoval: false,
+        insuranceActive: false,
+        message: '카드를 제거했습니다.',
+      }
+      if (calculateScore(playerHand) <= 21) return next
+      return resolveAfterStand({ ...next, message: '카드를 제거했지만 여전히 버스트입니다.' }, false)
     })
   }, [])
 
   const stand = useCallback(() => {
-    setState((prev) => (prev.phase === 'playing' ? resolveAfterStand(prev, false) : prev))
+    setState((prev) => (prev.phase === 'playing' && !prev.awaitingCardRemoval ? resolveAfterStand(prev, false) : prev))
   }, [])
 
   const useXray = useCallback(() => {
     setState((prev) => {
-      if (prev.phase !== 'playing') return prev
+      if (prev.phase !== 'playing' || prev.awaitingCardRemoval) return prev
       const index = prev.inventory.findIndex((entry) => entry.id === 'xray')
       if (index === -1) return prev
       const inventory = [...prev.inventory]
@@ -252,18 +290,18 @@ export function useBlackjackGame() {
 
   const useInsurance = useCallback(() => {
     setState((prev) => {
-      if (prev.phase !== 'playing') return prev
+      if (prev.phase !== 'playing' || prev.awaitingCardRemoval) return prev
       const index = prev.inventory.findIndex((entry) => entry.id === 'insurance')
       if (index === -1) return prev
       const inventory = [...prev.inventory]
       inventory.splice(index, 1)
-      return { ...prev, inventory, insuranceActive: true, message: '🛡️ 보험이 적용되었습니다.' }
+      return { ...prev, inventory, insuranceActive: true, message: '🛡️ 반쪽짜리 보험이 적용되었습니다. 버스트 시 카드 1장을 제거할 수 있어요.' }
     })
   }, [])
 
   const usePickpocket = useCallback(() => {
     setState((prev) => {
-      if (prev.phase !== 'playing' || prev.playerHand.length === 0) return prev
+      if (prev.phase !== 'playing' || prev.awaitingCardRemoval || prev.playerHand.length === 0) return prev
       const index = prev.inventory.findIndex((entry) => entry.id === 'pickpocket')
       if (index === -1) return prev
       const inventory = [...prev.inventory]
@@ -277,7 +315,7 @@ export function useBlackjackGame() {
 
   const useCounter = useCallback(() => {
     setState((prev) => {
-      if (prev.phase !== 'playing') return prev
+      if (prev.phase !== 'playing' || prev.awaitingCardRemoval) return prev
       const index = prev.inventory.findIndex((entry) => entry.id === 'counter')
       if (index === -1) return prev
       const inventory = [...prev.inventory]
@@ -317,6 +355,7 @@ export function useBlackjackGame() {
     startRound,
     hit,
     stand,
+    removeCard,
     useXray,
     useInsurance,
     usePickpocket,

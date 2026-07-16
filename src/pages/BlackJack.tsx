@@ -1,5 +1,5 @@
 import { ITEMS, STAGES, calculateScore, type Card, type ItemId } from '../lib/blackjack'
-import { useBlackjackGame } from '../hooks/useBlackjackGame'
+import { MIN_BET, useBlackjackGame } from '../hooks/useBlackjackGame'
 import { BlackjackCard } from '../components/BlackjackCard'
 import { RulesBox } from '../components/RulesBox'
 import stage1Img from '../assets/dealers/stage_1.png'
@@ -36,7 +36,7 @@ function ShopScreen({ game }: { game: Game }) {
           STAGE <strong>{state.stage}</strong> / {STAGES.length}
         </span>
         <span>
-          소지금 <strong>{state.money.toLocaleString()}원</strong>
+          소지금 <strong>{state.money.toLocaleString()}만원</strong>
         </span>
       </div>
 
@@ -85,7 +85,7 @@ function ShopScreen({ game }: { game: Game }) {
                   </span>
                   <span className="bj-shop-item-desc">{item.description}</span>
                 </span>
-                <span className="bj-shop-item-price">{item.price}원</span>
+                <span className="bj-shop-item-price">{item.price.toLocaleString()}만원</span>
               </button>
             )
           })}
@@ -93,22 +93,22 @@ function ShopScreen({ game }: { game: Game }) {
       </div>
 
       <div className="bj-section">
-        <h2 className="bj-section-title">💰 판돈 배팅 (최소 100원)</h2>
+        <h2 className="bj-section-title">💰 판돈 배팅 (최소 {MIN_BET.toLocaleString()}만원)</h2>
         <p className="bj-bet-amount">
-          현재 배팅금: <strong>{state.bet.toLocaleString()}원</strong>
+          현재 배팅금: <strong>{state.bet.toLocaleString()}만원</strong>
         </p>
         <div className="bj-bet-buttons">
-          <button type="button" className="btn" onClick={() => addBet(100)}>
-            +100
+          <button type="button" className="btn" onClick={() => addBet(1000)}>
+            +1,000
           </button>
-          <button type="button" className="btn" onClick={() => addBet(500)}>
-            +500
+          <button type="button" className="btn" onClick={() => addBet(5000)}>
+            +5,000
           </button>
           <button type="button" className="btn" onClick={allIn}>
             🔥 ALL-IN
           </button>
           <button type="button" className="btn" onClick={resetBet}>
-            초기화(100)
+            초기화({MIN_BET.toLocaleString()})
           </button>
         </div>
       </div>
@@ -121,7 +121,20 @@ function ShopScreen({ game }: { game: Game }) {
 }
 
 function TableScreen({ game }: { game: Game }) {
-  const { state, stage, playerScore, dealerScore, hit, stand, continueRound, useXray, useInsurance, usePickpocket, useCounter } = game
+  const {
+    state,
+    stage,
+    playerScore,
+    dealerScore,
+    hit,
+    stand,
+    removeCard,
+    continueRound,
+    useXray,
+    useInsurance,
+    usePickpocket,
+    useCounter,
+  } = game
 
   const dealerRevealed = state.phase === 'roundEnd' || state.xrayActive
   const dealerHiddenIndices = stage.ability === 'pokerface' ? [0, 1] : [1]
@@ -144,7 +157,7 @@ function TableScreen({ game }: { game: Game }) {
           STAGE {state.stage} <strong>{stage.dealerName}</strong>
         </span>
         <span>
-          💰 판돈 <strong>{state.bet.toLocaleString()}원</strong>
+          💰 판돈 <strong>{state.bet.toLocaleString()}만원</strong>
         </span>
       </div>
 
@@ -176,7 +189,7 @@ function TableScreen({ game }: { game: Game }) {
                   key={invItem.uid}
                   type="button"
                   className={`bj-item-btn ${config.activation === 'passive' ? 'bj-item-passive' : ''}`}
-                  disabled={config.activation === 'passive' || state.phase !== 'playing'}
+                  disabled={config.activation === 'passive' || state.phase !== 'playing' || state.awaitingCardRemoval}
                   onClick={action}
                   title={config.description}
                 >
@@ -195,13 +208,29 @@ function TableScreen({ game }: { game: Game }) {
           <span>점수: {playerScoreLabel}</span>
         </div>
         <div className="bj-cards">
-          {state.playerHand.map((card, i) => (
-            <BlackjackCard key={i} card={card} hidden={i === 0 && playerFogged} />
-          ))}
+          {state.playerHand.map((card, i) =>
+            state.awaitingCardRemoval ? (
+              <button
+                key={i}
+                type="button"
+                className="bj-card-remove-btn"
+                onClick={() => removeCard(i)}
+                title="이 카드를 제거합니다"
+              >
+                <BlackjackCard card={card} />
+              </button>
+            ) : (
+              <BlackjackCard key={i} card={card} hidden={i === 0 && playerFogged} />
+            ),
+          )}
         </div>
       </div>
 
-      {state.phase === 'playing' && (
+      {state.awaitingCardRemoval && (
+        <div className="bj-card-removal-prompt">🛡️ 제거할 카드를 선택해주세요.</div>
+      )}
+
+      {state.phase === 'playing' && !state.awaitingCardRemoval && (
         <div className="bj-actions">
           <button type="button" className="btn bj-stand-btn" onClick={stand}>
             🛑 STAND (멈추기)
@@ -232,7 +261,7 @@ function GameOverScreen({ game }: { game: Game }) {
     <div className="banner banner-lost">
       <p className="banner-title">게임 오버 💸</p>
       <p className="banner-answer">
-        소지금이 0원이 되었습니다.
+        소지금이 0만원이 되었습니다.
         <br />
         STAGE {game.state.stage}에서 파산했어요.
       </p>
@@ -250,7 +279,7 @@ function VictoryScreen({ game }: { game: Game }) {
       <p className="banner-answer">
         5명의 딜러를 모두 물리쳤습니다!
         <br />
-        최종 소지금 {game.state.money.toLocaleString()}원
+        최종 소지금 {game.state.money.toLocaleString()}만원
       </p>
       <button type="button" className="btn btn-primary" onClick={game.resetGame}>
         다시 시작

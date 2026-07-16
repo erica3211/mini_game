@@ -126,7 +126,7 @@ export const ITEMS: ItemConfig[] = [
     id: 'xray',
     emoji: '🔮',
     name: '딜러 투시경',
-    price: 200,
+    price: 1000,
     description: '이번 판 동안 딜러의 숨겨진 카드를 미리 봅니다. (4단계에서는 내 가려진 카드도 함께 보입니다)',
     activation: 'manual',
   },
@@ -134,31 +134,31 @@ export const ITEMS: ItemConfig[] = [
     id: 'pickpocket',
     emoji: '🃏',
     name: '소매치기 기술',
-    price: 300,
+    price: 2000,
     description: '방금 뽑은 카드를 버리고 덱에서 새 카드를 다시 받습니다.',
-    activation: 'manual',
-  },
-  {
-    id: 'insurance',
-    emoji: '🛡️',
-    name: '반쪽짜리 보험',
-    price: 300,
-    description: '이번 판에서 버스트되거나 패배해도, 잃는 배팅 금액의 80%를 돌려받습니다.',
     activation: 'manual',
   },
   {
     id: 'counter',
     emoji: '🧮',
     name: '카운팅 계산기',
-    price: 400,
+    price: 5000,
     description: '덱에서 다음에 나올 카드 3장을 미리 텍스트로 보여줍니다.',
+    activation: 'manual',
+  },
+  {
+    id: 'insurance',
+    emoji: '🛡️',
+    name: '반쪽짜리 보험',
+    price: 5000,
+    description: '버스트되는 순간 발동해, 손패에서 카드 1장을 골라 제거하고 게임을 이어갈 수 있습니다. (판당 최대 1회)',
     activation: 'manual',
   },
   {
     id: 'emergency',
     emoji: '🩹',
     name: '긴급 수술 키트',
-    price: 500,
+    price: 10000,
     description: '내 점수가 21을 넘는 순간 자동으로 발동해, 점수를 21로 고정하고 강제로 스탠드시킵니다. (판당 최대 1회)',
     activation: 'passive',
   },
@@ -184,12 +184,7 @@ export interface RoundOutcome {
  * 점수 비교로 승패를 정하고 손익을 계산한다.
  * 배팅금은 거는 시점엔 차감되지 않고, 여기서 계산된 순손익만 소지금에 반영된다.
  */
-export function resolveRound(
-  playerScore: number,
-  dealerScore: number,
-  bet: number,
-  insuranceActive: boolean,
-): RoundOutcome {
+export function resolveRound(playerScore: number, dealerScore: number, bet: number): RoundOutcome {
   let result: RoundResult
   if (playerScore > 21) result = 'lose'
   else if (dealerScore > 21) result = 'win'
@@ -197,19 +192,13 @@ export function resolveRound(
   else if (playerScore < dealerScore) result = 'lose'
   else result = 'push'
 
-  const deltaByResult: Record<RoundResult, number> = { win: bet, push: 0, lose: -bet }
-
-  let delta = deltaByResult[result]
-  if (delta < 0 && insuranceActive) {
-    delta = Math.round(delta * 0.2)
-  }
-
+  const delta = { win: bet, push: 0, lose: -bet }[result]
   const summary = buildRoundSummary(result, delta)
   return { result, moneyDelta: delta, summary }
 }
 
 function buildRoundSummary(result: RoundResult, delta: number): string {
-  if (result === 'win') return `승리! ${delta.toLocaleString()}원을 획득했습니다.`
-  if (result === 'lose') return `패배... ${(-1 * delta).toLocaleString()}원을 잃었습니다.`
-  return delta === 0 ? '무승부! 승부가 나지 않았습니다.' : `무승부지만 ${delta}원이 정산되었습니다.`
+  if (result === 'win') return `승리! ${delta.toLocaleString()}만원을 획득했습니다.`
+  if (result === 'lose') return `패배... ${(-1 * delta).toLocaleString()}만원을 잃었습니다.`
+  return delta === 0 ? '무승부! 승부가 나지 않았습니다.' : `무승부지만 ${delta}만원이 정산되었습니다.`
 }
