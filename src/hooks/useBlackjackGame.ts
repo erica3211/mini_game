@@ -173,7 +173,8 @@ export function useBlackjackGame() {
       if (prev.phase !== 'shop') return prev
       const item = ITEMS.find((entry) => entry.id === id)
       if (!item) return prev
-      if (prev.inventory.length >= MAX_INVENTORY || prev.money < item.price) return prev
+      const availableForShop = prev.money - prev.bet
+      if (prev.inventory.length >= MAX_INVENTORY || availableForShop < item.price) return prev
       return {
         ...prev,
         money: prev.money - item.price,

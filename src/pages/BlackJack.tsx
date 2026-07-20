@@ -28,6 +28,7 @@ function roundResultTitle(result: 'win' | 'lose' | 'push' | null): string {
 
 function ShopScreen({ game }: { game: Game }) {
   const { state, stage, addBet, allIn, resetBet, buyItem, startRound } = game
+  const availableForShop = state.money - state.bet
 
   return (
     <div className="bj-screen">
@@ -68,9 +69,12 @@ function ShopScreen({ game }: { game: Game }) {
             )
           })}
         </div>
+        <p className="bj-bet-amount">
+          🛒 상점 가용 금액 : <strong>{availableForShop.toLocaleString()}만원</strong> (배팅액 제외)
+        </p>
         <div className="bj-shop-list">
           {ITEMS.map((item) => {
-            const disabled = state.inventory.length >= MAX_INVENTORY || state.money < item.price
+            const disabled = state.inventory.length >= MAX_INVENTORY || availableForShop < item.price
             return (
               <button
                 key={item.id}
