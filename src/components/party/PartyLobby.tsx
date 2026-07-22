@@ -15,6 +15,8 @@ export function PartyLobby({ session }: Props) {
   // 방장은 '게임 시작' 버튼을 누르는 행위 자체가 곧 준비 의사 표시라 준비완료 여부를 따로 검사하지 않는다
   const allReady = connectedPlayers.filter((p) => !p.isHost).every((p) => p.ready)
   const canStart = connectedPlayers.length >= MIN_PLAYERS_TO_START && allReady
+  // 방장을 목록 맨 위로
+  const sortedPlayers = [...state.players].sort((a, b) => Number(b.isHost) - Number(a.isHost))
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(inviteUrl)
@@ -42,13 +44,18 @@ export function PartyLobby({ session }: Props) {
 
       <h2 className="party-section-title">참가자 ({connectedPlayers.length}명)</h2>
       <ul className="party-player-list">
-        {state.players.map((p) => (
+        {sortedPlayers.map((p) => (
           <li key={p.id} className="party-player-row">
             <span>
               {p.isHost && '👑 '}
               {p.nickname}
+              {p.id === session.playerId && ' (나)'}
             </span>
-            {!p.isHost && (<span className={p.ready ? 'badge badge-strike' : (p.connected ? 'badge badge-ball' : 'badge badge-out')}>{p.ready ? '준비완료' : (p.connected ? '대기중': '연결끊김')}</span>)}
+            {!p.isHost && (
+              <span className={p.ready ? 'badge badge-strike' : p.connected ? 'badge badge-ball' : 'badge badge-out'}>
+                {p.ready ? '준비완료' : p.connected ? '대기중' : '연결끊김'}
+              </span>
+            )}
           </li>
         ))}
       </ul>
@@ -74,49 +81,49 @@ export function PartyLobby({ session }: Props) {
         )
       )}
 
-      {session.isHost && (
-        <div className="party-config">
-          <h2 className="party-section-title">게임 설정</h2>
+      <div className="party-config">
+        <h2 className="party-section-title">게임 설정</h2>
 
-          <label className="party-config-row">
-            라운드 수
-            <input
-              type="number"
-              min={1}
-              max={20}
-              className="party-config-number"
-              value={state.config.totalRounds}
-              onChange={(e) => session.updateConfig({ totalRounds: Number(e.target.value) })}
-            />
-          </label>
+        <label className="party-config-row">
+          라운드 수
+          <input
+            type="number"
+            min={1}
+            max={20}
+            className="party-config-number"
+            value={state.config.totalRounds}
+            disabled={!session.isHost}
+            onChange={(e) => session.updateConfig({ totalRounds: Number(e.target.value) })}
+          />
+        </label>
 
-          <label className="party-config-row">
-            <input
-              type="checkbox"
-              checked={state.config.randomOrder}
-              onChange={(e) => session.updateConfig({ randomOrder: e.target.checked })}
-            />
-            무작위 순서
-          </label>
+        <label className="party-config-row">
+          <input
+            type="checkbox"
+            checked={state.config.randomOrder}
+            disabled={!session.isHost}
+            onChange={(e) => session.updateConfig({ randomOrder: e.target.checked })}
+          />
+          무작위 순서
+        </label>
 
-          <ul className="party-game-list">
-            {state.gameCatalog.map((game) => (
-              <li key={game.id} className="party-game-row">
-                <label>
-                  <input
-                    type="checkbox"
-                    disabled={game.comingSoon}
-                    checked={state.config.selectedGames.includes(game.id)}
-                    onChange={() => toggleGame(game.id)}
-                  />
-                  {game.emoji} {game.title}
-                  {game.comingSoon && <span className="party-coming-soon"> (준비중)</span>}
-                </label>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+        <ul className="party-game-list">
+          {state.gameCatalog.map((game) => (
+            <li key={game.id} className="party-game-row">
+              <label>
+                <input
+                  type="checkbox"
+                  disabled={!session.isHost || game.comingSoon}
+                  checked={state.config.selectedGames.includes(game.id)}
+                  onChange={() => toggleGame(game.id)}
+                />
+                {game.emoji} {game.title}
+                {game.comingSoon && <span className="party-coming-soon"> (준비중)</span>}
+              </label>
+            </li>
+          ))}
+        </ul>
+      </div>
     </section>
   )
 }
