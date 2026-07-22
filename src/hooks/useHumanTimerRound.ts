@@ -20,12 +20,14 @@ export function useHumanTimerRound(socket: PartySocket, roundKey: string, startS
   }, [roundKey])
 
   useEffect(() => {
-    if (!startSignal || startedAtRef.current !== null) return
-    // elapsedMs > 0이면 라운드 도중 재접속한 경우 — 이미 지난 시간만큼 시작 시각을 앞당겨서
-    // 재접속 전후로 흘러간 시간이 그대로 이어지게 한다
+    // 이미 제출한 뒤라면 재동기화 신호가 와도 무시한다
+    if (!startSignal || status === 'submitted') return
+    // 재접속(백그라운드 복귀 등)마다 서버가 다시 이 이벤트를 보내준다 — 매번 서버가 보내준
+    // elapsedMs를 기준으로 시작 시각을 다시 계산해야 한다. 최초 1회만 반영하면 백그라운드
+    // 동안 멈춰있던 performance.now() 기준으로 시간이 어긋나 0초부터 다시 시작한 것처럼 보인다
     startedAtRef.current = performance.now() - startSignal.elapsedMs
     setStatus('running')
-  }, [startSignal])
+  }, [startSignal, status])
 
   const stop = useCallback(() => {
     if (status !== 'running' || startedAtRef.current === null) return
