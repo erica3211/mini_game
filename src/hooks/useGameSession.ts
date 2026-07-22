@@ -34,8 +34,21 @@ export function useGameSession(roomCodeFromUrl?: string) {
     }
   }, [socket])
 
+  // 소켓 하트비트 타임아웃(20초)보다 짧게 백그라운드에 있다 돌아오면 연결은 안 끊기지만,
+  // 그 사이 브라우저가 JS 실행을 멈춰서 humanTimer:roundStart 같은 이벤트를 놓칠 수 있음.
+  // 탭이 다시 보이게 될 때마다 현재 라운드의 진짜 경과 시간을 다시 요청해 동기화
+  useEffect(() => {
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && socket.connected) {
+        socket.emit('round:requestResync')
+      }
+    }
+    document.addEventListener('visibilitychange', onVisibilityChange)
+    return () => document.removeEventListener('visibilitychange', onVisibilityChange)
+  }, [socket])
+
   // 최초 접속뿐 아니라, 화면 잠금 등으로 소켓이 끊겼다가 새로운 소켓으로 재연결될 때마다
-  // 다시 room:rejoin을 보내야 서버가 새 소켓을 이 참가자와 다시 연결해준다
+  // 다시 room:rejoin을 보내야 서버가 새 소켓을 이 참가자와 다시 연결
   useEffect(() => {
     if (!roomCodeFromUrl) return
 

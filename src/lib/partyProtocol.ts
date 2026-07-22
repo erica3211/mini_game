@@ -112,6 +112,7 @@ export interface ClientToServerEvents {
   /** 최종결과 화면에서 아무나 눌러서 같은 방으로 대기실로 돌아간다 (설정은 유지, 점수/준비상태는 초기화) */
   'room:playAgain': () => void
   'humanTimer:submit': (data: { elapsedMs: number }) => void
+  'round:requestResync': () => void
 }
 
 /** Server -> Client */

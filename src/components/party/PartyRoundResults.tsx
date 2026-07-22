@@ -34,7 +34,7 @@ export function PartyRoundResults({ session }: Props) {
 
   return (
     <section className="game-page">
-      <h1 className="page-title">라운드{state.currentRoundIndex + 1} 결과</h1>
+      <h1 className="page-title">{state.currentRoundIndex + 1}라운드 결과</h1>
 
       <PartyScoreList entries={roundEntries} badgeClass="badge-strike" />
 
