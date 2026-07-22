@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import type { Socket } from 'socket.io-client'
 import type { ClientToServerEvents, ServerToClientEvents } from '../lib/partyProtocol'
 
@@ -12,29 +12,32 @@ type LocalStatus = 'waiting' | 'running' | 'submitted'
  */
 export function useHumanTimerRound(socket: PartySocket, roundKey: string, startSignal: { elapsedMs: number } | null) {
   const [status, setStatus] = useState<LocalStatus>('waiting')
-  const startedAtRef = useRef<number | null>(null)
+  // ref가 아니라 state로 둬야 재동기화로 값이 바뀔 때 화면(FadingTimer 등)이 새 값을 받는다.
+  // ref만 바꾸면 status가 이미 'running'이라 리렌더가 안 일어나서 갱신된 시작 시각이 반영되지 않는다
+  const [startedAt, setStartedAt] = useState<number | null>(null)
 
   useEffect(() => {
     setStatus('waiting')
-    startedAtRef.current = null
+    setStartedAt(null)
   }, [roundKey])
 
   useEffect(() => {
     // 이미 제출한 뒤라면 재동기화 신호가 와도 무시한다
     if (!startSignal || status === 'submitted') return
-    // 재접속(백그라운드 복귀 등)마다 서버가 다시 이 이벤트를 보내준다 — 매번 서버가 보내준
-    // elapsedMs를 기준으로 시작 시각을 다시 계산해야 한다. 최초 1회만 반영하면 백그라운드
-    // 동안 멈춰있던 performance.now() 기준으로 시간이 어긋나 0초부터 다시 시작한 것처럼 보인다
-    startedAtRef.current = performance.now() - startSignal.elapsedMs
+    const candidate = performance.now() - startSignal.elapsedMs
+    // 백그라운드에 있던 동안 서버가 보낸 최신 재동기화 신호보다, 라운드 시작 때 뿌려진
+    // elapsedMs:0 브로드캐스트가 더 늦게(뒤늦은 큐잉 등으로) 도착할 수 있다. 이미 알고 있는
+    // 시작 시각보다 "더 늦게 시작한 것"으로는 절대 되돌리지 않는다 — 경과 시간은 항상 늘어나기만 해야 한다
+    setStartedAt((prev) => (prev !== null && candidate > prev ? prev : candidate))
     setStatus('running')
   }, [startSignal, status])
 
   const stop = useCallback(() => {
-    if (status !== 'running' || startedAtRef.current === null) return
-    const elapsedMs = performance.now() - startedAtRef.current
+    if (status !== 'running' || startedAt === null) return
+    const elapsedMs = performance.now() - startedAt
     socket.emit('humanTimer:submit', { elapsedMs })
     setStatus('submitted')
-  }, [socket, status])
+  }, [socket, status, startedAt])
 
-  return { status, stop, startedAt: startedAtRef.current }
+  return { status, stop, startedAt }
 }
