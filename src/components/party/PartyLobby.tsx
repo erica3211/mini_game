@@ -15,8 +15,11 @@ export function PartyLobby({ session }: Props) {
   // 방장은 '게임 시작' 버튼을 누르는 행위 자체가 곧 준비 의사 표시라 준비완료 여부를 따로 검사하지 않는다
   const allReady = connectedPlayers.filter((p) => !p.isHost).every((p) => p.ready)
   const canStart = connectedPlayers.length >= MIN_PLAYERS_TO_START && allReady
-  // 방장을 목록 맨 위로
-  const sortedPlayers = [...state.players].sort((a, b) => Number(b.isHost) - Number(a.isHost))
+  // 방장을 맨 위로, 그다음은 연결 끊긴 사람을 맨 뒤로
+  const sortedPlayers = [...state.players].sort((a, b) => {
+    if (a.isHost !== b.isHost) return Number(b.isHost) - Number(a.isHost)
+    return Number(b.connected) - Number(a.connected)
+  })
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(inviteUrl)
