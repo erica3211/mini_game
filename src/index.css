@@ -980,18 +980,56 @@ button {
 }
 
 .party-game-list {
-  list-style: none;
-  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 0.6rem;
   margin: 0.75rem 0;
+}
+
+.party-game-card {
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
+  text-align: left;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.9rem 1rem;
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
 }
 
-.party-game-row label {
+.party-game-card:not(:disabled):hover {
+  border-color: var(--border-strong);
+}
+
+.party-game-card-selected {
+  border-color: var(--accent);
+  background: rgba(88, 166, 255, 0.08);
+}
+
+.party-game-card:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.party-game-card-title {
+  font-weight: 700;
+}
+
+.party-game-card-desc {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.party-game-card-meta {
   display: flex;
-  align-items: center;
-  gap: 0.5rem;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  font-size: 0.75rem;
+  color: var(--text-muted);
 }
 
 .party-coming-soon {
@@ -1056,6 +1094,38 @@ button {
     transform: scale(1);
     opacity: 1;
   }
+}
+
+.party-howtoplay {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+  max-width: 320px;
+}
+
+.party-howtoplay-media {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  object-fit: cover;
+}
+
+.party-howtoplay-media-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.5rem;
+  opacity: 0.5;
+}
+
+.party-howtoplay-text {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  text-align: center;
 }
 
 .party-fading-timer {

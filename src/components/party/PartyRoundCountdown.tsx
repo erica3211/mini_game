@@ -26,6 +26,20 @@ export function PartyRoundCountdown({ session }: Props) {
           {count}
         </div>
       )}
+
+      {gameMeta && (
+        <div className="party-howtoplay">
+          {/* {gameMeta.howToPlayMediaUrl ? (
+            <img className="party-howtoplay-media" src={gameMeta.howToPlayMediaUrl} alt={`${gameMeta.title} 플레이 방법`} />
+          ) : (
+            <div className="party-howtoplay-media party-howtoplay-media-placeholder">{gameMeta.emoji}</div>
+          )} */}
+          {gameMeta.howToPlayMediaUrl && (
+            <img className="party-howtoplay-media" src={gameMeta.howToPlayMediaUrl} alt={`${gameMeta.title} 플레이 방법`} />
+          )}
+          <p className="party-howtoplay-text">{gameMeta.howToPlay}</p>
+        </div>
+      )}
     </section>
   )
 }

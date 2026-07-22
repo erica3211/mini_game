@@ -110,22 +110,36 @@ export function PartyLobby({ session }: Props) {
           무작위 순서
         </label>
 
-        <ul className="party-game-list">
-          {state.gameCatalog.map((game) => (
-            <li key={game.id} className="party-game-row">
-              <label>
-                <input
-                  type="checkbox"
-                  disabled={!session.isHost || game.comingSoon}
-                  checked={state.config.selectedGames.includes(game.id)}
-                  onChange={() => toggleGame(game.id)}
-                />
-                {game.emoji} {game.title}
-                {game.comingSoon && <span className="party-coming-soon"> (준비중)</span>}
-              </label>
-            </li>
-          ))}
-        </ul>
+        <div className="party-game-list">
+          {state.gameCatalog.map((game) => {
+            const selected = state.config.selectedGames.includes(game.id)
+            return (
+              <button
+                key={game.id}
+                type="button"
+                className={`party-game-card${selected ? ' party-game-card-selected' : ''}`}
+                disabled={!session.isHost || game.comingSoon}
+                aria-pressed={selected}
+                onClick={() => toggleGame(game.id)}
+              >
+                <span className="party-game-card-title">
+                  {game.emoji} {game.title}
+                  {game.comingSoon && <span className="party-coming-soon"> (준비중)</span>}
+                </span>
+                <span className="party-game-card-desc">"{game.description}"</span>
+                <span className="party-game-card-meta">
+                  <span>⏱️ {game.playTimeSeconds}초 소요</span>
+                  <span>
+                    {game.modeCategory.icon} {game.modeCategory.name}
+                  </span>
+                  <span>
+                    {game.mechanismCategory.icon} {game.mechanismCategory.name}
+                  </span>
+                </span>
+              </button>
+            )
+          })}
+        </div>
       </div>
     </section>
   )

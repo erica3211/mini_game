@@ -13,11 +13,30 @@ export type GameId =
   | 'shoutRace'
   | 'pixelCanvas'
 
+export interface ModeCategory {
+  id: 'INDIVIDUAL' | 'TEAM' | 'COOP'
+  name: string
+  icon: string
+}
+
+export interface MechanismCategory {
+  id: 'TIMING' | 'TAP' | 'DRAG' | 'TEXT' | 'VOTE' | 'VOICE' | 'CAMERA' | 'CLICK_SPEED'
+  name: string
+  icon: string
+}
+
 export interface GameMeta {
   id: GameId
   emoji: string
   title: string
   description: string
+  /** 라운드 시작 전 카운트다운 화면과 게임 화면에 보여줄 플레이 방법 설명 */
+  howToPlay: string
+  /** 사용법을 보여줄 gif/이미지 (아직 없으면 undefined) */
+  howToPlayMediaUrl?: string
+  playTimeSeconds: number
+  modeCategory: ModeCategory
+  mechanismCategory: MechanismCategory
   comingSoon: boolean
 }
 
