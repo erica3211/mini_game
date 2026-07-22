@@ -46,6 +46,8 @@ export interface RoundRankingEntry {
   rank: number
   points: number
   dnf: boolean
+  /** 라운드 시작 시점에 이미 연결이 끊겨 있어서 아예 참여하지 못한 경우 (항상 0점) */
+  disconnected: boolean
 }
 
 export interface RoundResult {
@@ -62,6 +64,8 @@ export interface RoomState {
   config: SessionConfig
   currentRoundIndex: number
   currentGameId: GameId | null
+  /** 이번 라운드에 실제로 참여 중인 사람들 (라운드 시작 이후 접속/재접속한 사람은 다음 라운드부터 포함) */
+  currentRoundPlayerIds: PlayerId[]
   scores: Record<PlayerId, number>
   roundHistory: RoundResult[]
   gameCatalog: GameMeta[]

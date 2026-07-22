@@ -12,6 +12,7 @@ export function PartyRoundResults({ session }: Props) {
   const isLastRound = state.currentRoundIndex + 1 >= state.config.totalRounds
 
   const detailOf = (entry: (typeof lastRound.ranking)[number]) => {
+    if (entry.disconnected) return ' (연결 끊김)'
     if (entry.dnf) return ' (미제출)'
     if (lastRound.gameId === 'humanTimer' && entry.value !== undefined) {
       return ` (${(entry.value / 1000).toFixed(2)}초에 정지)`

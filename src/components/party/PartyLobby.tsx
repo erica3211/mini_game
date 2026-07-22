@@ -12,7 +12,8 @@ export function PartyLobby({ session }: Props) {
   const inviteUrl = `${window.location.origin}/party/${state.code}`
 
   const connectedPlayers = state.players.filter((p) => p.connected)
-  const allReady = connectedPlayers.every((p) => p.ready)
+  // 방장은 '게임 시작' 버튼을 누르는 행위 자체가 곧 준비 의사 표시라 준비완료 여부를 따로 검사하지 않는다
+  const allReady = connectedPlayers.filter((p) => !p.isHost).every((p) => p.ready)
   const canStart = connectedPlayers.length >= MIN_PLAYERS_TO_START && allReady
 
   const handleCopy = async () => {
@@ -46,21 +47,31 @@ export function PartyLobby({ session }: Props) {
             <span>
               {p.isHost && '👑 '}
               {p.nickname}
-              {!p.connected && ' (연결 끊김)'}
             </span>
-            <span className={p.ready ? 'badge badge-strike' : 'badge badge-out'}>{p.ready ? '준비완료' : '대기중'}</span>
+            {!p.isHost && (<span className={p.ready ? 'badge badge-strike' : (p.connected ? 'badge badge-ball' : 'badge badge-out')}>{p.ready ? '준비완료' : (p.connected ? '대기중': '연결끊김')}</span>)}
           </li>
         ))}
       </ul>
 
-      {session.me && (
-        <button
-          type="button"
-          className="btn btn-primary"
-          onClick={() => session.setReady(!session.me!.ready)}
-        >
-          {session.me.ready ? '준비 취소' : '준비 완료'}
-        </button>
+      {session.isHost ? (
+        <>
+          <button type="button" className="btn btn-primary" disabled={!canStart} onClick={session.start}>
+            게임 시작
+          </button>
+          {!canStart && (
+            <p className="error">
+              {connectedPlayers.length < MIN_PLAYERS_TO_START
+                ? `최소 ${MIN_PLAYERS_TO_START}명이 필요해요.`
+                : '모든 참가자가 준비완료 상태여야 시작할 수 있어요.'}
+            </p>
+          )}
+        </>
+      ) : (
+        session.me && (
+          <button type="button" className="btn btn-primary" onClick={() => session.setReady(!session.me!.ready)}>
+            {session.me.ready ? '준비 취소' : '준비 완료'}
+          </button>
+        )
       )}
 
       {session.isHost && (
@@ -104,17 +115,6 @@ export function PartyLobby({ session }: Props) {
               </li>
             ))}
           </ul>
-
-          <button type="button" className="btn btn-primary" disabled={!canStart} onClick={session.start}>
-            게임 시작
-          </button>
-          {!canStart && (
-            <p className="error">
-              {connectedPlayers.length < MIN_PLAYERS_TO_START
-                ? `최소 ${MIN_PLAYERS_TO_START}명이 필요해요.`
-                : '모든 참가자가 준비완료 상태여야 시작할 수 있어요.'}
-            </p>
-          )}
         </div>
       )}
     </section>
