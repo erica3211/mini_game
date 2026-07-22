@@ -3,6 +3,7 @@ import type { Socket } from 'socket.io-client'
 import { useHumanTimerRound } from '../../hooks/useHumanTimerRound'
 import type { ClientToServerEvents, ServerToClientEvents } from '../../lib/partyProtocol'
 
+// 몇 초 인지 보여주는 시간 (3초)
 const FADE_DURATION_MS = 3000
 
 interface Props {

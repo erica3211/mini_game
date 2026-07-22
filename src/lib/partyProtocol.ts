@@ -81,9 +81,13 @@ export interface ClientToServerEvents {
   'room:join': (data: { roomCode: string; nickname: string }, ack: (result: JoinRoomAck) => void) => void
   'room:rejoin': (data: { roomCode: string; playerId: string }, ack: (result: RejoinRoomAck) => void) => void
   'player:ready': (ready: boolean) => void
+  /** 방에서 완전히 나감. 나간 사람이 방장이었다면 가장 먼저 들어온 남은 사람이 새 방장이 됨 */
+  'player:leave': () => void
   'host:updateConfig': (config: Partial<SessionConfig>) => void
   'host:start': () => void
   'host:nextRound': () => void
+  /** 최종결과 화면에서 아무나 눌러서 같은 방으로 대기실로 돌아간다 (설정은 유지, 점수/준비상태는 초기화) */
+  'room:playAgain': () => void
   'humanTimer:submit': (data: { elapsedMs: number }) => void
 }
 

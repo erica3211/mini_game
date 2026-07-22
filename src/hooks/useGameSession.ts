@@ -97,6 +97,14 @@ export function useGameSession(roomCodeFromUrl?: string) {
   const updateConfig = useCallback((patch: Partial<SessionConfig>) => socket.emit('host:updateConfig', patch), [socket])
   const start = useCallback(() => socket.emit('host:start'), [socket])
   const nextRound = useCallback(() => socket.emit('host:nextRound'), [socket])
+  const playAgain = useCallback(() => socket.emit('room:playAgain'), [socket])
+
+  const leaveRoom = useCallback(() => {
+    socket.emit('player:leave')
+    if (roomCodeFromUrl) sessionStorage.removeItem(storageKey(roomCodeFromUrl))
+    setPlayerId(null)
+    setRoomState(null)
+  }, [socket, roomCodeFromUrl])
 
   const me = roomState?.players.find((p) => p.id === playerId) ?? null
   const isHost = roomState !== null && playerId !== null && roomState.hostId === playerId
@@ -116,6 +124,8 @@ export function useGameSession(roomCodeFromUrl?: string) {
     updateConfig,
     start,
     nextRound,
+    playAgain,
+    leaveRoom,
   }
 }
 
