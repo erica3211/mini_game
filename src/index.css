@@ -901,3 +901,147 @@ button {
 .bj-hit-btn {
   flex: 1;
 }
+
+/* 파티게임 */
+.party-section-heading {
+  margin-top: 2.5rem;
+}
+
+.party-section-title {
+  font-size: 1.1rem;
+  margin: 1.5rem 0 0.75rem;
+}
+
+.party-invite {
+  display: flex;
+  gap: 0.5rem;
+  margin: 1rem 0;
+}
+
+.party-invite-input {
+  flex: 1;
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.6rem 0.9rem;
+  font-size: 0.9rem;
+}
+
+.party-player-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.party-player-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.6rem 0.9rem;
+}
+
+.party-config {
+  margin-top: 1.5rem;
+  border-top: 1px solid var(--border);
+  padding-top: 1.25rem;
+}
+
+.party-config-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0.5rem 0;
+}
+
+.party-config-number {
+  width: 4rem;
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.35rem 0.5rem;
+}
+
+.party-game-list {
+  list-style: none;
+  padding: 0;
+  margin: 0.75rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.party-game-row label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.party-coming-soon {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.party-round-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.party-round-hint {
+  color: var(--text-muted);
+}
+
+.party-stop-btn {
+  font-size: 1.5rem;
+  padding: 1.5rem 3rem;
+}
+
+.party-countdown {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 50vh;
+  text-align: center;
+}
+
+.party-countdown-number {
+  font-size: 8rem;
+  font-weight: 800;
+  color: var(--accent);
+  line-height: 1;
+  animation: party-countdown-pop 1s ease-out;
+}
+
+@keyframes party-countdown-pop {
+  0% {
+    transform: scale(1.6);
+    opacity: 0;
+  }
+  30% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.party-fading-timer {
+  font-size: 2.5rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+}
