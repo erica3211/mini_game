@@ -26,9 +26,13 @@ export function PartyFinalResults({ session }: Props) {
       <PartyScoreList entries={entries} badgeClass="badge-strike" />
 
       <div className="party-final-actions">
-        <button type="button" className="btn btn-primary" onClick={session.playAgain}>
-          다시하기
-        </button>
+        {session.isHost ? (
+          <button type="button" className="btn btn-primary" onClick={session.playAgain}>
+            다시하기
+          </button>
+        ) : (
+          <p className="party-round-hint">방장이 다시하기를 누르면 대기실로 돌아가요.</p>
+        )}
         <button type="button" className="btn btn-secondary" onClick={handleLeave}>
           나가기
         </button>
