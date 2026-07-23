@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { MIN_PLAYERS_TO_START, type GameId, type PlayerInfo } from '../../lib/partyProtocol'
 import type { GameSession } from '../../hooks/useGameSession'
 
@@ -13,6 +14,7 @@ function readyBadge(p: PlayerInfo) {
 }
 
 export function PartyLobby({ session }: Props) {
+  const navigate = useNavigate()
   const state = session.roomState!
   const [copied, setCopied] = useState(false)
   const inviteUrl = `${window.location.origin}/party/${state.code}`
@@ -31,6 +33,11 @@ export function PartyLobby({ session }: Props) {
     await navigator.clipboard.writeText(inviteUrl)
     setCopied(true)
     setTimeout(() => setCopied(false), 1500)
+  }
+
+  const handleLeave = () => {
+    session.leaveRoom()
+    navigate('/')
   }
 
   const toggleGame = (gameId: GameId) => {
@@ -70,9 +77,14 @@ export function PartyLobby({ session }: Props) {
 
       {session.isHost ? (
         <>
-          <button type="button" className="btn btn-primary" disabled={!canStart} onClick={session.start}>
-            게임 시작
-          </button>
+          <div className="party-final-actions">
+            <button type="button" className="btn btn-primary" disabled={!canStart} onClick={session.start}>
+              게임 시작
+            </button>
+            <button type="button" className="btn btn-secondary" onClick={handleLeave}>
+              나가기
+            </button>
+          </div>
           {!canStart && (
             <p className="error">
               {connectedPlayers.length < MIN_PLAYERS_TO_START
@@ -83,9 +95,14 @@ export function PartyLobby({ session }: Props) {
         </>
       ) : (
         session.me && (
-          <button type="button" className="btn btn-primary" onClick={() => session.setReady(!session.me!.ready)}>
-            {session.me.ready ? '준비 취소' : '준비 완료'}
-          </button>
+          <div className="party-final-actions">
+            <button type="button" className="btn btn-primary" onClick={() => session.setReady(!session.me!.ready)}>
+              {session.me.ready ? '준비 취소' : '준비 완료'}
+            </button>
+            <button type="button" className="btn btn-secondary" onClick={handleLeave}>
+              나가기
+            </button>
+          </div>
         )
       )}
 
