@@ -1,9 +1,15 @@
 import { useState } from 'react'
-import { MIN_PLAYERS_TO_START, type GameId } from '../../lib/partyProtocol'
+import { MIN_PLAYERS_TO_START, type GameId, type PlayerInfo } from '../../lib/partyProtocol'
 import type { GameSession } from '../../hooks/useGameSession'
 
 interface Props {
   session: GameSession
+}
+
+function readyBadge(p: PlayerInfo) {
+  if (!p.connected) return { className: 'badge badge-out', label: '연결끊김' }
+  if (p.ready) return { className: 'badge badge-strike', label: '준비완료' }
+  return { className: 'badge badge-ball', label: '대기중' }
 }
 
 export function PartyLobby({ session }: Props) {
@@ -47,20 +53,19 @@ export function PartyLobby({ session }: Props) {
 
       <h2 className="party-section-title">참가자 ({connectedPlayers.length}명)</h2>
       <ul className="party-player-list">
-        {sortedPlayers.map((p) => (
-          <li key={p.id} className="party-player-row">
-            <span>
-              {p.isHost && '👑 '}
-              {p.nickname}
-              {p.id === session.playerId && ' (나)'}
-            </span>
-            {!p.isHost && (
-              <span className={p.ready ? 'badge badge-strike' : p.connected ? 'badge badge-ball' : 'badge badge-out'}>
-                {p.ready ? '준비완료' : p.connected ? '대기중' : '연결끊김'}
+        {sortedPlayers.map((p) => {
+          const badge = readyBadge(p)
+          return (
+            <li key={p.id} className="party-player-row">
+              <span>
+                {p.isHost && '👑 '}
+                {p.nickname}
+                {p.id === session.playerId && ' (나)'}
               </span>
-            )}
-          </li>
-        ))}
+              {!p.isHost && <span className={badge.className}>{badge.label}</span>}
+            </li>
+          )
+        })}
       </ul>
 
       {session.isHost ? (
