@@ -2,11 +2,36 @@ import { useCallback, useEffect, useState } from 'react'
 import type { RoomState, SessionConfig } from '../lib/partyProtocol'
 import { useSocket } from './useSocket'
 
+const REJOIN_TTL_MS = 60 * 60 * 1000 // 마지막 접속 후 1시간이 지나면 재접속 정보를 만료시킨다
+
 function storageKey(roomCode: string) {
   return `party_player_${roomCode.toUpperCase()}`
 }
 
-/** 방 코드(roomCodeFromUrl)가 있으면 새로고침 시 저장된 참가자로 자동 재접속을 시도한다 */
+/** 만료됐으면 저장된 값을 지우고 null을 반환한다 */
+function readSavedPlayerId(roomCode: string): string | null {
+  const raw = localStorage.getItem(storageKey(roomCode))
+  if (!raw) return null
+
+  try {
+    const { playerId, savedAt } = JSON.parse(raw) as { playerId: string; savedAt: number }
+    if (Date.now() - savedAt > REJOIN_TTL_MS) {
+      localStorage.removeItem(storageKey(roomCode))
+      return null
+    }
+    return playerId
+  } catch {
+    localStorage.removeItem(storageKey(roomCode))
+    return null
+  }
+}
+
+/** 접속/재접속에 성공할 때마다 호출해 만료 시각을 갱신한다 */
+function saveSession(roomCode: string, playerId: string) {
+  localStorage.setItem(storageKey(roomCode), JSON.stringify({ playerId, savedAt: Date.now() }))
+}
+
+/** 방 코드(roomCodeFromUrl)가 있으면 새로고침은 물론 앱을 껐다 켜도(1시간 이내) 저장된 참가자로 자동 재접속을 시도한다 */
 export function useGameSession(roomCodeFromUrl?: string) {
   const { socket } = useSocket()
   const [roomState, setRoomState] = useState<RoomState | null>(null)
@@ -53,16 +78,17 @@ export function useGameSession(roomCodeFromUrl?: string) {
     if (!roomCodeFromUrl) return
 
     const tryRejoin = () => {
-      const savedPlayerId = sessionStorage.getItem(storageKey(roomCodeFromUrl))
+      const savedPlayerId = readSavedPlayerId(roomCodeFromUrl)
       if (!savedPlayerId) return
 
       setRejoining(true)
       socket.emit('room:rejoin', { roomCode: roomCodeFromUrl, playerId: savedPlayerId }, (result) => {
         setRejoining(false)
         if (result.ok) {
+          saveSession(roomCodeFromUrl, savedPlayerId)
           setPlayerId(savedPlayerId)
         } else {
-          sessionStorage.removeItem(storageKey(roomCodeFromUrl))
+          localStorage.removeItem(storageKey(roomCodeFromUrl))
         }
       })
     }
@@ -79,7 +105,7 @@ export function useGameSession(roomCodeFromUrl?: string) {
       new Promise<{ ok: true; roomCode: string } | { ok: false; error: string }>((resolve) => {
         socket.emit('room:create', nickname, (result) => {
           if (result.ok) {
-            sessionStorage.setItem(storageKey(result.roomCode), result.playerId)
+            saveSession(result.roomCode, result.playerId)
             setPlayerId(result.playerId)
             resolve({ ok: true, roomCode: result.roomCode })
           } else {
@@ -95,7 +121,7 @@ export function useGameSession(roomCodeFromUrl?: string) {
       new Promise<{ ok: true } | { ok: false; error: string }>((resolve) => {
         socket.emit('room:join', { roomCode, nickname }, (result) => {
           if (result.ok) {
-            sessionStorage.setItem(storageKey(roomCode), result.playerId)
+            saveSession(roomCode, result.playerId)
             setPlayerId(result.playerId)
             resolve({ ok: true })
           } else {
@@ -114,7 +140,7 @@ export function useGameSession(roomCodeFromUrl?: string) {
 
   const leaveRoom = useCallback(() => {
     socket.emit('player:leave')
-    if (roomCodeFromUrl) sessionStorage.removeItem(storageKey(roomCodeFromUrl))
+    if (roomCodeFromUrl) localStorage.removeItem(storageKey(roomCodeFromUrl))
     setPlayerId(null)
     setRoomState(null)
   }, [socket, roomCodeFromUrl])
