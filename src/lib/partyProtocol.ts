@@ -85,6 +85,8 @@ export interface RoomState {
   currentGameId: GameId | null
   /** 이번 라운드에 실제로 참여 중인 사람들 (라운드 시작 이후 접속/재접속한 사람은 다음 라운드부터 포함) */
   currentRoundPlayerIds: PlayerId[]
+  /** 3·2·1 카운트다운이 시작된 뒤 흐른 시간(ms). round_countdown 단계가 아니면 0 */
+  countdownElapsedMs: number
   scores: Record<PlayerId, number>
   roundHistory: RoundResult[]
   gameCatalog: GameMeta[]
