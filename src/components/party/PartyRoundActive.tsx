@@ -1,5 +1,6 @@
 import type { GameSession } from '../../hooks/useGameSession'
 import { HumanTimerGame } from './HumanTimerGame'
+import { OneToFiftyGame } from './OneToFiftyGame'
 
 interface Props {
   session: GameSession
@@ -21,15 +22,24 @@ export function PartyRoundActive({ session }: Props) {
       {!isParticipating ? (
         <p className="party-round-hint">이미 게임이 진행중이라 참여할 수 없어요. 다음 라운드부터 참여 가능해요.</p>
       ) : (
-        state.currentGameId === 'humanTimer' &&
-        gameMeta && (
+        gameMeta &&
+        (state.currentGameId === 'humanTimer' ? (
           <HumanTimerGame
             socket={session.socket}
             roundKey={roundKey}
             startSignal={session.humanTimerStart}
             howToPlay={gameMeta.howToPlay}
           />
-        )
+        ) : (
+          state.currentGameId === 'oneToFifty' && (
+            <OneToFiftyGame
+              socket={session.socket}
+              roundKey={roundKey}
+              startSignal={session.oneToFiftyStart}
+              howToPlay={gameMeta.howToPlay}
+            />
+          )
+        ))
       )}
     </section>
   )

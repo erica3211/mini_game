@@ -39,23 +39,32 @@ export function useGameSession(roomCodeFromUrl?: string) {
   const [error, setError] = useState<string | null>(null)
   const [rejoining, setRejoining] = useState(false)
   const [humanTimerStart, setHumanTimerStart] = useState<{ elapsedMs: number } | null>(null)
+  const [oneToFiftyStart, setOneToFiftyStart] = useState<{ board: number[]; progress: number; elapsedMs: number } | null>(
+    null,
+  )
 
-  // room:state가 브로드캐스트되기도 전에 humanTimer:roundStart가 먼저 도착할 수 있어서
+  // room:state가 브로드캐스트되기도 전에 게임별 roundStart가 먼저 도착할 수 있어서
   // (라운드별 화면이 마운트되기 전에 신호를 놓치지 않도록) 세션이 살아있는 동안 항상 구독해둔다
   useEffect(() => {
     const onState = (state: RoomState) => {
       setRoomState(state)
-      if (state.phase !== 'round_active') setHumanTimerStart(null)
+      if (state.phase !== 'round_active') {
+        setHumanTimerStart(null)
+        setOneToFiftyStart(null)
+      }
     }
     const onError = (message: string) => setError(message)
     const onHumanTimerStart = (data: { elapsedMs: number }) => setHumanTimerStart(data)
+    const onOneToFiftyStart = (data: { board: number[]; progress: number; elapsedMs: number }) => setOneToFiftyStart(data)
     socket.on('room:state', onState)
     socket.on('room:error', onError)
     socket.on('humanTimer:roundStart', onHumanTimerStart)
+    socket.on('oneToFifty:roundStart', onOneToFiftyStart)
     return () => {
       socket.off('room:state', onState)
       socket.off('room:error', onError)
       socket.off('humanTimer:roundStart', onHumanTimerStart)
+      socket.off('oneToFifty:roundStart', onOneToFiftyStart)
     }
   }, [socket])
 
@@ -158,6 +167,7 @@ export function useGameSession(roomCodeFromUrl?: string) {
     error,
     rejoining,
     humanTimerStart,
+    oneToFiftyStart,
     createRoom,
     joinRoom,
     setReady,

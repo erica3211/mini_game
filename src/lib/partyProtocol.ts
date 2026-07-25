@@ -60,7 +60,7 @@ export interface SessionConfig {
 export interface RoundRankingEntry {
   playerId: PlayerId
   metric: number
-  /** 화면에 보여줄 원시 값 (예: humanTimer는 실제 정지 시각 ms). 게임마다 의미가 다르고, DNF면 없음 */
+  /** 화면에 보여줄 원시 값 (예: humanTimer는 실제 정지 시각 ms, oneToFifty는 완료 시간 또는 DNF 시 진행한 개수). 게임마다 의미가 다르고, DNF일 때 비워둘지도 게임마다 다름 */
   value?: number
   rank: number
   points: number
@@ -94,6 +94,7 @@ export interface RoomState {
 
 export const MIN_PLAYERS_TO_START = 2
 export const HUMAN_TIMER_TARGET_MS = 10_000
+export const ONE_TO_FIFTY_ROUND_TIMEOUT_MS = 30_000
 export const ROUND_COUNTDOWN_MS = 3_000
 
 type CreateRoomAck = { ok: true; roomCode: string; playerId: string } | { ok: false; error: string }
@@ -114,6 +115,10 @@ export interface ClientToServerEvents {
   /** 최종결과 화면에서 아무나 눌러서 같은 방으로 대기실로 돌아간다 (설정은 유지, 점수/준비상태는 초기화) */
   'room:playAgain': () => void
   'humanTimer:submit': (data: { elapsedMs: number }) => void
+  /** 1부터 순서대로 맞게 터치할 때마다 지금까지 도달한 숫자를 가볍게 알려준다 (서버는 그대로 신뢰) */
+  'oneToFifty:progress': (data: { progress: number }) => void
+  /** 50까지 다 터치했을 때 완료 시간을 제출 */
+  'oneToFifty:submit': (data: { elapsedMs: number }) => void
   'round:requestResync': () => void
 }
 
@@ -123,4 +128,6 @@ export interface ServerToClientEvents {
   'room:error': (message: string) => void
   /** elapsedMs: 새 라운드면 0, 라운드 도중 재접속한 사람에게 다시 보낼 땐 이미 지난 시간 */
   'humanTimer:roundStart': (data: { elapsedMs: number }) => void
+  /** board: 이 플레이어 전용으로 섞인 1~50 배치. progress/elapsedMs: 새 라운드면 0, 재접속 시엔 지금까지 진행 상황 */
+  'oneToFifty:roundStart': (data: { board: number[]; progress: number; elapsedMs: number }) => void
 }

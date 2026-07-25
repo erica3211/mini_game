@@ -1159,3 +1159,67 @@ button {
   font-variant-numeric: tabular-nums;
   color: var(--text-muted);
 }
+
+.party-onetofifty-status {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  max-width: 320px;
+  font-weight: 600;
+}
+
+.party-onetofifty-remaining {
+  color: var(--text-muted);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.party-number-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.5rem;
+  width: 100%;
+  max-width: 320px;
+}
+
+.party-number-cell {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-weight: 600;
+  font-size: 1rem;
+  transition: opacity 0.2s, border-color 0.15s;
+}
+
+.party-number-cell:hover:not(:disabled) {
+  border-color: var(--border-strong);
+}
+
+.party-number-cell-done {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.party-number-cell-shake {
+  border-color: var(--danger);
+  animation: party-shake 0.3s;
+}
+
+@keyframes party-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-4px);
+  }
+  75% {
+    transform: translateX(4px);
+  }
+}
