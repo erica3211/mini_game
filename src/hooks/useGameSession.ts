@@ -33,7 +33,7 @@ function saveSession(roomCode: string, playerId: string) {
 
 /** 방 코드(roomCodeFromUrl)가 있으면 새로고침은 물론 앱을 껐다 켜도(1시간 이내) 저장된 참가자로 자동 재접속을 시도한다 */
 export function useGameSession(roomCodeFromUrl?: string) {
-  const { socket } = useSocket()
+  const { socket, connected } = useSocket()
   const [roomState, setRoomState] = useState<RoomState | null>(null)
   const [playerId, setPlayerId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -150,6 +150,7 @@ export function useGameSession(roomCodeFromUrl?: string) {
 
   return {
     socket,
+    connected,
     roomState,
     playerId,
     me,

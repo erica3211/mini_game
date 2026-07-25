@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { PartyLoading } from '../components/party/PartyLoading'
 import { useGameSession } from '../hooks/useGameSession'
 
 export function PartyGame() {
@@ -18,6 +19,14 @@ export function PartyGame() {
     setSubmitting(false)
     if (result.ok) navigate(`/party/${result.roomCode}`)
     else setError(result.error)
+  }
+
+  if (!session.connected) {
+    return <PartyLoading message="서버에 연결하는 중이에요. 잠들어 있던 서버라면 최대 1분 정도 걸릴 수 있어요." />
+  }
+
+  if (submitting) {
+    return <PartyLoading message="방 만드는 중..." />
   }
 
   return (

@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { useParams } from 'react-router-dom'
 import { PartyFinalResults } from '../components/party/PartyFinalResults'
+import { PartyLoading } from '../components/party/PartyLoading'
 import { PartyLobby } from '../components/party/PartyLobby'
 import { PartyRoundActive } from '../components/party/PartyRoundActive'
 import { PartyRoundCountdown } from '../components/party/PartyRoundCountdown'
@@ -24,12 +25,16 @@ export function PartyRoom() {
     if (!result.ok) setJoinError(result.error)
   }
 
+  if (!session.connected) {
+    return <PartyLoading message="서버에 연결하는 중이에요. 잠들어 있던 서버라면 최대 1분 정도 걸릴 수 있어요." />
+  }
+
   if (session.rejoining) {
-    return (
-      <section className="game-page">
-        <p className="page-subtitle">접속하는 중...</p>
-      </section>
-    )
+    return <PartyLoading message="접속하는 중..." />
+  }
+
+  if (submitting) {
+    return <PartyLoading message="입장하는 중..." />
   }
 
   if (!session.playerId) {
@@ -58,11 +63,7 @@ export function PartyRoom() {
   }
 
   if (!session.roomState) {
-    return (
-      <section className="game-page">
-        <p className="page-subtitle">방 정보를 불러오는 중...</p>
-      </section>
-    )
+    return <PartyLoading message="방 정보를 불러오는 중..." />
   }
 
   switch (session.roomState.phase) {
