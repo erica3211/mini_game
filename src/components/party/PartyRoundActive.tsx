@@ -1,6 +1,7 @@
 import type { GameSession } from '../../hooks/useGameSession'
 import { HumanTimerGame } from './HumanTimerGame'
 import { OneToFiftyGame } from './OneToFiftyGame'
+import { WordChainGame } from './WordChainGame'
 
 interface Props {
   session: GameSession
@@ -30,13 +31,23 @@ export function PartyRoundActive({ session }: Props) {
             startSignal={session.humanTimerStart}
             howToPlay={gameMeta.howToPlay}
           />
+        ) : state.currentGameId === 'oneToFifty' ? (
+          <OneToFiftyGame
+            socket={session.socket}
+            roundKey={roundKey}
+            startSignal={session.oneToFiftyStart}
+            howToPlay={gameMeta.howToPlay}
+          />
         ) : (
-          state.currentGameId === 'oneToFifty' && (
-            <OneToFiftyGame
+          state.currentGameId === 'wordChain' && (
+            <WordChainGame
               socket={session.socket}
               roundKey={roundKey}
-              startSignal={session.oneToFiftyStart}
+              startSignal={session.wordChainStart}
+              category={session.wordChainCategory}
+              definition={session.wordChainDefinition}
               howToPlay={gameMeta.howToPlay}
+              players={state.players}
             />
           )
         ))

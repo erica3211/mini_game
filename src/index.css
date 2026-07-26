@@ -1169,7 +1169,7 @@ button {
   font-weight: 600;
 }
 
-.party-onetofifty-remaining {
+.party-round-remaining {
   color: var(--text-muted);
   font-weight: 500;
   font-variant-numeric: tabular-nums;
@@ -1222,4 +1222,117 @@ button {
   75% {
     transform: translateX(4px);
   }
+}
+
+.party-chosung-display {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.party-chosung-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+
+.party-wordchain-hints {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.party-wordchain-hints strong {
+  color: var(--text);
+}
+
+.party-wordchain-form {
+  display: flex;
+  gap: 0.5rem;
+  width: 100%;
+  max-width: 320px;
+}
+
+.party-wordchain-input {
+  flex: 1;
+  min-width: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.6rem 0.8rem;
+  color: var(--text);
+  font-size: 1rem;
+}
+
+.party-wordchain-input:focus-visible {
+  border-color: var(--accent);
+}
+
+.party-wordchain-input-shake {
+  border-color: var(--danger);
+  animation: party-shake 0.3s;
+}
+
+.party-wordchain-toasts {
+  position: fixed;
+  top: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  z-index: 10;
+}
+
+.party-wordchain-toast {
+  margin: 0;
+  background: rgba(46, 160, 67, 0.9);
+  color: #fff;
+  font-weight: 600;
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  animation: party-toast-in 0.2s ease-out;
+}
+
+@keyframes party-toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.party-wordchain-answer {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.875rem 1rem;
+  text-align: center;
+  margin-top: 0.5rem;
+}
+
+.party-wordchain-answer strong {
+  color: var(--accent);
+}
+
+.party-wordchain-answer-definition {
+  margin: 0.35rem 0 0;
+  color: var(--text-muted);
+  font-size: 0.9rem;
 }

@@ -42,6 +42,9 @@ export function useGameSession(roomCodeFromUrl?: string) {
   const [oneToFiftyStart, setOneToFiftyStart] = useState<{ board: number[]; progress: number; elapsedMs: number } | null>(
     null,
   )
+  const [wordChainStart, setWordChainStart] = useState<{ chosung: string[]; elapsedMs: number } | null>(null)
+  const [wordChainCategory, setWordChainCategory] = useState<string | null>(null)
+  const [wordChainDefinition, setWordChainDefinition] = useState<string | null>(null)
 
   // room:state가 브로드캐스트되기도 전에 게임별 roundStart가 먼저 도착할 수 있어서
   // (라운드별 화면이 마운트되기 전에 신호를 놓치지 않도록) 세션이 살아있는 동안 항상 구독해둔다
@@ -51,20 +54,36 @@ export function useGameSession(roomCodeFromUrl?: string) {
       if (state.phase !== 'round_active') {
         setHumanTimerStart(null)
         setOneToFiftyStart(null)
+        setWordChainStart(null)
+        setWordChainCategory(null)
+        setWordChainDefinition(null)
       }
     }
     const onError = (message: string) => setError(message)
     const onHumanTimerStart = (data: { elapsedMs: number }) => setHumanTimerStart(data)
     const onOneToFiftyStart = (data: { board: number[]; progress: number; elapsedMs: number }) => setOneToFiftyStart(data)
+    const onWordChainStart = (data: { chosung: string[]; elapsedMs: number }) => {
+      setWordChainStart(data)
+      setWordChainCategory(null)
+      setWordChainDefinition(null)
+    }
+    const onWordChainCategory = (data: { category: string }) => setWordChainCategory(data.category)
+    const onWordChainDefinition = (data: { definition: string }) => setWordChainDefinition(data.definition)
     socket.on('room:state', onState)
     socket.on('room:error', onError)
     socket.on('humanTimer:roundStart', onHumanTimerStart)
     socket.on('oneToFifty:roundStart', onOneToFiftyStart)
+    socket.on('wordChain:roundStart', onWordChainStart)
+    socket.on('wordChain:categoryRevealed', onWordChainCategory)
+    socket.on('wordChain:definitionRevealed', onWordChainDefinition)
     return () => {
       socket.off('room:state', onState)
       socket.off('room:error', onError)
       socket.off('humanTimer:roundStart', onHumanTimerStart)
       socket.off('oneToFifty:roundStart', onOneToFiftyStart)
+      socket.off('wordChain:roundStart', onWordChainStart)
+      socket.off('wordChain:categoryRevealed', onWordChainCategory)
+      socket.off('wordChain:definitionRevealed', onWordChainDefinition)
     }
   }, [socket])
 
@@ -168,6 +187,9 @@ export function useGameSession(roomCodeFromUrl?: string) {
     rejoining,
     humanTimerStart,
     oneToFiftyStart,
+    wordChainStart,
+    wordChainCategory,
+    wordChainDefinition,
     createRoom,
     joinRoom,
     setReady,

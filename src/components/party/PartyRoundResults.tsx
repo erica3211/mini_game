@@ -10,6 +10,10 @@ export function PartyRoundResults({ session }: Props) {
   const lastRound = state.roundHistory[state.roundHistory.length - 1]
   const nicknameOf = (playerId: string) => state.players.find((p) => p.id === playerId)?.nickname ?? '???'
   const isLastRound = state.currentRoundIndex + 1 >= state.config.totalRounds
+  const wordChainMeta =
+    lastRound.gameId === 'wordChain'
+      ? (lastRound.meta as { word: string; category: string; definition: string } | undefined)
+      : undefined
 
   const detailOf = (entry: (typeof lastRound.ranking)[number]) => {
     if (entry.disconnected) return ' (연결 끊김)'
@@ -19,6 +23,9 @@ export function PartyRoundResults({ session }: Props) {
     if (entry.dnf) return ' (미제출)'
     if (lastRound.gameId === 'humanTimer' && entry.value !== undefined) {
       return ` (${(entry.value / 1000).toFixed(2)}초에 정지)`
+    }
+    if (lastRound.gameId === 'wordChain' && entry.value !== undefined) {
+      return ` (${(entry.value / 1000).toFixed(2)}초 만에 정답)`
     }
     return ''
   }
@@ -38,6 +45,15 @@ export function PartyRoundResults({ session }: Props) {
   return (
     <section className="game-page">
       <h1 className="page-title">{state.currentRoundIndex + 1}라운드 결과</h1>
+
+      {wordChainMeta && (
+        <div className="party-wordchain-answer">
+          <p>
+            정답: <strong>{wordChainMeta.word}</strong> ({wordChainMeta.category})
+          </p>
+          <p className="party-wordchain-answer-definition">{wordChainMeta.definition}</p>
+        </div>
+      )}
 
       <PartyScoreList entries={roundEntries} badgeClass="badge-strike" />
 

@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react'
 import type { Socket } from 'socket.io-client'
 import { useOneToFiftyRound } from '../../hooks/useOneToFiftyRound'
 import { ONE_TO_FIFTY_ROUND_TIMEOUT_MS, type ClientToServerEvents, type ServerToClientEvents } from '../../lib/partyProtocol'
+import { RemainingTime } from './RemainingTime'
 
 interface Props {
   socket: Socket<ServerToClientEvents, ClientToServerEvents>
@@ -25,7 +25,9 @@ export function OneToFiftyGame({ socket, roundKey, startSignal, howToPlay }: Pro
         <>
           <div className="party-onetofifty-status">
             <span>다음 숫자: {status === 'submitted' ? '완료! 🎉' : next}</span>
-            {status === 'running' && startedAt !== null && <RemainingTime startedAt={startedAt} />}
+            {status === 'running' && startedAt !== null && (
+              <RemainingTime startedAt={startedAt} timeoutMs={ONE_TO_FIFTY_ROUND_TIMEOUT_MS} />
+            )}
           </div>
 
           <div className="party-number-grid">
@@ -49,18 +51,4 @@ export function OneToFiftyGame({ socket, roundKey, startSignal, howToPlay }: Pro
       )}
     </div>
   )
-}
-
-/** 제한시간 중 남은 시간을 1초 단위로 보여준다 */
-function RemainingTime({ startedAt }: { startedAt: number }) {
-  const [remainingMs, setRemainingMs] = useState(() => Math.max(0, ONE_TO_FIFTY_ROUND_TIMEOUT_MS - (performance.now() - startedAt)))
-
-  useEffect(() => {
-    const interval = window.setInterval(() => {
-      setRemainingMs(Math.max(0, ONE_TO_FIFTY_ROUND_TIMEOUT_MS - (performance.now() - startedAt)))
-    }, 250)
-    return () => window.clearInterval(interval)
-  }, [startedAt])
-
-  return <span className="party-onetofifty-remaining">⏳ {Math.ceil(remainingMs / 1000)}초</span>
 }

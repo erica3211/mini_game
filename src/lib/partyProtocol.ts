@@ -73,6 +73,8 @@ export interface RoundResult {
   roundIndex: number
   gameId: GameId
   ranking: RoundRankingEntry[]
+  /** 게임별 부가 결과 데이터 (예: wordChain의 정답 공개). 구조가 게임마다 다르므로 gameId로 분기해 타입을 좁혀 사용한다 */
+  meta?: unknown
 }
 
 export interface RoomState {
@@ -96,6 +98,9 @@ export const MIN_PLAYERS_TO_START = 2
 export const HUMAN_TIMER_TARGET_MS = 10_000
 export const ONE_TO_FIFTY_ROUND_TIMEOUT_MS = 30_000
 export const ROUND_COUNTDOWN_MS = 3_000
+export const WORD_CHAIN_ROUND_TIMEOUT_MS = 60_000
+export const WORD_CHAIN_CATEGORY_REVEAL_MS = 10_000
+export const WORD_CHAIN_DEFINITION_REVEAL_MS = 20_000
 
 type CreateRoomAck = { ok: true; roomCode: string; playerId: string } | { ok: false; error: string }
 type JoinRoomAck = { ok: true; playerId: string } | { ok: false; error: string }
@@ -120,6 +125,8 @@ export interface ClientToServerEvents {
   /** 50까지 다 터치했을 때 완료 시간을 제출 */
   'oneToFifty:submit': (data: { elapsedMs: number }) => void
   'round:requestResync': () => void
+  /** 초성 퀴즈 정답 시도. 같은 라운드 안에서 맞힐 때까지 몇 번이든 다시 시도할 수 있다 */
+  'wordChain:submit': (data: { guess: string }) => void
 }
 
 /** Server -> Client */
@@ -130,4 +137,12 @@ export interface ServerToClientEvents {
   'humanTimer:roundStart': (data: { elapsedMs: number }) => void
   /** board: 이 플레이어 전용으로 섞인 1~50 배치. progress/elapsedMs: 새 라운드면 0, 재접속 시엔 지금까지 진행 상황 */
   'oneToFifty:roundStart': (data: { board: number[]; progress: number; elapsedMs: number }) => void
+  /** chosung: 음절별 초성 배열. elapsedMs: 새 라운드면 0, 재접속 시엔 이미 지난 시간 */
+  'wordChain:roundStart': (data: { chosung: string[]; elapsedMs: number }) => void
+  'wordChain:categoryRevealed': (data: { category: string }) => void
+  'wordChain:definitionRevealed': (data: { definition: string }) => void
+  /** 누군가 정답을 맞혔을 때 전체에게 브로드캐스트 (본인 포함). 닉네임은 room:state의 players로 조회 */
+  'wordChain:correctAnswer': (data: { playerId: PlayerId }) => void
+  /** 방금 제출한 사람에게만 보내는 정오답 결과 — 다른 사람에게 정답 문자열이 노출되면 안 되므로 개인 전송 */
+  'wordChain:guessResult': (data: { correct: boolean }) => void
 }

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { Socket } from 'socket.io-client'
 import type { ClientToServerEvents, ServerToClientEvents } from '../lib/partyProtocol'
+import { useMonotonicStartedAt } from './useMonotonicStartedAt'
 
 type PartySocket = Socket<ServerToClientEvents, ClientToServerEvents>
 type LocalStatus = 'waiting' | 'running' | 'submitted'
@@ -17,21 +18,17 @@ export function useOneToFiftyRound(socket: PartySocket, roundKey: string, startS
   const [status, setStatus] = useState<LocalStatus>('waiting')
   const [board, setBoard] = useState<number[]>([])
   const [next, setNext] = useState(1)
-  const [startedAt, setStartedAt] = useState<number | null>(null)
   const [shakeValue, setShakeValue] = useState<number | null>(null)
+  const startedAt = useMonotonicStartedAt(roundKey, startSignal, status)
 
   useEffect(() => {
     setStatus('waiting')
     setBoard([])
     setNext(1)
-    setStartedAt(null)
   }, [roundKey])
 
   useEffect(() => {
     if (!startSignal || status === 'submitted') return
-    // humanTimer와 동일하게, 경과 시간은 항상 늘어나기만 해야 한다 — 뒤늦게 도착한 신호로 되돌리지 않는다
-    const candidate = performance.now() - startSignal.elapsedMs
-    setStartedAt((prev) => (prev !== null && candidate > prev ? prev : candidate))
     setBoard(startSignal.board)
     setNext((prev) => Math.max(prev, startSignal.progress + 1))
     setStatus('running')
