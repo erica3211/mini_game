@@ -69,6 +69,24 @@ export interface RoundRankingEntry {
   disconnected: boolean
 }
 
+// 경매: 물품 식별자 (항상 4개, A~D 고정 라벨 — 실제 정체는 없고 미스터리 박스로 취급)
+export type AuctionItemId = 'A' | 'B' | 'C' | 'D'
+
+// 경매: 라운드 종료 후 결과 화면에 공개하는 물품별 상세 (RoundResult.meta로 전달됨)
+export interface AuctionItemResult {
+  itemId: AuctionItemId
+  /** 물품의 실제 가치 (마이너스 가능, 단위: 만원) */
+  value: number
+  /** 낙찰자. 아무도 안 썼거나 최고가가 동점이면 유찰 */
+  winnerPlayerId: PlayerId | null
+  /** 전원 공개용 — 이 물품에 각자 얼마씩 베팅했는지 */
+  bids: Record<PlayerId, number>
+}
+
+export interface AuctionRoundMeta {
+  items: AuctionItemResult[]
+}
+
 export interface RoundResult {
   roundIndex: number
   gameId: GameId
@@ -101,6 +119,11 @@ export const ROUND_COUNTDOWN_MS = 3_000
 export const WORD_CHAIN_ROUND_TIMEOUT_MS = 60_000
 export const WORD_CHAIN_CATEGORY_REVEAL_MS = 10_000
 export const WORD_CHAIN_DEFINITION_REVEAL_MS = 20_000
+export const AUCTION_ITEM_IDS: AuctionItemId[] = ['A', 'B', 'C', 'D']
+// 화면에는 A~D 대신 사람이 말하기 쉬운 1~4번으로 물품을 표시한다
+export const auctionItemNumber = (itemId: AuctionItemId) => AUCTION_ITEM_IDS.indexOf(itemId) + 1
+export const AUCTION_STARTING_BUDGET = 1000
+export const AUCTION_ROUND_TIMEOUT_MS = 90_000
 
 type CreateRoomAck = { ok: true; roomCode: string; playerId: string } | { ok: false; error: string }
 type JoinRoomAck = { ok: true; playerId: string } | { ok: false; error: string }
@@ -127,6 +150,8 @@ export interface ClientToServerEvents {
   'round:requestResync': () => void
   /** 초성 퀴즈 정답 시도. 같은 라운드 안에서 맞힐 때까지 몇 번이든 다시 시도할 수 있다 */
   'wordChain:submit': (data: { guess: string }) => void
+  /** 물품별 베팅액을 한 번에 제출 (합계가 예산을 넘으면 서버가 거부). 제출 후에는 라운드가 끝날 때까지 수정 불가 */
+  'auction:submit': (data: { bids: Record<AuctionItemId, number> }) => void
 }
 
 /** Server -> Client */
@@ -145,4 +170,9 @@ export interface ServerToClientEvents {
   'wordChain:correctAnswer': (data: { playerId: PlayerId }) => void
   /** 방금 제출한 사람에게만 보내는 정오답 결과 — 다른 사람에게 정답 문자열이 노출되면 안 되므로 개인 전송 */
   'wordChain:guessResult': (data: { correct: boolean }) => void
+  /** 참가자 개인 전용 힌트 카드 — 다른 물품의 힌트나 다른 사람이 뭘 받았는지는 전혀 알 수 없다.
+   *  elapsedMs: 새 라운드면 0, 재접속 시엔 이미 지난 시간 */
+  'auction:roundStart': (data: { budget: number; hint: { itemId: AuctionItemId; text: string }; elapsedMs: number }) => void
+  /** 제출한 베팅이 유효하지 않아(합계 초과 등) 반려됐을 때 제출한 사람에게만 전송 */
+  'auction:submitRejected': (data: { reason: string }) => void
 }

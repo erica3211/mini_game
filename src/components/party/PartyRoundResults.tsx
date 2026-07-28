@@ -1,4 +1,7 @@
 import type { GameSession } from '../../hooks/useGameSession'
+import { formatWon, signClass } from '../../lib/auctionFormat'
+import { pickAuctionFlavors } from '../../lib/auctionItems'
+import { auctionItemNumber, type AuctionRoundMeta } from '../../lib/partyProtocol'
 import { PartyScoreList } from './PartyScoreList'
 
 interface Props {
@@ -14,6 +17,9 @@ export function PartyRoundResults({ session }: Props) {
     lastRound.gameId === 'wordChain'
       ? (lastRound.meta as { word: string; category: string; definition: string } | undefined)
       : undefined
+  const auctionMeta = lastRound.gameId === 'auction' ? (lastRound.meta as AuctionRoundMeta | undefined) : undefined
+  // 베팅 화면과 같은 roundKey로 시드를 고정해야 그때 봤던 물품 이름/이미지가 결과 화면에서도 그대로 재현된다
+  const auctionFlavors = auctionMeta ? pickAuctionFlavors(`${lastRound.roundIndex}-${lastRound.gameId}`) : null
 
   const detailOf = (entry: (typeof lastRound.ranking)[number]) => {
     if (entry.disconnected) return ' (연결 끊김)'
@@ -26,6 +32,9 @@ export function PartyRoundResults({ session }: Props) {
     }
     if (lastRound.gameId === 'wordChain' && entry.value !== undefined) {
       return ` (${(entry.value / 1000).toFixed(2)}초 만에 정답)`
+    }
+    if (lastRound.gameId === 'auction' && entry.value !== undefined) {
+      return ` (총자산 ${formatWon(entry.value)})`
     }
     return ''
   }
@@ -52,6 +61,41 @@ export function PartyRoundResults({ session }: Props) {
             정답: <strong>{wordChainMeta.word}</strong> ({wordChainMeta.category})
           </p>
           <p className="party-wordchain-answer-definition">{wordChainMeta.definition}</p>
+        </div>
+      )}
+
+      {auctionMeta && auctionFlavors && (
+        <div className="party-auction-reveal">
+          {auctionMeta.items.map((item) => (
+            <div className="party-auction-reveal-item" key={item.itemId}>
+              <img
+                className="party-auction-reveal-image"
+                src={auctionFlavors[item.itemId].image}
+                alt={auctionFlavors[item.itemId].name}
+              />
+              <div className="party-auction-reveal-body">
+                <div className="party-auction-reveal-header">
+                  <span>
+                    {auctionItemNumber(item.itemId)}. {auctionFlavors[item.itemId].name}
+                  </span>
+                  <strong className={signClass(item.value)}>{formatWon(item.value)}</strong>
+                </div>
+                <p className="party-auction-reveal-winner">
+                  {item.winnerPlayerId ? `🏆 낙찰: ${nicknameOf(item.winnerPlayerId)}` : '유찰 (아무도 못 가져감)'}
+                </p>
+                <ul className="party-auction-reveal-bids">
+                  {Object.entries(item.bids)
+                    .filter(([, amount]) => amount > 0)
+                    .sort(([, a], [, b]) => b - a)
+                    .map(([playerId, amount]) => (
+                      <li key={playerId}>
+                        {nicknameOf(playerId)}: {formatWon(amount)}
+                      </li>
+                    ))}
+                </ul>
+              </div>
+            </div>
+          ))}
         </div>
       )}
 

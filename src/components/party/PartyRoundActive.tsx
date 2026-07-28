@@ -1,4 +1,5 @@
 import type { GameSession } from '../../hooks/useGameSession'
+import { AuctionGame } from './AuctionGame'
 import { HumanTimerGame } from './HumanTimerGame'
 import { OneToFiftyGame } from './OneToFiftyGame'
 import { WordChainGame } from './WordChainGame'
@@ -38,17 +39,19 @@ export function PartyRoundActive({ session }: Props) {
             startSignal={session.oneToFiftyStart}
             howToPlay={gameMeta.howToPlay}
           />
+        ) : state.currentGameId === 'wordChain' ? (
+          <WordChainGame
+            socket={session.socket}
+            roundKey={roundKey}
+            startSignal={session.wordChainStart}
+            category={session.wordChainCategory}
+            definition={session.wordChainDefinition}
+            howToPlay={gameMeta.howToPlay}
+            players={state.players}
+          />
         ) : (
-          state.currentGameId === 'wordChain' && (
-            <WordChainGame
-              socket={session.socket}
-              roundKey={roundKey}
-              startSignal={session.wordChainStart}
-              category={session.wordChainCategory}
-              definition={session.wordChainDefinition}
-              howToPlay={gameMeta.howToPlay}
-              players={state.players}
-            />
+          state.currentGameId === 'auction' && (
+            <AuctionGame socket={session.socket} roundKey={roundKey} startSignal={session.auctionStart} howToPlay={gameMeta.howToPlay} />
           )
         ))
       )}

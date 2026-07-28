@@ -1336,3 +1336,155 @@ button {
   color: var(--text-muted);
   font-size: 0.9rem;
 }
+
+.party-auction-hint-card {
+  background: rgba(100, 154, 226, 0.1);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius);
+  padding: 0.75rem 1rem;
+  text-align: center;
+  width: 100%;
+  max-width: 360px;
+}
+
+.party-auction-hint-label {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--accent);
+  font-weight: 700;
+  margin-bottom: 0.3rem;
+}
+
+.party-auction-hint-text {
+  margin: 0;
+  font-weight: 600;
+}
+
+.party-auction-budget-bar {
+  font-weight: 600;
+}
+
+.party-auction-value-negative {
+  color: var(--danger);
+}
+
+.party-auction-value-positive {
+  color: #3fb950;
+}
+
+.party-auction-item-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+  width: 100%;
+  max-width: 420px;
+}
+
+.party-auction-item-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.75rem;
+}
+
+.party-auction-item-image {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: calc(var(--radius) - 4px);
+  background: var(--bg);
+}
+
+.party-auction-item-header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.25rem;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.party-auction-item-hint-badge {
+  font-size: 0.7rem;
+  background: rgba(100, 154, 226, 0.15);
+  color: var(--accent);
+  border-radius: 999px;
+  padding: 0.15rem 0.5rem;
+}
+
+.party-auction-item-slider {
+  width: 100%;
+}
+
+.party-auction-item-amount {
+  text-align: center;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.party-auction-rejection {
+  color: var(--danger);
+  font-size: 0.85rem;
+}
+
+.party-auction-reveal {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  width: 100%;
+  max-width: 420px;
+  margin: 0.5rem 0;
+}
+
+.party-auction-reveal-item {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.75rem 1rem;
+}
+
+.party-auction-reveal-image {
+  width: 3.5rem;
+  height: 3.5rem;
+  flex-shrink: 0;
+  object-fit: cover;
+  border-radius: calc(var(--radius) - 4px);
+  background: var(--bg);
+}
+
+.party-auction-reveal-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.party-auction-reveal-header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.25rem;
+  font-weight: 700;
+}
+
+.party-auction-reveal-winner {
+  margin: 0.3rem 0;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.party-auction-reveal-bids {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem 0.75rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
