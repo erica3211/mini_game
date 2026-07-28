@@ -67,7 +67,10 @@ export function PartyRoundResults({ session }: Props) {
       {auctionMeta && auctionFlavors && (
         <div className="party-auction-reveal">
           {auctionMeta.items.map((item) => (
-            <div className="party-auction-reveal-item" key={item.itemId}>
+            <div
+              className={`party-auction-reveal-item${item.winnerPlayerId === session.playerId ? ' party-auction-reveal-item-won' : ''}`}
+              key={item.itemId}
+            >
               <img
                 className="party-auction-reveal-image"
                 src={auctionFlavors[item.itemId].image}
@@ -98,7 +101,7 @@ export function PartyRoundResults({ session }: Props) {
           ))}
         </div>
       )}
-
+      <h2 className="party-section-title">이번 라운드 점수</h2>
       <PartyScoreList entries={roundEntries} badgeClass="badge-strike" />
 
       <h2 className="party-section-title">누적 점수</h2>

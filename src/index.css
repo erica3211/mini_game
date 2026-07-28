@@ -1436,8 +1436,7 @@ button {
   flex-direction: column;
   gap: 0.6rem;
   width: 100%;
-  max-width: 420px;
-  margin: 0.5rem 0;
+  margin: 0.5rem 0 2rem;
 }
 
 .party-auction-reveal-item {
@@ -1448,6 +1447,12 @@ button {
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 0.75rem 1rem;
+}
+
+/* 내가 낙찰받은 물품만 한눈에 구분되도록 테두리를 강조한다 */
+.party-auction-reveal-item-won {
+  border: 2px solid #e3b341;
+  box-shadow: 0 0 0 1px rgba(227, 179, 65, 0.35);
 }
 
 .party-auction-reveal-image {
