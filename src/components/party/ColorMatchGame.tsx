@@ -20,18 +20,19 @@ interface Props {
 
 // 드래그 위치를 기준으로 그때그때 다시 그리는 지도 배경 — 실제 채점에 쓰이는 색은 훅이 계산하는
 // hslToRgb(hue, saturation, lightness) 값이 유일한 정답 소스이고, 이 배경은 그걸 그대로 시각화한 것일 뿐이다
-// 핀 주변 색이 완만하게 바뀌도록 화면에는 좁은 범위(색상각 ±20도, 명도 ±25)만 보여준다 —
-// 실제로 드래그 1px당 움직이는 양(useColorMatchRound의 HUE_PER_PIXEL/LIGHTNESS_PER_PIXEL)도
-// 이 범위와 맞춰뒀으니, 지도 한쪽 끝에서 반대쪽 끝까지 드래그하면 대략 화면에 보이는 만큼만 움직인다
-const MAP_HUE_SPAN = 20
-const MAP_LIGHTNESS_SPAN = 25
+// 화면에는 핀을 중심으로 색상각 ±45도만 보여준다(여러 색 계열이 한눈에 보이도록) — 드래그 1px당
+// 움직이는 양(useColorMatchRound의 HUE_PER_PIXEL)도 이 범위와 맞춰뒀으니, 지도 한쪽 끝에서
+// 반대쪽 끝까지 드래그하면 대략 화면에 보이는 만큼만 움직인다
+const MAP_HUE_SPAN = 45
 
 function mapBackground(hue: number, lightness: number, saturation: number) {
-  const topL = Math.min(100, lightness + MAP_LIGHTNESS_SPAN)
-  const bottomL = Math.max(0, lightness - MAP_LIGHTNESS_SPAN)
+  const centerColor = `hsl(${hue}, ${saturation}%, ${lightness}%)`
+  // 아래(가로) 레이어가 색상각별로 실제 색을 깔고, 위(세로) 레이어는 흰색/검은색을 반투명하게 덧씌워
+  // 위아래로는 밝기를, 좌우로는 색상각을 동시에 보여준다 — 핀이 있는 정중앙은 위 레이어가 완전히
+  // 투명해지는 지점이라 실제 선택색(centerColor)이 그대로 드러난다
   return [
-    `linear-gradient(to bottom, hsl(${hue}, ${saturation}%, ${topL}%), hsl(${hue}, ${saturation}%, ${lightness}%) 50%, hsl(${hue}, ${saturation}%, ${bottomL}%))`,
-    `linear-gradient(to right, hsl(${hue - MAP_HUE_SPAN}, ${saturation}%, 50%), hsl(${hue}, ${saturation}%, 50%), hsl(${hue + MAP_HUE_SPAN}, ${saturation}%, 50%))`,
+    'linear-gradient(to bottom, rgba(255,255,255,0.75), rgba(255,255,255,0) 45%, rgba(0,0,0,0) 55%, rgba(0,0,0,0.75))',
+    `linear-gradient(to right, hsl(${hue - MAP_HUE_SPAN}, ${saturation}%, 50%), ${centerColor} 50%, hsl(${hue + MAP_HUE_SPAN}, ${saturation}%, 50%))`,
   ].join(', ')
 }
 

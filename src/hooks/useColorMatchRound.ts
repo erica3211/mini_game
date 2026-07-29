@@ -13,8 +13,8 @@ const AUTO_SUBMIT_MARGIN_MS = 200
 const DEFAULT_HUE = 200
 const DEFAULT_LIGHTNESS = 50
 // 드래그 1px당 색상각/명도가 얼마나 움직이는지 — 지도에 보이는 범위(ColorMatchGame.tsx의
-// MAP_HUE_SPAN/MAP_LIGHTNESS_SPAN)와 맞춰서, 지도 한쪽 끝까지 드래그하면 보이는 만큼만 움직이도록 좁혔다
-const HUE_PER_PIXEL = 0.15
+// MAP_HUE_SPAN/MAP_LIGHTNESS_SPAN)와 맞춰서, 지도 한쪽 끝까지 드래그하면 보이는 만큼만 움직이도록 조정했다
+const HUE_PER_PIXEL = 0.25
 const LIGHTNESS_PER_PIXEL = 0.15
 
 /**
@@ -63,9 +63,11 @@ export function useColorMatchRound(socket: PartySocket, roundKey: string, startS
   const drag = useCallback(
     (deltaX: number, deltaY: number) => {
       if (status !== 'running') return
+      // 핀은 화면에 고정돼 있고 지도(배경)를 손가락으로 미는 방식이라, 지도 앱을 팬닝할 때처럼
+      // 손가락이 움직인 방향과 반대로 선택 위치가 움직인다 (delta 부호를 뒤집어서 반영)
       // 큰 폭의(특히 음수) 드래그 델타가 한 번에 들어와도 항상 [0,360) 범위로 정규화되도록 모듈러를 두 번 적용한다
-      setHue((prev) => (((prev + deltaX * HUE_PER_PIXEL) % 360) + 360) % 360)
-      setLightness((prev) => Math.min(100, Math.max(0, prev - deltaY * LIGHTNESS_PER_PIXEL)))
+      setHue((prev) => (((prev - deltaX * HUE_PER_PIXEL) % 360) + 360) % 360)
+      setLightness((prev) => Math.min(100, Math.max(0, prev + deltaY * LIGHTNESS_PER_PIXEL)))
     },
     [status],
   )
