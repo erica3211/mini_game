@@ -2,8 +2,14 @@ import type { GameSession } from '../../hooks/useGameSession'
 import { formatWon, signClass } from '../../lib/auctionFormat'
 import { pickAuctionFlavors } from '../../lib/auctionItems'
 import { colorMatchGradeOf, rgbToCss } from '../../lib/colorMath'
-import { auctionItemNumber, type AuctionRoundMeta, type ColorMatchRoundMeta } from '../../lib/partyProtocol'
+import {
+  auctionItemNumber,
+  type AuctionRoundMeta,
+  type ColorMatchRoundMeta,
+  type PixelCanvasRoundMeta,
+} from '../../lib/partyProtocol'
 import { PartyScoreList } from './PartyScoreList'
+import { PixelCanvasSnapshot } from './PixelCanvasSnapshot'
 
 interface Props {
   session: GameSession
@@ -22,11 +28,17 @@ export function PartyRoundResults({ session }: Props) {
   // 베팅 화면과 같은 roundKey로 시드를 고정해야 그때 봤던 물품 이름/이미지가 결과 화면에서도 그대로 재현된다
   const auctionFlavors = auctionMeta ? pickAuctionFlavors(`${lastRound.roundIndex}-${lastRound.gameId}`) : null
   const colorMatchMeta = lastRound.gameId === 'colorMatch' ? (lastRound.meta as ColorMatchRoundMeta | undefined) : undefined
+  const pixelCanvasMeta =
+    lastRound.gameId === 'pixelCanvas' ? (lastRound.meta as PixelCanvasRoundMeta | undefined) : undefined
 
   const detailOf = (entry: (typeof lastRound.ranking)[number]) => {
     if (entry.disconnected) return ' (연결 끊김)'
     if (lastRound.gameId === 'oneToFifty' && entry.value !== undefined) {
       return entry.dnf ? ` (${entry.value}개 터치)` : ` (${(entry.value / 1000).toFixed(2)}초 만에 완료)`
+    }
+    // 픽셀 캔버스는 oneToFifty처럼 dnf(한 칸도 못 칠함)여도 차지한 칸 수를 그대로 보여준다
+    if (lastRound.gameId === 'pixelCanvas' && entry.value !== undefined) {
+      return ` (${entry.value}칸 차지)`
     }
     if (entry.dnf) return ' (미제출)'
     if (lastRound.gameId === 'humanTimer' && entry.value !== undefined) {
@@ -131,6 +143,8 @@ export function PartyRoundResults({ session }: Props) {
           ))}
         </div>
       )}
+
+      {pixelCanvasMeta && <PixelCanvasSnapshot meta={pixelCanvasMeta} />}
 
       <h2 className="party-section-title">이번 라운드 점수</h2>
       <PartyScoreList entries={roundEntries} badgeClass="badge-strike" />

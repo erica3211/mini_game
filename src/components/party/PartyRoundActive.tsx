@@ -1,12 +1,60 @@
 import type { GameSession } from '../../hooks/useGameSession'
+import type { GameMeta } from '../../lib/partyProtocol'
 import { AuctionGame } from './AuctionGame'
 import { ColorMatchGame } from './ColorMatchGame'
 import { HumanTimerGame } from './HumanTimerGame'
 import { OneToFiftyGame } from './OneToFiftyGame'
+import { PixelCanvasGame } from './PixelCanvasGame'
 import { WordChainGame } from './WordChainGame'
 
 interface Props {
   session: GameSession
+}
+
+/** 현재 라운드의 게임 화면 하나를 고른다. gameId마다 게임 모듈이 필요로 하는 startSignal 등 개인화된 props가 달라서 분기가 필요하다 */
+function renderGame(session: GameSession, roundKey: string, gameMeta: GameMeta) {
+  const state = session.roomState!
+  switch (state.currentGameId) {
+    case 'humanTimer':
+      return (
+        <HumanTimerGame socket={session.socket} roundKey={roundKey} startSignal={session.humanTimerStart} howToPlay={gameMeta.howToPlay} />
+      )
+    case 'oneToFifty':
+      return (
+        <OneToFiftyGame socket={session.socket} roundKey={roundKey} startSignal={session.oneToFiftyStart} howToPlay={gameMeta.howToPlay} />
+      )
+    case 'wordChain':
+      return (
+        <WordChainGame
+          socket={session.socket}
+          roundKey={roundKey}
+          startSignal={session.wordChainStart}
+          category={session.wordChainCategory}
+          definition={session.wordChainDefinition}
+          howToPlay={gameMeta.howToPlay}
+          players={state.players}
+        />
+      )
+    case 'auction':
+      return <AuctionGame socket={session.socket} roundKey={roundKey} startSignal={session.auctionStart} howToPlay={gameMeta.howToPlay} />
+    case 'colorMatch':
+      return (
+        <ColorMatchGame socket={session.socket} roundKey={roundKey} startSignal={session.colorMatchStart} howToPlay={gameMeta.howToPlay} />
+      )
+    case 'pixelCanvas':
+      return (
+        <PixelCanvasGame
+          socket={session.socket}
+          roundKey={roundKey}
+          startSignal={session.pixelCanvasStart}
+          playerId={session.playerId}
+          players={state.players}
+          howToPlay={gameMeta.howToPlay}
+        />
+      )
+    default:
+      return null
+  }
 }
 
 export function PartyRoundActive({ session }: Props) {
@@ -25,43 +73,7 @@ export function PartyRoundActive({ session }: Props) {
       {!isParticipating ? (
         <p className="party-round-hint">이미 게임이 진행중이라 참여할 수 없어요. 다음 라운드부터 참여 가능해요.</p>
       ) : (
-        gameMeta &&
-        (state.currentGameId === 'humanTimer' ? (
-          <HumanTimerGame
-            socket={session.socket}
-            roundKey={roundKey}
-            startSignal={session.humanTimerStart}
-            howToPlay={gameMeta.howToPlay}
-          />
-        ) : state.currentGameId === 'oneToFifty' ? (
-          <OneToFiftyGame
-            socket={session.socket}
-            roundKey={roundKey}
-            startSignal={session.oneToFiftyStart}
-            howToPlay={gameMeta.howToPlay}
-          />
-        ) : state.currentGameId === 'wordChain' ? (
-          <WordChainGame
-            socket={session.socket}
-            roundKey={roundKey}
-            startSignal={session.wordChainStart}
-            category={session.wordChainCategory}
-            definition={session.wordChainDefinition}
-            howToPlay={gameMeta.howToPlay}
-            players={state.players}
-          />
-        ) : state.currentGameId === 'auction' ? (
-          <AuctionGame socket={session.socket} roundKey={roundKey} startSignal={session.auctionStart} howToPlay={gameMeta.howToPlay} />
-        ) : (
-          state.currentGameId === 'colorMatch' && (
-            <ColorMatchGame
-              socket={session.socket}
-              roundKey={roundKey}
-              startSignal={session.colorMatchStart}
-              howToPlay={gameMeta.howToPlay}
-            />
-          )
-        ))
+        gameMeta && renderGame(session, roundKey, gameMeta)
       )}
     </section>
   )

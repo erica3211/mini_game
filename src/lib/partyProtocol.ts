@@ -105,6 +105,12 @@ export interface ColorMatchRoundMeta {
   subRounds: ColorMatchSubRoundResult[]
 }
 
+// 픽셀 캔버스: 결과 화면에 보여줄 최종 캔버스 스냅샷 (grid는 0=빈칸, N=슬롯(N-1)이 칠한 칸)
+export interface PixelCanvasRoundMeta {
+  grid: number[]
+  slotColors: string[]
+}
+
 export interface RoundResult {
   roundIndex: number
   gameId: GameId
@@ -145,6 +151,9 @@ export const AUCTION_ROUND_TIMEOUT_MS = 90_000
 export const COLOR_MATCH_SUB_ROUNDS = 3
 export const COLOR_MATCH_SUB_ROUND_MS = 5_000
 export const COLOR_MATCH_REVEAL_MS = 3_000
+export const PIXEL_CANVAS_COLS = 40
+export const PIXEL_CANVAS_ROWS = 26
+export const PIXEL_CANVAS_ROUND_TIMEOUT_MS = 20_000
 
 type CreateRoomAck = { ok: true; roomCode: string; playerId: string } | { ok: false; error: string }
 type JoinRoomAck = { ok: true; playerId: string } | { ok: false; error: string }
@@ -175,6 +184,8 @@ export interface ClientToServerEvents {
   'auction:submit': (data: { bids: Record<AuctionItemId, number> }) => void
   /** 현재 핀이 가리키는 색. 세부 라운드가 끝날 때까지 몇 번이든 다시 보내서 덮어쓸 수 있다 (마지막 값이 채택됨) */
   'colorMatch:submit': (data: { color: RgbColor }) => void
+  /** 드래그 경로 위의 격자 좌표들. 서버가 그대로(1x1) 칠하고 전원에게 브로드캐스트한다 */
+  'pixelCanvas:paint': (data: { cells: { x: number; y: number }[] }) => void
 }
 
 /** Server -> Client */
@@ -203,4 +214,15 @@ export interface ServerToClientEvents {
   'colorMatch:roundStart': (data: { subRoundIndex: number; answerColor: RgbColor; elapsedMs: number }) => void
   /** 세부 라운드가 끝났을 때 본인에게만 보내는 결과 — 다른 사람 점수는 게임이 다 끝난 뒤 결과 화면에서 공개된다 */
   'colorMatch:subRoundResult': (data: { subRoundIndex: number; matchPercent: number; grade: string }) => void
+  /** 라운드(재)시작 — grid는 현재 격자 전체 스냅샷(새 라운드면 전부 0), slotColors는 슬롯별 색상,
+   *  slotOfPlayer는 참가자별 슬롯 번호. 모두 공개 정보라 전원에게 동일하게 방송된다.
+   *  elapsedMs: 새 라운드면 0, 재접속 시엔 이미 지난 시간 */
+  'pixelCanvas:roundStart': (data: {
+    grid: number[]
+    slotColors: string[]
+    slotOfPlayer: Record<PlayerId, number>
+    elapsedMs: number
+  }) => void
+  /** 누군가 칠한 칸들의 변경분만 전달 (i: y*cols+x 평면 인덱스, slot: 새로 칠한 사람의 슬롯) */
+  'pixelCanvas:update': (data: { cells: { i: number; slot: number }[] }) => void
 }

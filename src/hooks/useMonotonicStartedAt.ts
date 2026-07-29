@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 
-type RoundStatus = 'waiting' | 'running' | 'submitted'
+/** 'submitted'(제출 완료)와 'finished'(시간 종료)는 둘 다 "더 이상 시작 시각을 갱신하지 않는" 종료 상태다 */
+type RoundStatus = 'waiting' | 'running' | 'submitted' | 'finished'
 
 /**
  * 라운드 시작 시각(performance.now() 기준)을 계산해서 들고 있는 훅.
@@ -20,7 +21,7 @@ export function useMonotonicStartedAt(
   }, [roundKey])
 
   useEffect(() => {
-    if (!startSignal || status === 'submitted') return
+    if (!startSignal || status === 'submitted' || status === 'finished') return
     const candidate = performance.now() - startSignal.elapsedMs
     setStartedAt((prev) => (prev !== null && candidate > prev ? prev : candidate))
   }, [startSignal, status])
