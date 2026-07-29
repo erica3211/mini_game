@@ -87,6 +87,24 @@ export interface AuctionRoundMeta {
   items: AuctionItemResult[]
 }
 
+export interface RgbColor {
+  r: number
+  g: number
+  b: number
+}
+
+// 절대색감: 한 라운드(게임 슬롯) 안에서 진행하는 세부 라운드 3개 각각의 결과
+export interface ColorMatchSubRoundResult {
+  subRoundIndex: number
+  answerColor: RgbColor
+  /** 전원 공개용 — 참가자별로 이번 세부 라운드에서 고른 색과 일치율 */
+  picks: Record<PlayerId, { color: RgbColor; matchPercent: number }>
+}
+
+export interface ColorMatchRoundMeta {
+  subRounds: ColorMatchSubRoundResult[]
+}
+
 export interface RoundResult {
   roundIndex: number
   gameId: GameId
@@ -124,6 +142,9 @@ export const AUCTION_ITEM_IDS: AuctionItemId[] = ['A', 'B', 'C', 'D']
 export const auctionItemNumber = (itemId: AuctionItemId) => AUCTION_ITEM_IDS.indexOf(itemId) + 1
 export const AUCTION_STARTING_BUDGET = 1000
 export const AUCTION_ROUND_TIMEOUT_MS = 90_000
+export const COLOR_MATCH_SUB_ROUNDS = 3
+export const COLOR_MATCH_SUB_ROUND_MS = 5_000
+export const COLOR_MATCH_REVEAL_MS = 3_000
 
 type CreateRoomAck = { ok: true; roomCode: string; playerId: string } | { ok: false; error: string }
 type JoinRoomAck = { ok: true; playerId: string } | { ok: false; error: string }
@@ -152,6 +173,8 @@ export interface ClientToServerEvents {
   'wordChain:submit': (data: { guess: string }) => void
   /** 물품별 베팅액을 한 번에 제출 (합계가 예산을 넘으면 서버가 거부). 제출 후에는 라운드가 끝날 때까지 수정 불가 */
   'auction:submit': (data: { bids: Record<AuctionItemId, number> }) => void
+  /** 현재 핀이 가리키는 색. 세부 라운드가 끝날 때까지 몇 번이든 다시 보내서 덮어쓸 수 있다 (마지막 값이 채택됨) */
+  'colorMatch:submit': (data: { color: RgbColor }) => void
 }
 
 /** Server -> Client */
@@ -175,4 +198,9 @@ export interface ServerToClientEvents {
   'auction:roundStart': (data: { budget: number; hint: { itemId: AuctionItemId; text: string }; elapsedMs: number }) => void
   /** 제출한 베팅이 유효하지 않아(합계 초과 등) 반려됐을 때 제출한 사람에게만 전송 */
   'auction:submitRejected': (data: { reason: string }) => void
+  /** 세부 라운드(3개 중 하나) 시작. answerColor는 전원에게 동일하게 공개된다.
+   *  elapsedMs: 새 세부 라운드면 0, 재접속 시엔 이미 지난 시간 */
+  'colorMatch:roundStart': (data: { subRoundIndex: number; answerColor: RgbColor; elapsedMs: number }) => void
+  /** 세부 라운드가 끝났을 때 본인에게만 보내는 결과 — 다른 사람 점수는 게임이 다 끝난 뒤 결과 화면에서 공개된다 */
+  'colorMatch:subRoundResult': (data: { subRoundIndex: number; matchPercent: number; grade: string }) => void
 }

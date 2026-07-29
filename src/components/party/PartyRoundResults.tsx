@@ -1,7 +1,8 @@
 import type { GameSession } from '../../hooks/useGameSession'
 import { formatWon, signClass } from '../../lib/auctionFormat'
 import { pickAuctionFlavors } from '../../lib/auctionItems'
-import { auctionItemNumber, type AuctionRoundMeta } from '../../lib/partyProtocol'
+import { colorMatchGradeOf, rgbToCss } from '../../lib/colorMath'
+import { auctionItemNumber, type AuctionRoundMeta, type ColorMatchRoundMeta } from '../../lib/partyProtocol'
 import { PartyScoreList } from './PartyScoreList'
 
 interface Props {
@@ -20,6 +21,7 @@ export function PartyRoundResults({ session }: Props) {
   const auctionMeta = lastRound.gameId === 'auction' ? (lastRound.meta as AuctionRoundMeta | undefined) : undefined
   // 베팅 화면과 같은 roundKey로 시드를 고정해야 그때 봤던 물품 이름/이미지가 결과 화면에서도 그대로 재현된다
   const auctionFlavors = auctionMeta ? pickAuctionFlavors(`${lastRound.roundIndex}-${lastRound.gameId}`) : null
+  const colorMatchMeta = lastRound.gameId === 'colorMatch' ? (lastRound.meta as ColorMatchRoundMeta | undefined) : undefined
 
   const detailOf = (entry: (typeof lastRound.ranking)[number]) => {
     if (entry.disconnected) return ' (연결 끊김)'
@@ -35,6 +37,9 @@ export function PartyRoundResults({ session }: Props) {
     }
     if (lastRound.gameId === 'auction' && entry.value !== undefined) {
       return ` (총자산 ${formatWon(entry.value)})`
+    }
+    if (lastRound.gameId === 'colorMatch' && entry.value !== undefined) {
+      return ` (합산 ${entry.value}점)`
     }
     return ''
   }
@@ -101,6 +106,32 @@ export function PartyRoundResults({ session }: Props) {
           ))}
         </div>
       )}
+
+      {colorMatchMeta && (
+        <div className="party-colormatch-reveal">
+          {colorMatchMeta.subRounds.map((subRound) => (
+            <div className="party-colormatch-reveal-item" key={subRound.subRoundIndex}>
+              <div className="party-colormatch-reveal-header">
+                <span>{subRound.subRoundIndex + 1}번 문제</span>
+                <div className="party-colormatch-reveal-answer" style={{ background: rgbToCss(subRound.answerColor) }} />
+              </div>
+              <ul className="party-colormatch-reveal-picks">
+                {Object.entries(subRound.picks)
+                  .sort(([, a], [, b]) => b.matchPercent - a.matchPercent)
+                  .map(([playerId, pick]) => (
+                    <li key={playerId}>
+                      <div className="party-colormatch-reveal-pick-color" style={{ background: rgbToCss(pick.color) }} />
+                      <span>
+                        {nicknameOf(playerId)}: {pick.matchPercent}% ({colorMatchGradeOf(pick.matchPercent)})
+                      </span>
+                    </li>
+                  ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      )}
+
       <h2 className="party-section-title">이번 라운드 점수</h2>
       <PartyScoreList entries={roundEntries} badgeClass="badge-strike" />
 

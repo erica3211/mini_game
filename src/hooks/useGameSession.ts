@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import type { AuctionItemId, RoomState, SessionConfig } from '../lib/partyProtocol'
+import type { AuctionItemId, RgbColor, RoomState, SessionConfig } from '../lib/partyProtocol'
 import { useSocket } from './useSocket'
 
 const REJOIN_TTL_MS = 60 * 60 * 1000 // 마지막 접속 후 1시간이 지나면 재접속 정보를 만료시킨다
@@ -50,6 +50,11 @@ export function useGameSession(roomCodeFromUrl?: string) {
     hint: { itemId: AuctionItemId; text: string }
     elapsedMs: number
   } | null>(null)
+  const [colorMatchStart, setColorMatchStart] = useState<{
+    subRoundIndex: number
+    answerColor: RgbColor
+    elapsedMs: number
+  } | null>(null)
 
   // room:state가 브로드캐스트되기도 전에 게임별 roundStart가 먼저 도착할 수 있어서
   // (라운드별 화면이 마운트되기 전에 신호를 놓치지 않도록) 세션이 살아있는 동안 항상 구독해둔다
@@ -63,6 +68,7 @@ export function useGameSession(roomCodeFromUrl?: string) {
         setWordChainCategory(null)
         setWordChainDefinition(null)
         setAuctionStart(null)
+        setColorMatchStart(null)
       }
     }
     const onError = (message: string) => setError(message)
@@ -77,6 +83,8 @@ export function useGameSession(roomCodeFromUrl?: string) {
     const onWordChainDefinition = (data: { definition: string }) => setWordChainDefinition(data.definition)
     const onAuctionStart = (data: { budget: number; hint: { itemId: AuctionItemId; text: string }; elapsedMs: number }) =>
       setAuctionStart(data)
+    const onColorMatchStart = (data: { subRoundIndex: number; answerColor: RgbColor; elapsedMs: number }) =>
+      setColorMatchStart(data)
     socket.on('room:state', onState)
     socket.on('room:error', onError)
     socket.on('humanTimer:roundStart', onHumanTimerStart)
@@ -85,6 +93,7 @@ export function useGameSession(roomCodeFromUrl?: string) {
     socket.on('wordChain:categoryRevealed', onWordChainCategory)
     socket.on('wordChain:definitionRevealed', onWordChainDefinition)
     socket.on('auction:roundStart', onAuctionStart)
+    socket.on('colorMatch:roundStart', onColorMatchStart)
     return () => {
       socket.off('room:state', onState)
       socket.off('room:error', onError)
@@ -94,6 +103,7 @@ export function useGameSession(roomCodeFromUrl?: string) {
       socket.off('wordChain:categoryRevealed', onWordChainCategory)
       socket.off('wordChain:definitionRevealed', onWordChainDefinition)
       socket.off('auction:roundStart', onAuctionStart)
+      socket.off('colorMatch:roundStart', onColorMatchStart)
     }
   }, [socket])
 
@@ -201,6 +211,7 @@ export function useGameSession(roomCodeFromUrl?: string) {
     wordChainCategory,
     wordChainDefinition,
     auctionStart,
+    colorMatchStart,
     createRoom,
     joinRoom,
     setReady,

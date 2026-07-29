@@ -1,5 +1,6 @@
 import type { GameSession } from '../../hooks/useGameSession'
 import { AuctionGame } from './AuctionGame'
+import { ColorMatchGame } from './ColorMatchGame'
 import { HumanTimerGame } from './HumanTimerGame'
 import { OneToFiftyGame } from './OneToFiftyGame'
 import { WordChainGame } from './WordChainGame'
@@ -49,9 +50,16 @@ export function PartyRoundActive({ session }: Props) {
             howToPlay={gameMeta.howToPlay}
             players={state.players}
           />
+        ) : state.currentGameId === 'auction' ? (
+          <AuctionGame socket={session.socket} roundKey={roundKey} startSignal={session.auctionStart} howToPlay={gameMeta.howToPlay} />
         ) : (
-          state.currentGameId === 'auction' && (
-            <AuctionGame socket={session.socket} roundKey={roundKey} startSignal={session.auctionStart} howToPlay={gameMeta.howToPlay} />
+          state.currentGameId === 'colorMatch' && (
+            <ColorMatchGame
+              socket={session.socket}
+              roundKey={roundKey}
+              startSignal={session.colorMatchStart}
+              howToPlay={gameMeta.howToPlay}
+            />
           )
         ))
       )}
