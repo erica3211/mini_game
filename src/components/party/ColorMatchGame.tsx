@@ -107,7 +107,16 @@ export function ColorMatchGame({ socket, roundKey, startSignal, howToPlay }: Pro
             onPointerUp={onPointerUp}
             onPointerCancel={onPointerUp}
           >
-            <div className="party-colormatch-pin">📍</div>
+            {/* 핀 안쪽 원에 지금 고른 색(color)을 그대로 채워서, 핀 자체가 곧 "선택" 스와치 역할도 하게 한다 */}
+            <svg className="party-colormatch-pin" viewBox="0 0 24 24" width="40" height="40">
+              <path
+                d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"
+                fill="#fff"
+                stroke="#fff"
+                strokeWidth="0.6"
+              />
+              <circle cx="12" cy="9" r="3.4" fill={rgbToCss(color)} stroke="#fff" strokeWidth="0.6" />
+            </svg>
           </div>
 
           {result && (
