@@ -11,7 +11,7 @@ type StartSignal = { subRoundIndex: number; answerColor: RgbColor; elapsedMs: nu
 // 화면에 보이는 5초가 다 되기 살짝 전에 자동 제출을 보낸다 (경매 게임과 같은 이유) —
 // 서버도 COLOR_MATCH_SUBMIT_GRACE_MS만큼 마감을 늦춰주지만, 클라이언트도 여유를 조금 더 둬서
 // 느린 모바일 네트워크에서 제출이 늦게 도착해 미제출(0%) 처리되는 일을 줄인다
-const AUTO_SUBMIT_MARGIN_MS = 400
+const AUTO_SUBMIT_MARGIN_MS = 200
 const DEFAULT_HUE = 200
 const DEFAULT_LIGHTNESS = 50
 // 드래그 1px당 색상각/명도가 얼마나 움직이는지 — 지도에 보이는 범위(ColorMatchGame.tsx의
