@@ -27,9 +27,13 @@ export function rgbToCss({ r, g, b }: RgbColor): string {
 
 // 백엔드 games/colorMatch.ts의 gradeOf와 같은 기준 — 결과 화면에서 matchPercent만으로 등급을 다시 계산해 보여줄 때 쓴다
 export function colorMatchGradeOf(matchPercent: number): string {
-  if (matchPercent >= 95) return '절대색감의 신'
-  if (matchPercent >= 85) return '인간 포토샵 스포이드'
-  if (matchPercent >= 70) return '웬만큼 보는 눈'
-  if (matchPercent >= 50) return '좀 헷갈리는 눈'
-  return '착각의 늪에 빠진 눈'
+  if (matchPercent >= 98) return '신이 내린 절대색감 👁️✨'
+  if (matchPercent >= 90) return '인간 포토샵 스포이드 🧪'
+  if (matchPercent >= 80) return '프로 디자이너의 눈 🎨'
+  if (matchPercent >= 70) return '제법 매서운 눈썰미 🦅'
+  if (matchPercent >= 60) return '평범하고 평화로운 눈 👁️'
+  if (matchPercent >= 50) return '아쉬운 2%... 헷갈리는 눈 😵'
+  if (matchPercent >= 40) return '착각의 늪에 빠진 발가락 👣'
+  if (matchPercent >= 30) return '모니터 밝기 탓하는 중 🖥️'
+  return '눈을 감고 찍으셨나요? 🙈'
 }
