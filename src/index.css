@@ -1756,14 +1756,16 @@ button {
 .party-mousehunter-viewport {
   position: relative;
   width: 100%;
-  max-width: 340px;
-  aspect-ratio: 500 / 290;
+  max-width: 320px;
+  aspect-ratio: 1 / 1;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   overflow: hidden;
   cursor: grab;
   user-select: none;
-  /* 화면을 좌우로 끄는 동안 브라우저가 세로 스크롤/새로고침 제스처로 가로채지 않도록 막는다 */
+  /* 화면을 좌우로 끄는 동안 브라우저가 세로 스크롤/새로고침 제스처로 가로채지 않도록 막는다 —
+     실제 좌우/상하 판정은 JS(onPointerMove의 방향 잠금)가 하고, 이건 어디까지나 상하 스크롤 자체는
+     항상 네이티브로 부드럽게 동작하도록 허용해두는 것 */
   touch-action: pan-y;
 }
 
