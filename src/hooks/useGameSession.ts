@@ -62,6 +62,7 @@ export function useGameSession(roomCodeFromUrl?: string) {
     elapsedMs: number
   } | null>(null)
   const [balloonPopStart, setBalloonPopStart] = useState<{ elapsedMs: number } | null>(null)
+  const [mouseHunterStart, setMouseHunterStart] = useState<{ elapsedMs: number } | null>(null)
 
   // room:state가 브로드캐스트되기도 전에 게임별 roundStart가 먼저 도착할 수 있어서
   // (라운드별 화면이 마운트되기 전에 신호를 놓치지 않도록) 세션이 살아있는 동안 항상 구독해둔다
@@ -78,6 +79,7 @@ export function useGameSession(roomCodeFromUrl?: string) {
         setColorMatchStart(null)
         setPixelCanvasStart(null)
         setBalloonPopStart(null)
+        setMouseHunterStart(null)
       }
     }
     const onError = (message: string) => setError(message)
@@ -101,6 +103,7 @@ export function useGameSession(roomCodeFromUrl?: string) {
       elapsedMs: number
     }) => setPixelCanvasStart(data)
     const onBalloonPopStart = (data: { elapsedMs: number }) => setBalloonPopStart(data)
+    const onMouseHunterStart = (data: { elapsedMs: number }) => setMouseHunterStart(data)
     socket.on('room:state', onState)
     socket.on('room:error', onError)
     socket.on('humanTimer:roundStart', onHumanTimerStart)
@@ -112,6 +115,7 @@ export function useGameSession(roomCodeFromUrl?: string) {
     socket.on('colorMatch:roundStart', onColorMatchStart)
     socket.on('pixelCanvas:roundStart', onPixelCanvasStart)
     socket.on('balloonPop:roundStart', onBalloonPopStart)
+    socket.on('mouseHunter:roundStart', onMouseHunterStart)
     return () => {
       socket.off('room:state', onState)
       socket.off('room:error', onError)
@@ -124,6 +128,7 @@ export function useGameSession(roomCodeFromUrl?: string) {
       socket.off('colorMatch:roundStart', onColorMatchStart)
       socket.off('pixelCanvas:roundStart', onPixelCanvasStart)
       socket.off('balloonPop:roundStart', onBalloonPopStart)
+      socket.off('mouseHunter:roundStart', onMouseHunterStart)
     }
   }, [socket])
 
@@ -234,6 +239,7 @@ export function useGameSession(roomCodeFromUrl?: string) {
     colorMatchStart,
     pixelCanvasStart,
     balloonPopStart,
+    mouseHunterStart,
     createRoom,
     joinRoom,
     setReady,

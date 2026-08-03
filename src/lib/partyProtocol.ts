@@ -2,8 +2,8 @@ export type PlayerId = string
 
 export type GameId =
   | 'humanTimer'
-  | 'nightMouseHunt'
-  | 'reverseElection'
+  | 'mouseHunter'
+  // | 'reverseElection'
   | 'balloonPop'
   | 'oneToFifty'
   | 'colorMatch'
@@ -172,6 +172,7 @@ export const PIXEL_CANVAS_ROUND_TIMEOUT_MS = 20_000
 export const BALLOON_POP_MAX_PUMPS = 50
 export const BALLOON_POP_ROUND_TIMEOUT_MS = 20_000
 export const BALLOON_POP_REVEAL_MS = 2_000
+export const MOUSE_HUNTER_ROUND_TIMEOUT_MS = 30_000
 
 type CreateRoomAck = { ok: true; roomCode: string; playerId: string } | { ok: false; error: string }
 type JoinRoomAck = { ok: true; playerId: string } | { ok: false; error: string }
@@ -251,4 +252,6 @@ export interface ServerToClientEvents {
   'balloonPop:roundStart': (data: { elapsedMs: number }) => void
   /** 본인의 pump/stop 요청에 대한 응답 — 다른 사람 진행 상황은 라운드 중엔 비공개이므로 본인에게만 전송 */
   'balloonPop:state': (data: { pumps: number; status: BalloonPopStatus }) => void
+  /** elapsedMs: 새 라운드면 0, 재접속 시엔 이미 지난 시간 */
+  'mouseHunter:roundStart': (data: { elapsedMs: number }) => void
 }

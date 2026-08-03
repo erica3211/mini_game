@@ -4,6 +4,7 @@ import { AuctionGame } from './AuctionGame'
 import { BalloonPopGame } from './BalloonPopGame'
 import { ColorMatchGame } from './ColorMatchGame'
 import { HumanTimerGame } from './HumanTimerGame'
+import { MouseHunterGame } from './MouseHunterGame'
 import { OneToFiftyGame } from './OneToFiftyGame'
 import { PixelCanvasGame } from './PixelCanvasGame'
 import { WordChainGame } from './WordChainGame'
@@ -57,6 +58,8 @@ function renderGame(session: GameSession, roundKey: string, gameMeta: GameMeta) 
       return (
         <BalloonPopGame socket={session.socket} roundKey={roundKey} startSignal={session.balloonPopStart} howToPlay={gameMeta.howToPlay} />
       )
+    case 'mouseHunter':
+      return <MouseHunterGame roundKey={roundKey} startSignal={session.mouseHunterStart} howToPlay={gameMeta.howToPlay} />
     default:
       return null
   }

@@ -1741,3 +1741,70 @@ button {
 .party-balloonpop-reveal-detail {
   color: var(--text-muted);
 }
+
+.party-mousehunter-room-name {
+  margin: 0;
+  font-weight: 600;
+}
+
+.party-mousehunter-room-index {
+  color: var(--text-muted);
+  font-weight: 400;
+  font-size: 0.85rem;
+}
+
+.party-mousehunter-viewport {
+  position: relative;
+  width: 100%;
+  max-width: 340px;
+  aspect-ratio: 500 / 290;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  cursor: grab;
+  user-select: none;
+  /* 화면을 좌우로 끄는 동안 브라우저가 세로 스크롤/새로고침 제스처로 가로채지 않도록 막는다 */
+  touch-action: pan-y;
+}
+
+.party-mousehunter-viewport:active {
+  cursor: grabbing;
+}
+
+.party-mousehunter-track {
+  display: flex;
+  height: 100%;
+}
+
+.party-mousehunter-room-image {
+  flex: 0 0 100%;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+.party-mousehunter-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 2.25rem;
+  height: 2.25rem;
+  border: none;
+  border-radius: 50%;
+  background: rgba(13, 17, 23, 0.6);
+  color: var(--text);
+  font-size: 1.5rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.party-mousehunter-arrow-prev {
+  left: 0.5rem;
+}
+
+.party-mousehunter-arrow-next {
+  right: 0.5rem;
+}
