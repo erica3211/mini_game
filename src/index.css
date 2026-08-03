@@ -1669,3 +1669,71 @@ button {
 .party-pixelcanvas-scoreboard strong {
   color: var(--text);
 }
+
+/* 풍선 담력 테스트 — 풍선이 커져도 이 칸 밖으로는 절대 넘치지 않도록 크기를 고정하고 잘라낸다 */
+.party-balloonpop-stage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 260px;
+  height: 300px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  overflow: hidden;
+}
+
+.party-balloonpop-balloon {
+  width: 140px;
+  height: 180px;
+  transition: transform 0.15s ease-out;
+}
+
+.party-balloonpop-stage-popped {
+  animation: party-shake 0.3s;
+}
+
+.party-balloonpop-balloon-pumpable {
+  /* 누르고 있는 동안 손가락 드래그로 화면이 스크롤/확대되지 않아야 홀드가 끊기지 않는다 */
+  touch-action: none;
+  cursor: pointer;
+  user-select: none;
+}
+
+.party-balloonpop-balloon-pumpable:active {
+  filter: brightness(1.15);
+}
+
+.party-balloonpop-pop-text {
+  font-size: 3rem;
+  margin: 0;
+}
+
+.party-balloonpop-pumps {
+  font-size: 1.1rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.party-balloonpop-reveal {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.party-balloonpop-reveal li {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.party-balloonpop-reveal-detail {
+  color: var(--text-muted);
+}

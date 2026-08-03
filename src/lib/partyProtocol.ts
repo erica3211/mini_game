@@ -111,6 +111,21 @@ export interface PixelCanvasRoundMeta {
   slotColors: string[]
 }
 
+export type BalloonPopStatus = 'alive' | 'popped' | 'stopped'
+
+// 풍선 담력 테스트: 결과 화면에서 전원 공개하는 참가자별 상세
+export interface BalloonPopPlayerResult {
+  playerId: PlayerId
+  pumps: number
+  status: BalloonPopStatus
+  /** 이 참가자의 숨겨진 터짐 임계값 — 안전하게 멈춘 사람도 "사실 몇 번까지 버틸 수 있었는지" 결과 화면에서 확인 가능 */
+  threshold: number
+}
+
+export interface BalloonPopRoundMeta {
+  results: BalloonPopPlayerResult[]
+}
+
 export interface RoundResult {
   roundIndex: number
   gameId: GameId
@@ -154,6 +169,8 @@ export const COLOR_MATCH_REVEAL_MS = 3_000
 export const PIXEL_CANVAS_COLS = 40
 export const PIXEL_CANVAS_ROWS = 26
 export const PIXEL_CANVAS_ROUND_TIMEOUT_MS = 20_000
+export const BALLOON_POP_MAX_PUMPS = 50
+export const BALLOON_POP_ROUND_TIMEOUT_MS = 20_000
 
 type CreateRoomAck = { ok: true; roomCode: string; playerId: string } | { ok: false; error: string }
 type JoinRoomAck = { ok: true; playerId: string } | { ok: false; error: string }
@@ -186,6 +203,10 @@ export interface ClientToServerEvents {
   'colorMatch:submit': (data: { color: RgbColor }) => void
   /** 드래그 경로 위의 격자 좌표들. 서버가 그대로(1x1) 칠하고 전원에게 브로드캐스트한다 */
   'pixelCanvas:paint': (data: { cells: { x: number; y: number }[] }) => void
+  /** 풍선을 한 번 부풀림. 서버가 숨겨진 임계값과 비교해 터졌는지 판정하고 balloonPop:state로 응답한다 */
+  'balloonPop:pump': () => void
+  /** 지금 크기로 확정하고 더 이상 부풀리지 않음 */
+  'balloonPop:stop': () => void
 }
 
 /** Server -> Client */
@@ -225,4 +246,8 @@ export interface ServerToClientEvents {
   }) => void
   /** 누군가 칠한 칸들의 변경분만 전달 (i: y*cols+x 평면 인덱스, slot: 새로 칠한 사람의 슬롯) */
   'pixelCanvas:update': (data: { cells: { i: number; slot: number }[] }) => void
+  /** elapsedMs: 새 라운드면 0, 재접속 시엔 이미 지난 시간 */
+  'balloonPop:roundStart': (data: { elapsedMs: number }) => void
+  /** 본인의 pump/stop 요청에 대한 응답 — 다른 사람 진행 상황은 라운드 중엔 비공개이므로 본인에게만 전송 */
+  'balloonPop:state': (data: { pumps: number; status: BalloonPopStatus }) => void
 }

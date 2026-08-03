@@ -5,6 +5,7 @@ import { colorMatchGradeOf, rgbToCss } from '../../lib/colorMath'
 import {
   auctionItemNumber,
   type AuctionRoundMeta,
+  type BalloonPopRoundMeta,
   type ColorMatchRoundMeta,
   type PixelCanvasRoundMeta,
 } from '../../lib/partyProtocol'
@@ -30,6 +31,7 @@ export function PartyRoundResults({ session }: Props) {
   const colorMatchMeta = lastRound.gameId === 'colorMatch' ? (lastRound.meta as ColorMatchRoundMeta | undefined) : undefined
   const pixelCanvasMeta =
     lastRound.gameId === 'pixelCanvas' ? (lastRound.meta as PixelCanvasRoundMeta | undefined) : undefined
+  const balloonPopMeta = lastRound.gameId === 'balloonPop' ? (lastRound.meta as BalloonPopRoundMeta | undefined) : undefined
 
   const detailOf = (entry: (typeof lastRound.ranking)[number]) => {
     if (entry.disconnected) return ' (연결 끊김)'
@@ -145,6 +147,23 @@ export function PartyRoundResults({ session }: Props) {
       )}
 
       {pixelCanvasMeta && <PixelCanvasSnapshot meta={pixelCanvasMeta} />}
+
+      {balloonPopMeta && (
+        <ul className="party-balloonpop-reveal">
+          {[...balloonPopMeta.results]
+            .sort((a, b) => b.pumps - a.pumps)
+            .map((r) => (
+              <li key={r.playerId}>
+                <span>{nicknameOf(r.playerId)}</span>
+                <span className="party-balloonpop-reveal-detail">
+                  {r.status === 'popped' && `💥 ${r.pumps}번에서 터짐`}
+                  {r.status === 'stopped' && `🛑 ${r.pumps}번에서 멈춤 (사실 ${r.threshold}번까지 버틸 수 있었어요)`}
+                  {r.status === 'alive' && '⏱️ 결정 못 함'}
+                </span>
+              </li>
+            ))}
+        </ul>
+      )}
 
       <h2 className="party-section-title">이번 라운드 점수</h2>
       <PartyScoreList entries={roundEntries} badgeClass="badge-strike" />

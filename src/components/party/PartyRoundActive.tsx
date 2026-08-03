@@ -1,6 +1,7 @@
 import type { GameSession } from '../../hooks/useGameSession'
 import type { GameMeta } from '../../lib/partyProtocol'
 import { AuctionGame } from './AuctionGame'
+import { BalloonPopGame } from './BalloonPopGame'
 import { ColorMatchGame } from './ColorMatchGame'
 import { HumanTimerGame } from './HumanTimerGame'
 import { OneToFiftyGame } from './OneToFiftyGame'
@@ -51,6 +52,10 @@ function renderGame(session: GameSession, roundKey: string, gameMeta: GameMeta) 
           players={state.players}
           howToPlay={gameMeta.howToPlay}
         />
+      )
+    case 'balloonPop':
+      return (
+        <BalloonPopGame socket={session.socket} roundKey={roundKey} startSignal={session.balloonPopStart} howToPlay={gameMeta.howToPlay} />
       )
     default:
       return null
