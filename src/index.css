@@ -1753,7 +1753,9 @@ button {
   font-size: 0.85rem;
 }
 
-/* 바깥 틀: 화살표 버튼이 이 기준으로 고정되어 안쪽 스크롤 위치와 무관하게 항상 화면 가장자리에 붙어있는다 */
+/* 바깥 틀: 화살표 버튼이 이 기준으로 고정되어 안쪽 스크롤 위치와 무관하게 항상 화면 가장자리에 붙어있는다.
+   기본 320px는 폰 화면 기준 — .site-main이 640px부터는 더 안 넓어지는 태블릿/데스크탑에서는 방 이미지
+   원본 해상도(500x500)를 넘지 않는 선에서 더 크게 보여준다 (넘으면 픽셀아트 특성상 흐릿하게 확대되어 보임) */
 .party-mousehunter-viewport {
   position: relative;
   width: 100%;
@@ -1762,6 +1764,12 @@ button {
   border: 1px solid var(--border);
   border-radius: var(--radius);
   overflow: hidden;
+}
+
+@media (min-width: 640px) {
+  .party-mousehunter-viewport {
+    max-width: 480px;
+  }
 }
 
 /* 실제 스와이프는 direction-lock을 직접 흉내내지 않고 브라우저 네이티브 가로 스크롤(스크롤 스냅)에
