@@ -24,7 +24,7 @@ export function BalloonPopGame({ socket, roundKey, startSignal, howToPlay }: Pro
   const scale = 1 + growth * (MAX_SCALE - 1)
 
   const onPointerDown = useCallback(
-    (e: PointerEvent<SVGSVGElement>) => {
+    (e: PointerEvent<SVGPathElement>) => {
       // 누르고 있는 도중 손가락이 풍선 밖으로 나가도 손을 뗀 걸로 놓치지 않게 캡처 — 지원 안 하는 환경도 있으니 실패해도 무시
       try {
         e.currentTarget.setPointerCapture(e.pointerId)
@@ -61,16 +61,20 @@ export function BalloonPopGame({ socket, roundKey, startSignal, howToPlay }: Pro
               <svg
                 className={`party-balloonpop-balloon${status === 'alive' ? ' party-balloonpop-balloon-pumpable' : ''}`}
                 viewBox="0 0 100 130"
-                style={{ transform: `scale(${scale})` }}
-                onPointerDown={status === 'alive' ? onPointerDown : undefined}
-                onPointerUp={status === 'alive' ? onPointerUp : undefined}
-                onPointerCancel={status === 'alive' ? onPointerUp : undefined}
-                onPointerLeave={status === 'alive' ? onPointerUp : undefined}
+                // 매듭 끝(아래 고정점)을 기준으로 커지도록 transform-origin을 중앙이 아니라 그 지점으로 옮긴다
+                style={{ transform: `scale(${scale})`, transformOrigin: '50% 83%' }}
               >
-                <ellipse cx="50" cy="50" rx="42" ry="50" fill={color} />
-                <ellipse cx="36" cy="32" rx="12" ry="16" fill="rgba(255,255,255,0.25)" />
-                <path d="M50 100 L44 110 L56 110 Z" fill={color} />
-                <line x1="50" y1="110" x2="50" y2="128" stroke="var(--text-muted)" strokeWidth="1.5" />
+                {/* 원+삼각형을 이어붙이지 않고, 위쪽 둥근 몸통에서 아래 매듭까지 하나의 매끄러운 윤곽선으로 그린다 */}
+                <path
+                  d="M50,6 C76,6 92,26 92,54 C92,80 74,94 60,100 C55,102 52,104 50,108 C48,104 45,102 40,100 C26,94 8,80 8,54 C8,26 24,6 50,6 Z"
+                  fill={color}
+                  onPointerDown={status === 'alive' ? onPointerDown : undefined}
+                  onPointerUp={status === 'alive' ? onPointerUp : undefined}
+                  onPointerCancel={status === 'alive' ? onPointerUp : undefined}
+                  onPointerLeave={status === 'alive' ? onPointerUp : undefined}
+                />
+                <ellipse cx="36" cy="30" rx="9" ry="13" fill="rgba(255,255,255,0.25)" />
+                <line x1="50" y1="108" x2="50" y2="126" stroke="var(--text-muted)" strokeWidth="3" strokeLinecap="round" />
               </svg>
             )}
           </div>

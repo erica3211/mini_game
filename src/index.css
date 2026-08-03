@@ -1673,10 +1673,11 @@ button {
 /* 풍선 담력 테스트 — 풍선이 커져도 이 칸 밖으로는 절대 넘치지 않도록 크기를 고정하고 잘라낸다 */
 .party-balloonpop-stage {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: center;
   width: 260px;
   height: 300px;
+  padding-bottom: 1.5rem;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: var(--surface);
@@ -1705,6 +1706,9 @@ button {
 }
 
 .party-balloonpop-pop-text {
+  /* 부모(.party-balloonpop-stage)는 풍선을 아래쪽에 붙이려고 align-items: flex-end를 쓰는데,
+     터진 이펙트는 풍선 위치와 무관하게 칸 한가운데서 보여야 하므로 이 항목만 세로 중앙으로 되돌린다 */
+  align-self: center;
   font-size: 3rem;
   margin: 0;
 }

@@ -171,6 +171,7 @@ export const PIXEL_CANVAS_ROWS = 26
 export const PIXEL_CANVAS_ROUND_TIMEOUT_MS = 20_000
 export const BALLOON_POP_MAX_PUMPS = 50
 export const BALLOON_POP_ROUND_TIMEOUT_MS = 20_000
+export const BALLOON_POP_REVEAL_MS = 2_000
 
 type CreateRoomAck = { ok: true; roomCode: string; playerId: string } | { ok: false; error: string }
 type JoinRoomAck = { ok: true; playerId: string } | { ok: false; error: string }
