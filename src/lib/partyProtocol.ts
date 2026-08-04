@@ -131,7 +131,6 @@ export type MouseHunterRoomId = 'livingRoom' | 'bedRoom' | 'kitchen' | 'bathRoom
 export type MouseHunterSkin = 'default' | 'teatime' | 'hat' | 'eyeglass' | 'bubble' | 'swimming' | 'cheese' | 'sleep' | 'scarf'
 export type MouseHunterVariant = 'front' | 'side'
 export type MouseHunterFacing = 'left' | 'right'
-export type MouseHunterVisibility = 'full' | 'ear' | 'tail'
 
 export interface MouseHunterMouse {
   id: string
@@ -140,20 +139,10 @@ export interface MouseHunterMouse {
   skin: MouseHunterSkin
   variant: MouseHunterVariant
   facing: MouseHunterFacing
-  visibility: MouseHunterVisibility
 }
 
+// 쥐 세 끼: 맵 전체에 항상 유지되는 쥐 마리 수 — 한 마리를 잡으면 곧바로 다른 방에 한 마리가 새로 스폰된다
 export const MOUSE_HUNTER_TOTAL_MICE = 3
-
-// 쥐 세 끼: 결과 화면에서 "내가 놓친 쥐는 어디 있었는지" 보여주기 위한 참가자별 전체 공개
-export interface MouseHunterPlayerReveal {
-  playerId: PlayerId
-  mice: (MouseHunterMouse & { found: boolean })[]
-}
-
-export interface MouseHunterRoundMeta {
-  results: MouseHunterPlayerReveal[]
-}
 
 export interface RoundResult {
   roundIndex: number
@@ -238,7 +227,8 @@ export interface ClientToServerEvents {
   'balloonPop:pump': () => void
   /** 지금 크기로 확정하고 더 이상 부풀리지 않음 */
   'balloonPop:stop': () => void
-  /** 화면에 보이는 쥐를 탭함. 서버는 이 mouseId가 본인 라운드의 미발견 쥐인지만 확인하고 판정한다 */
+  /** 화면에 보이는 쥐를 탭함. 서버는 이 mouseId가 본인 맵에 지금 떠 있는 쥐인지만 확인하고 판정한다 —
+   *  잡으면 그 자리에 곧바로 다른 방의 새 쥐가 스폰된다 */
   'mouseHunter:tap': (data: { mouseId: string }) => void
 }
 
@@ -283,9 +273,13 @@ export interface ServerToClientEvents {
   'balloonPop:roundStart': (data: { elapsedMs: number }) => void
   /** 본인의 pump/stop 요청에 대한 응답 — 다른 사람 진행 상황은 라운드 중엔 비공개이므로 본인에게만 전송 */
   'balloonPop:state': (data: { pumps: number; status: BalloonPopStatus }) => void
-  /** mice: 이 참가자 전용으로 뽑힌 쥐 3마리(위치/스킨/모습) — 다른 참가자에게는 전혀 노출되지 않는다.
+  /** mice: 이 참가자 전용으로 맵에 떠 있는 쥐 3마리(위치/스킨/모습) — 다른 참가자에게는 전혀 노출되지 않는다.
+   *  caughtCount: 지금까지 이 참가자가 잡은 누적 마리 수 (재접속 시 개인 카운터 복원용).
    *  elapsedMs: 새 라운드면 0, 재접속 시엔 이미 지난 시간 */
-  'mouseHunter:roundStart': (data: { mice: MouseHunterMouse[]; elapsedMs: number }) => void
-  /** 본인이 탭한 쥐가 유효한 미발견 쥐였을 때만 오는 확인 응답 — 다른 사람에게는 보이지 않는다 */
-  'mouseHunter:mouseFound': (data: { mouseId: string; foundCount: number }) => void
+  'mouseHunter:roundStart': (data: { mice: MouseHunterMouse[]; caughtCount: number; elapsedMs: number }) => void
+  /** 쥐를 잡아서 그 자리가 다른 방의 새 쥐로 교체된 뒤의 최신 3마리 — 본인에게만 전송 */
+  'mouseHunter:miceUpdate': (data: { mice: MouseHunterMouse[] }) => void
+  /** 누군가 쥐를 잡을 때마다 전체에게 브로드캐스트 (본인 포함) — 어디서 잡았는지는 비공개, "몇 마리째"만 공개된다.
+   *  닉네임은 room:state의 players로 조회 */
+  'mouseHunter:playerCaught': (data: { playerId: PlayerId; totalCaught: number }) => void
 }

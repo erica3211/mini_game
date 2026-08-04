@@ -62,7 +62,11 @@ export function useGameSession(roomCodeFromUrl?: string) {
     elapsedMs: number
   } | null>(null)
   const [balloonPopStart, setBalloonPopStart] = useState<{ elapsedMs: number } | null>(null)
-  const [mouseHunterStart, setMouseHunterStart] = useState<{ mice: MouseHunterMouse[]; elapsedMs: number } | null>(null)
+  const [mouseHunterStart, setMouseHunterStart] = useState<{
+    mice: MouseHunterMouse[]
+    caughtCount: number
+    elapsedMs: number
+  } | null>(null)
 
   // room:state가 브로드캐스트되기도 전에 게임별 roundStart가 먼저 도착할 수 있어서
   // (라운드별 화면이 마운트되기 전에 신호를 놓치지 않도록) 세션이 살아있는 동안 항상 구독해둔다
@@ -103,7 +107,8 @@ export function useGameSession(roomCodeFromUrl?: string) {
       elapsedMs: number
     }) => setPixelCanvasStart(data)
     const onBalloonPopStart = (data: { elapsedMs: number }) => setBalloonPopStart(data)
-    const onMouseHunterStart = (data: { mice: MouseHunterMouse[]; elapsedMs: number }) => setMouseHunterStart(data)
+    const onMouseHunterStart = (data: { mice: MouseHunterMouse[]; caughtCount: number; elapsedMs: number }) =>
+      setMouseHunterStart(data)
     socket.on('room:state', onState)
     socket.on('room:error', onError)
     socket.on('humanTimer:roundStart', onHumanTimerStart)

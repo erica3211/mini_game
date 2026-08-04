@@ -1,58 +1,77 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { Socket } from 'socket.io-client'
-import { MOUSE_HUNTER_TOTAL_MICE, type ClientToServerEvents, type MouseHunterMouse, type ServerToClientEvents } from '../lib/partyProtocol'
+import type { ClientToServerEvents, MouseHunterMouse, PlayerId, ServerToClientEvents } from '../lib/partyProtocol'
 import { useMonotonicStartedAt } from './useMonotonicStartedAt'
 
 type PartySocket = Socket<ServerToClientEvents, ClientToServerEvents>
-type LocalStatus = 'waiting' | 'running' | 'submitted'
-type StartSignal = { mice: MouseHunterMouse[]; elapsedMs: number }
+type LocalStatus = 'waiting' | 'running'
+type StartSignal = { mice: MouseHunterMouse[]; caughtCount: number; elapsedMs: number }
 
+const TOAST_DURATION_MS = 1500
+// 여러 명이 짧은 시간에 몰아서 잡으면 토스트가 화면을 가릴 만큼 쌓일 수 있어서, 동시에 보이는 개수를 제한한다 —
+// 넘치면 가장 오래된 것부터 밀어내고 최신 소식만 남긴다
+const MAX_VISIBLE_TOASTS = 4
+
+export interface CatchToast {
+  id: number
+  playerId: PlayerId
+  totalCaught: number
+}
+
+/**
+ * 계속 쥐가 리필되는 연속 동작이라 "제출 완료" 상태가 없다 — status는 waiting/running뿐이고
+ * 라운드가 끝나는 건(round_results로의 phase 전환) 언제나 30초 타임아웃뿐이다.
+ */
 export function useMouseHunterRound(socket: PartySocket, roundKey: string, startSignal: StartSignal | null) {
   const [status, setStatus] = useState<LocalStatus>('waiting')
   const [mice, setMice] = useState<MouseHunterMouse[]>([])
-  const [foundIds, setFoundIds] = useState<Set<string>>(new Set())
-  // 방금 찾은 쥐의 id — "찾았다!" 토스트를 잠깐 띄우는 트리거로만 쓰인다. 매번 새로운(고유한) mouseId라
-  // 값이 바뀔 때마다 컴포넌트의 useEffect가 다시 실행된다
-  const [justFoundId, setJustFoundId] = useState<string | null>(null)
-  const startedAt = useMonotonicStartedAt(roundKey, startSignal, status)
+  const [myTotalCaught, setMyTotalCaught] = useState(0)
+  const [toasts, setToasts] = useState<CatchToast[]>([])
+  const startedAt = useMonotonicStartedAt(roundKey, startSignal, status === 'waiting' ? 'waiting' : 'running')
 
   useEffect(() => {
     setStatus('waiting')
     setMice([])
-    setFoundIds(new Set())
-    setJustFoundId(null)
+    setMyTotalCaught(0)
+    setToasts([])
   }, [roundKey])
 
   useEffect(() => {
-    if (!startSignal || status === 'submitted') return
+    if (!startSignal || status !== 'waiting') return
     setMice(startSignal.mice)
+    setMyTotalCaught(startSignal.caughtCount)
     setStatus('running')
   }, [startSignal, status])
 
   useEffect(() => {
-    const onFound = (data: { mouseId: string; foundCount: number }) => {
-      setFoundIds((prev) => {
-        if (prev.has(data.mouseId)) return prev
-        return new Set(prev).add(data.mouseId)
-      })
-      setJustFoundId(data.mouseId)
-      if (data.foundCount === MOUSE_HUNTER_TOTAL_MICE) setStatus('submitted')
+    // mouseHunter:miceUpdate는 본인 전용 이벤트라, 이게 오면 그 자체가 "방금 내가 한 마리 잡았다"는 확인이다
+    const onMiceUpdate = (data: { mice: MouseHunterMouse[] }) => {
+      setMice(data.mice)
+      setMyTotalCaught((prev) => prev + 1)
     }
-    socket.on('mouseHunter:mouseFound', onFound)
+    const onPlayerCaught = (data: { playerId: PlayerId; totalCaught: number }) => {
+      const id = Date.now() + Math.random()
+      setToasts((prev) => {
+        const next = [...prev, { id, playerId: data.playerId, totalCaught: data.totalCaught }]
+        return next.length > MAX_VISIBLE_TOASTS ? next.slice(next.length - MAX_VISIBLE_TOASTS) : next
+      })
+      window.setTimeout(() => setToasts((prev) => prev.filter((t) => t.id !== id)), TOAST_DURATION_MS)
+    }
+    socket.on('mouseHunter:miceUpdate', onMiceUpdate)
+    socket.on('mouseHunter:playerCaught', onPlayerCaught)
     return () => {
-      socket.off('mouseHunter:mouseFound', onFound)
+      socket.off('mouseHunter:miceUpdate', onMiceUpdate)
+      socket.off('mouseHunter:playerCaught', onPlayerCaught)
     }
   }, [socket])
 
-  // 클릭 즉시 서버에 알리기만 하고, 실제로 사라지는 건 mouseHunter:mouseFound 응답을 받은 뒤다 —
-  // 서버가 최종 판정자이므로 낙관적으로 먼저 지우지 않는다 (오탭 신뢰 문제도 없고, 왕복이 짧아 체감 지연도 적다)
   const tap = useCallback(
     (mouseId: string) => {
-      if (status !== 'running' || foundIds.has(mouseId)) return
+      if (status !== 'running') return
       socket.emit('mouseHunter:tap', { mouseId })
     },
-    [socket, status, foundIds],
+    [socket, status],
   )
 
-  return { status, mice, foundIds, foundCount: foundIds.size, justFoundId, tap, startedAt }
+  return { status, mice, myTotalCaught, toasts, tap, startedAt }
 }

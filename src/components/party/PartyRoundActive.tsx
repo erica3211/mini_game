@@ -60,7 +60,13 @@ function renderGame(session: GameSession, roundKey: string, gameMeta: GameMeta) 
       )
     case 'mouseHunter':
       return (
-        <MouseHunterGame socket={session.socket} roundKey={roundKey} startSignal={session.mouseHunterStart} howToPlay={gameMeta.howToPlay} />
+        <MouseHunterGame
+          socket={session.socket}
+          roundKey={roundKey}
+          startSignal={session.mouseHunterStart}
+          howToPlay={gameMeta.howToPlay}
+          players={state.players}
+        />
       )
     default:
       return null

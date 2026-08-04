@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import type { Socket } from 'socket.io-client'
 import { useMouseHunterRound } from '../../hooks/useMouseHunterRound'
 import { MOUSE_HUNTER_ROOMS } from '../../lib/mouseHunterRooms'
@@ -6,9 +6,9 @@ import { MOUSE_HUNTER_SKIN_IMAGES } from '../../lib/mouseHunterSkins'
 import { MOUSE_HUNTER_SPOT_POSITIONS } from '../../lib/mouseHunterSpots'
 import {
   MOUSE_HUNTER_ROUND_TIMEOUT_MS,
-  MOUSE_HUNTER_TOTAL_MICE,
   type ClientToServerEvents,
   type MouseHunterMouse,
+  type PlayerInfo,
   type ServerToClientEvents,
 } from '../../lib/partyProtocol'
 import { RemainingTime } from './RemainingTime'
@@ -16,19 +16,18 @@ import { RemainingTime } from './RemainingTime'
 interface Props {
   socket: Socket<ServerToClientEvents, ClientToServerEvents>
   roundKey: string
-  startSignal: { mice: MouseHunterMouse[]; elapsedMs: number } | null
+  startSignal: { mice: MouseHunterMouse[]; caughtCount: number; elapsedMs: number } | null
   howToPlay: string
+  players: PlayerInfo[]
 }
 
 const LAST_ROOM_INDEX = MOUSE_HUNTER_ROOMS.length - 1
-// "찾았다!" 토스트를 보여주는 시간
-const FOUND_TOAST_MS = 1200
 
-export function MouseHunterGame({ socket, roundKey, startSignal, howToPlay }: Props) {
-  const { status, mice, foundIds, foundCount, justFoundId, tap, startedAt } = useMouseHunterRound(socket, roundKey, startSignal)
+export function MouseHunterGame({ socket, roundKey, startSignal, howToPlay, players }: Props) {
+  const { status, mice, myTotalCaught, toasts, tap, startedAt } = useMouseHunterRound(socket, roundKey, startSignal)
   const viewportRef = useRef<HTMLDivElement>(null)
   const [roomIndex, setRoomIndex] = useState(0)
-  const [showToast, setShowToast] = useState(false)
+  const nicknameOf = (playerId: string) => players.find((p) => p.id === playerId)?.nickname ?? '???'
 
   const onScroll = useCallback(() => {
     const el = viewportRef.current
@@ -46,13 +45,6 @@ export function MouseHunterGame({ socket, roundKey, startSignal, howToPlay }: Pr
   const goPrev = useCallback(() => scrollToRoom(Math.max(0, roomIndex - 1)), [roomIndex, scrollToRoom])
   const goNext = useCallback(() => scrollToRoom(Math.min(LAST_ROOM_INDEX, roomIndex + 1)), [roomIndex, scrollToRoom])
 
-  useEffect(() => {
-    if (!justFoundId) return
-    setShowToast(true)
-    const timeout = window.setTimeout(() => setShowToast(false), FOUND_TOAST_MS)
-    return () => window.clearTimeout(timeout)
-  }, [justFoundId])
-
   const room = MOUSE_HUNTER_ROOMS[roomIndex]
 
   return (
@@ -61,23 +53,23 @@ export function MouseHunterGame({ socket, roundKey, startSignal, howToPlay }: Pr
         <p>{howToPlay}</p>
       </div>
 
-      {status === 'waiting' && <p className="party-round-hint">곧 시작합니다...</p>}
-
-      {status === 'submitted' && (
-        <div className="party-mousehunter-complete">
-          <p className="party-mousehunter-complete-emoji">🐭🎉</p>
-          <p className="party-mousehunter-complete-title">쥐 3마리 모두 찾았다!</p>
-          <p className="party-round-hint">다른 플레이어를 기다리는 중...</p>
+      {toasts.length > 0 && (
+        <div className="party-mousehunter-toasts">
+          {toasts.map((t) => (
+            <p key={t.id} className="party-mousehunter-toast">
+              {nicknameOf(t.playerId)}님, 쥐 {t.totalCaught}마리째 잡는 중!
+            </p>
+          ))}
         </div>
       )}
+
+      {status === 'waiting' && <p className="party-round-hint">곧 시작합니다...</p>}
 
       {status === 'running' && (
         <>
           <div className="party-mousehunter-status">
             {startedAt !== null && <RemainingTime startedAt={startedAt} timeoutMs={MOUSE_HUNTER_ROUND_TIMEOUT_MS} />}
-            <span>
-              🐭 {foundCount}/{MOUSE_HUNTER_TOTAL_MICE} 찾음
-            </span>
+            <span>🐭 {myTotalCaught}마리 잡음</span>
           </div>
 
           <p className="party-mousehunter-room-name">
@@ -94,7 +86,6 @@ export function MouseHunterGame({ socket, roundKey, startSignal, howToPlay }: Pr
                     .filter((mouse) => mouse.roomId === r.id)
                     .map((mouse) => {
                       const pos = MOUSE_HUNTER_SPOT_POSITIONS[mouse.roomId][mouse.spotId]
-                      const found = foundIds.has(mouse.id)
                       return (
                         <button
                           key={mouse.id}
@@ -102,18 +93,10 @@ export function MouseHunterGame({ socket, roundKey, startSignal, howToPlay }: Pr
                           className="party-mousehunter-mouse"
                           style={{ left: `${pos.x}%`, top: `${pos.y}%` }}
                           onClick={() => tap(mouse.id)}
-                          disabled={found}
                           aria-label="숨은 쥐"
                         >
                           <img
-                            className={[
-                              'party-mousehunter-mouse-image',
-                              `party-mousehunter-mouse-visibility-${mouse.visibility}`,
-                              mouse.facing === 'right' && 'party-mousehunter-mouse-facing-right',
-                              found && 'party-mousehunter-mouse-found',
-                            ]
-                              .filter(Boolean)
-                              .join(' ')}
+                            className={`party-mousehunter-mouse-image${mouse.facing === 'right' ? ' party-mousehunter-mouse-facing-right' : ''}`}
                             src={MOUSE_HUNTER_SKIN_IMAGES[mouse.skin][mouse.variant]}
                             alt=""
                             draggable={false}
@@ -124,8 +107,6 @@ export function MouseHunterGame({ socket, roundKey, startSignal, howToPlay }: Pr
                 </div>
               ))}
             </div>
-
-            {showToast && <p className="party-mousehunter-toast">찾았다! 🐭</p>}
 
             {roomIndex > 0 && (
               <button
