@@ -42,13 +42,23 @@ export function ScavengerHuntGame({ socket, roundKey, startSignal, howToPlay }: 
     submit,
   } = useScavengerHuntRound(socket, roundKey, startSignal)
 
-  const videoRef = useRef<HTMLVideoElement>(null)
+  const videoRef = useRef<HTMLVideoElement | null>(null)
+  const streamRef = useRef<MediaStream | null>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [cameraError, setCameraError] = useState<string | null>(null)
 
+  // <video>에 스트림을 직접 대입하는 콜백 ref — 세부 라운드 전환 등으로 이 엘리먼트가 언마운트/리마운트되어
+  // 새 DOM 노드로 교체되더라도(예: 이전엔 status==='waiting'으로 잠깐 리셋되는 순간 카메라 블록 전체가
+  // 사라졌다 다시 생기면서 video가 새로 마운트돼 srcObject가 끊기는 버그가 실제로 있었다), 마운트되는
+  // 즉시 이미 받아둔 스트림을 다시 붙여준다. 아래에서 카메라 블록 자체도 status와 무관하게 항상 렌더링하도록
+  // 옮겼지만, 방어적으로 이 콜백 ref도 함께 둔다
+  const attachVideo = useCallback((el: HTMLVideoElement | null) => {
+    videoRef.current = el
+    if (el && streamRef.current) el.srcObject = streamRef.current
+  }, [])
+
   // 카메라 스트림은 이 컴포넌트가 마운트돼 있는 동안(=게임 슬롯 전체, 세부 라운드 3개 내내) 한 번만 요청해서 계속 재사용한다
   useEffect(() => {
-    let stream: MediaStream | null = null
     let cancelled = false
 
     navigator.mediaDevices
@@ -58,7 +68,7 @@ export function ScavengerHuntGame({ socket, roundKey, startSignal, howToPlay }: 
           s.getTracks().forEach((t) => t.stop())
           return
         }
-        stream = s
+        streamRef.current = s
         if (videoRef.current) videoRef.current.srcObject = s
       })
       .catch(() => setCameraError('카메라를 사용할 수 없어요. 브라우저 카메라 권한을 허용했는지 확인해주세요.'))
@@ -68,7 +78,8 @@ export function ScavengerHuntGame({ socket, roundKey, startSignal, howToPlay }: 
 
     return () => {
       cancelled = true
-      stream?.getTracks().forEach((t) => t.stop())
+      streamRef.current?.getTracks().forEach((t) => t.stop())
+      streamRef.current = null
     }
   }, [])
 
@@ -89,6 +100,44 @@ export function ScavengerHuntGame({ socket, roundKey, startSignal, howToPlay }: 
       <div className="rules">
         <p>{howToPlay}</p>
       </div>
+
+      {cameraError && <p className="party-round-hint">{cameraError}</p>}
+
+      {/* 카메라 미리보기는 세부 라운드 상태(status)와 무관하게 컴포넌트가 살아있는 동안 항상 마운트해둔다 —
+          예전엔 이 블록이 status==='waiting'일 때(매 세부 라운드 전환마다 잠깐 거치는 상태) 통째로
+          사라졌다 다시 생기면서 <video> DOM 노드가 매번 새로 만들어져 이미 붙여둔 스트림이 끊기는
+          버그가 있었다 (아이폰에서 라운드마다 카메라 권한을 다시 묻는 것처럼 보였던 원인) */}
+      {!cameraError && (
+        <div className="party-scavengerhunt-camera">
+          <video
+            ref={attachVideo}
+            autoPlay
+            playsInline
+            muted
+            className="party-scavengerhunt-video"
+            style={{ display: capturedImage ? 'none' : 'block' }}
+          />
+          {capturedImage && <img src={capturedImage} alt="촬영한 사진" className="party-scavengerhunt-video" />}
+
+          {!capturedImage && (
+            <div
+              className="party-scavengerhunt-guide-frame"
+              style={{ width: `${SCAVENGER_HUNT_GUIDE_FRAME_RATIO * 100}%`, height: `${SCAVENGER_HUNT_GUIDE_FRAME_RATIO * 100}%` }}
+            >
+              <span className="party-scavengerhunt-guide-hint">물건을 화면 중앙에 꽉 차게 찍어주세요!</span>
+            </div>
+          )}
+
+          {analyzing && (
+            <div className="party-scavengerhunt-analyzing">
+              <span className="spinner" aria-hidden="true" />
+              <span>판정 중...</span>
+            </div>
+          )}
+        </div>
+      )}
+
+      <canvas ref={canvasRef} style={{ display: 'none' }} />
 
       {status === 'waiting' && <p className="party-round-hint">곧 시작합니다...</p>}
 
@@ -115,40 +164,6 @@ export function ScavengerHuntGame({ socket, roundKey, startSignal, howToPlay }: 
           {startedAt !== null && status === 'running' && (
             <RemainingTime startedAt={startedAt} timeoutMs={SCAVENGER_HUNT_SUB_ROUND_MS} />
           )}
-
-          {cameraError && <p className="party-round-hint">{cameraError}</p>}
-
-          {!cameraError && (
-            <div className="party-scavengerhunt-camera">
-              <video
-                ref={videoRef}
-                autoPlay
-                playsInline
-                muted
-                className="party-scavengerhunt-video"
-                style={{ display: capturedImage ? 'none' : 'block' }}
-              />
-              {capturedImage && <img src={capturedImage} alt="촬영한 사진" className="party-scavengerhunt-video" />}
-
-              {!capturedImage && (
-                <div
-                  className="party-scavengerhunt-guide-frame"
-                  style={{ width: `${SCAVENGER_HUNT_GUIDE_FRAME_RATIO * 100}%`, height: `${SCAVENGER_HUNT_GUIDE_FRAME_RATIO * 100}%` }}
-                >
-                  <span className="party-scavengerhunt-guide-hint">물건을 화면 중앙에 꽉 차게 찍어주세요!</span>
-                </div>
-              )}
-
-              {analyzing && (
-                <div className="party-scavengerhunt-analyzing">
-                  <span className="spinner" aria-hidden="true" />
-                  <span>판정 중...</span>
-                </div>
-              )}
-            </div>
-          )}
-
-          <canvas ref={canvasRef} style={{ display: 'none' }} />
 
           {status === 'running' && !capturedImage && !analyzing && !cameraError && (
             <button type="button" className="btn btn-primary party-scavengerhunt-shutter" onClick={handleCapture}>
