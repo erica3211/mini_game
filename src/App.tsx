@@ -3,6 +3,7 @@ import { Home } from './pages/Home'
 import { NumberBaseball } from './pages/NumberBaseball'
 import { HangulBaseball } from './pages/HangulBaseball'
 import { BlackJack } from './pages/BlackJack'
+import { MouseHunterSpotsDebug } from './pages/MouseHunterSpotsDebug'
 import { PartyGame } from './pages/PartyGame'
 import { PartyRoom } from './pages/PartyRoom'
 
@@ -22,6 +23,7 @@ export function App() {
           <Route path="/black-jack" element={<BlackJack />} />
           <Route path="/party" element={<PartyGame />} />
           <Route path="/party/:roomCode" element={<PartyRoom />} />
+          <Route path="/dev/mouse-spots" element={<MouseHunterSpotsDebug />} />
         </Routes>
       </main>
     </BrowserRouter>
