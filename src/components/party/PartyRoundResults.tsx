@@ -8,6 +8,7 @@ import {
   type BalloonPopRoundMeta,
   type ColorMatchRoundMeta,
   type PixelCanvasRoundMeta,
+  type ScavengerHuntRoundMeta,
 } from '../../lib/partyProtocol'
 import { PartyScoreList } from './PartyScoreList'
 import { PixelCanvasSnapshot } from './PixelCanvasSnapshot'
@@ -32,6 +33,8 @@ export function PartyRoundResults({ session }: Props) {
   const pixelCanvasMeta =
     lastRound.gameId === 'pixelCanvas' ? (lastRound.meta as PixelCanvasRoundMeta | undefined) : undefined
   const balloonPopMeta = lastRound.gameId === 'balloonPop' ? (lastRound.meta as BalloonPopRoundMeta | undefined) : undefined
+  const scavengerHuntMeta =
+    lastRound.gameId === 'scavengerHunt' ? (lastRound.meta as ScavengerHuntRoundMeta | undefined) : undefined
 
   const detailOf = (entry: (typeof lastRound.ranking)[number]) => {
     if (entry.disconnected) return ' (연결 끊김)'
@@ -59,6 +62,15 @@ export function PartyRoundResults({ session }: Props) {
     if (lastRound.gameId === 'colorMatch' && entry.value !== undefined) {
       return ` (합산 ${entry.value}점)`
     }
+    if (lastRound.gameId === 'scavengerHunt' && entry.value !== undefined) {
+      return ` (3라운드 합산 ${entry.value}점)`
+    }
+    return ''
+  }
+
+  const scavengerHuntTargetLabel = (target: { mode: string; object?: { label: string }; color?: { label: string } }) => {
+    if (target.mode === 'object' && target.object) return `📦 ${target.object.label}`
+    if (target.mode === 'color' && target.color) return `🎨 ${target.color.label}`
     return ''
   }
 
@@ -167,6 +179,28 @@ export function PartyRoundResults({ session }: Props) {
               </li>
             ))}
         </ul>
+      )}
+
+      {scavengerHuntMeta && (
+        <div className="party-scavengerhunt-reveal">
+          {scavengerHuntMeta.subRounds.map((subRound) => (
+            <div className="party-scavengerhunt-reveal-item" key={subRound.subRoundIndex}>
+              <div className="party-scavengerhunt-reveal-header">
+                <span>{subRound.subRoundIndex + 1}번 문제</span>
+                <span>{scavengerHuntTargetLabel(subRound.target)}</span>
+              </div>
+              <ul className="party-scavengerhunt-reveal-picks">
+                {Object.entries(subRound.picks)
+                  .sort(([, a], [, b]) => b.roundScore - a.roundScore)
+                  .map(([playerId, pick]) => (
+                    <li key={playerId}>
+                      {nicknameOf(playerId)}: {pick.submitted ? `일치율 ${pick.matchPercent}% · ${pick.roundScore}점` : '미제출 · 0점'}
+                    </li>
+                  ))}
+              </ul>
+            </div>
+          ))}
+        </div>
       )}
 
       <h2 className="party-section-title">이번 라운드 점수</h2>

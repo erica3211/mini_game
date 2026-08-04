@@ -1432,7 +1432,8 @@ button {
 }
 
 .party-auction-reveal,
-.party-colormatch-reveal {
+.party-colormatch-reveal,
+.party-scavengerhunt-reveal {
   display: flex;
   flex-direction: column;
   gap: 0.6rem;
@@ -2006,4 +2007,141 @@ button {
   padding: 1px 4px;
   border-radius: 3px;
   white-space: nowrap;
+}
+
+/* 찰칵 스캐빈저 */
+.party-scavengerhunt-round-label {
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.party-scavengerhunt-target {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 1.05rem;
+}
+
+.party-scavengerhunt-target-swatch {
+  width: 1.2rem;
+  height: 1.2rem;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.party-scavengerhunt-camera {
+  position: relative;
+  width: 100%;
+  max-width: 360px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  overflow: hidden;
+  background: #000;
+}
+
+.party-scavengerhunt-video {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* 화면 중앙에 반투명 가이드 틀을 띄워서 촬영 구도를 안내한다 — 크기 비율은
+   scavengerHuntVision.ts의 SCAVENGER_HUNT_GUIDE_FRAME_RATIO와 반드시 맞춰야
+   화면에 보이는 가이드 틀과 실제 색상 분석 크롭 영역이 일치한다 */
+.party-scavengerhunt-guide-frame {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border: 3px dashed rgba(255, 255, 255, 0.75);
+  border-radius: 18px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  pointer-events: none;
+  box-shadow: 0 0 0 999px rgba(0, 0, 0, 0.35);
+}
+
+.party-scavengerhunt-guide-hint {
+  margin-bottom: 0.6rem;
+  padding: 0.3rem 0.6rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 999px;
+  text-align: center;
+}
+
+.party-scavengerhunt-analyzing {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.55);
+  font-weight: 600;
+}
+
+.party-scavengerhunt-shutter {
+  font-size: 1.05rem;
+  padding: 0.75rem 1.5rem;
+}
+
+.party-scavengerhunt-preview-percent {
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--accent);
+}
+
+.party-scavengerhunt-preview-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.party-scavengerhunt-result {
+  text-align: center;
+}
+
+.party-scavengerhunt-result-score {
+  margin: 0;
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--accent);
+}
+
+.party-scavengerhunt-result-detail {
+  margin: 0.25rem 0 0;
+  color: var(--text-muted);
+}
+
+.party-scavengerhunt-reveal-item {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.75rem 1rem;
+}
+
+.party-scavengerhunt-reveal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 700;
+}
+
+.party-scavengerhunt-reveal-picks {
+  list-style: none;
+  margin: 0.5rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
 }

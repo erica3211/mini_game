@@ -144,6 +144,43 @@ export interface MouseHunterMouse {
 // 쥐 세 끼: 맵 전체에 항상 유지되는 쥐 마리 수 — 한 마리를 잡으면 곧바로 다른 방에 한 마리가 새로 스폰된다
 export const MOUSE_HUNTER_TOTAL_MICE = 3
 
+export type ScavengerHuntMode = 'object' | 'color'
+
+// 사물 인식 모드 제시어 — cocoClass는 TensorFlow.js COCO-SSD 모델이 반환하는 영문 클래스명과 정확히 일치한다
+export interface ScavengerHuntObjectTarget {
+  cocoClass: string
+  label: string
+}
+
+// 색상 검증 모드 제시어 — 촬영한 사진의 가이드 틀 영역 픽셀을 HSV로 변환해 이 범위 안에 드는 픽셀 비율을 계산한다.
+// hue는 0~360도이며, hueMin > hueMax면 0도를 넘어가는 색상(예: 빨강)으로 취급해 (hue >= hueMin || hue <= hueMax)로 판정한다. sat/val은 0~1
+export interface ScavengerHuntColorTarget {
+  id: string
+  label: string
+  hueMin: number
+  hueMax: number
+  satMin: number
+  valMin: number
+  valMax: number
+}
+
+export interface ScavengerHuntRoundTarget {
+  mode: ScavengerHuntMode
+  object?: ScavengerHuntObjectTarget
+  color?: ScavengerHuntColorTarget
+}
+
+// 스캐빈저 헌트: 세부 라운드 하나가 끝났을 때 결과 화면에 전원 공개하는 참가자별 상세
+export interface ScavengerHuntSubRoundResult {
+  subRoundIndex: number
+  target: ScavengerHuntRoundTarget
+  picks: Record<PlayerId, { matchPercent: number; matchScore: number; speedScore: number; roundScore: number; submitted: boolean }>
+}
+
+export interface ScavengerHuntRoundMeta {
+  subRounds: ScavengerHuntSubRoundResult[]
+}
+
 export interface RoundResult {
   roundIndex: number
   gameId: GameId
@@ -191,6 +228,9 @@ export const BALLOON_POP_MAX_PUMPS = 50
 export const BALLOON_POP_ROUND_TIMEOUT_MS = 20_000
 export const BALLOON_POP_REVEAL_MS = 2_000
 export const MOUSE_HUNTER_ROUND_TIMEOUT_MS = 30_000
+export const SCAVENGER_HUNT_SUB_ROUNDS = 3
+export const SCAVENGER_HUNT_SUB_ROUND_MS = 30_000
+export const SCAVENGER_HUNT_REVEAL_MS = 3_000
 
 type CreateRoomAck = { ok: true; roomCode: string; playerId: string } | { ok: false; error: string }
 type JoinRoomAck = { ok: true; playerId: string } | { ok: false; error: string }
@@ -230,6 +270,9 @@ export interface ClientToServerEvents {
   /** 화면에 보이는 쥐를 탭함. 서버는 이 mouseId가 본인 맵에 지금 떠 있는 쥐인지만 확인하고 판정한다 —
    *  잡으면 그 자리에 곧바로 다른 방의 새 쥐가 스폰된다 */
   'mouseHunter:tap': (data: { mouseId: string }) => void
+  /** 촬영한 사진을 온디바이스 AI(사물 인식) 또는 캔버스 픽셀 분석(색상 검증)으로 직접 계산한 일치율(0~100)을
+   *  제출. 사진 자체는 서버로 전송되지 않으므로 서버는 이 값을 그대로 신뢰하고, 제출이 도착한 시각으로 속도 점수를 계산한다 */
+  'scavengerHunt:submit': (data: { matchPercent: number }) => void
 }
 
 /** Server -> Client */
@@ -282,4 +325,15 @@ export interface ServerToClientEvents {
   /** 누군가 쥐를 잡을 때마다 전체에게 브로드캐스트 (본인 포함) — 어디서 잡았는지는 비공개, "몇 마리째"만 공개된다.
    *  닉네임은 room:state의 players로 조회 */
   'mouseHunter:playerCaught': (data: { playerId: PlayerId; totalCaught: number }) => void
+  /** 세부 라운드(3개 중 하나) 시작. target(사물/색상 제시어)은 전원에게 동일하게 공개된다.
+   *  elapsedMs: 새 세부 라운드면 0, 재접속 시엔 이미 지난 시간 */
+  'scavengerHunt:roundStart': (data: { subRoundIndex: number; target: ScavengerHuntRoundTarget; elapsedMs: number }) => void
+  /** 세부 라운드가 끝났을 때 본인에게만 보내는 결과 — 다른 사람 점수는 게임이 다 끝난 뒤 결과 화면에서 공개된다 */
+  'scavengerHunt:subRoundResult': (data: {
+    subRoundIndex: number
+    matchPercent: number
+    matchScore: number
+    speedScore: number
+    roundScore: number
+  }) => void
 }
