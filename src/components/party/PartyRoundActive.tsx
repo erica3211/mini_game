@@ -59,7 +59,9 @@ function renderGame(session: GameSession, roundKey: string, gameMeta: GameMeta) 
         <BalloonPopGame socket={session.socket} roundKey={roundKey} startSignal={session.balloonPopStart} howToPlay={gameMeta.howToPlay} />
       )
     case 'mouseHunter':
-      return <MouseHunterGame roundKey={roundKey} startSignal={session.mouseHunterStart} howToPlay={gameMeta.howToPlay} />
+      return (
+        <MouseHunterGame socket={session.socket} roundKey={roundKey} startSignal={session.mouseHunterStart} howToPlay={gameMeta.howToPlay} />
+      )
     default:
       return null
   }

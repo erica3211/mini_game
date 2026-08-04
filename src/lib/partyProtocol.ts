@@ -126,6 +126,35 @@ export interface BalloonPopRoundMeta {
   results: BalloonPopPlayerResult[]
 }
 
+// 쥐 세 끼: 방 목록 순서는 mouseHunterRooms.ts의 MOUSE_HUNTER_ROOMS와 동일하게 유지 (백엔드 types.ts 미러)
+export type MouseHunterRoomId = 'livingRoom' | 'bedRoom' | 'kitchen' | 'bathRoom' | 'studyRoom' | 'dressRoom'
+export type MouseHunterSkin = 'default' | 'teatime' | 'hat' | 'eyeglass' | 'bubble' | 'swimming' | 'cheese' | 'sleep' | 'scarf'
+export type MouseHunterVariant = 'front' | 'side'
+export type MouseHunterFacing = 'left' | 'right'
+export type MouseHunterVisibility = 'full' | 'ear' | 'tail'
+
+export interface MouseHunterMouse {
+  id: string
+  roomId: MouseHunterRoomId
+  spotId: string
+  skin: MouseHunterSkin
+  variant: MouseHunterVariant
+  facing: MouseHunterFacing
+  visibility: MouseHunterVisibility
+}
+
+export const MOUSE_HUNTER_TOTAL_MICE = 3
+
+// 쥐 세 끼: 결과 화면에서 "내가 놓친 쥐는 어디 있었는지" 보여주기 위한 참가자별 전체 공개
+export interface MouseHunterPlayerReveal {
+  playerId: PlayerId
+  mice: (MouseHunterMouse & { found: boolean })[]
+}
+
+export interface MouseHunterRoundMeta {
+  results: MouseHunterPlayerReveal[]
+}
+
 export interface RoundResult {
   roundIndex: number
   gameId: GameId
@@ -209,6 +238,8 @@ export interface ClientToServerEvents {
   'balloonPop:pump': () => void
   /** 지금 크기로 확정하고 더 이상 부풀리지 않음 */
   'balloonPop:stop': () => void
+  /** 화면에 보이는 쥐를 탭함. 서버는 이 mouseId가 본인 라운드의 미발견 쥐인지만 확인하고 판정한다 */
+  'mouseHunter:tap': (data: { mouseId: string }) => void
 }
 
 /** Server -> Client */
@@ -252,6 +283,9 @@ export interface ServerToClientEvents {
   'balloonPop:roundStart': (data: { elapsedMs: number }) => void
   /** 본인의 pump/stop 요청에 대한 응답 — 다른 사람 진행 상황은 라운드 중엔 비공개이므로 본인에게만 전송 */
   'balloonPop:state': (data: { pumps: number; status: BalloonPopStatus }) => void
-  /** elapsedMs: 새 라운드면 0, 재접속 시엔 이미 지난 시간 */
-  'mouseHunter:roundStart': (data: { elapsedMs: number }) => void
+  /** mice: 이 참가자 전용으로 뽑힌 쥐 3마리(위치/스킨/모습) — 다른 참가자에게는 전혀 노출되지 않는다.
+   *  elapsedMs: 새 라운드면 0, 재접속 시엔 이미 지난 시간 */
+  'mouseHunter:roundStart': (data: { mice: MouseHunterMouse[]; elapsedMs: number }) => void
+  /** 본인이 탭한 쥐가 유효한 미발견 쥐였을 때만 오는 확인 응답 — 다른 사람에게는 보이지 않는다 */
+  'mouseHunter:mouseFound': (data: { mouseId: string; foundCount: number }) => void
 }

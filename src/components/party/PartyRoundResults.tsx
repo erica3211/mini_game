@@ -2,11 +2,15 @@ import type { GameSession } from '../../hooks/useGameSession'
 import { formatWon, signClass } from '../../lib/auctionFormat'
 import { pickAuctionFlavors } from '../../lib/auctionItems'
 import { colorMatchGradeOf, rgbToCss } from '../../lib/colorMath'
+import { MOUSE_HUNTER_ROOMS } from '../../lib/mouseHunterRooms'
+import { MOUSE_HUNTER_SKIN_IMAGES } from '../../lib/mouseHunterSkins'
+import { MOUSE_HUNTER_SPOT_POSITIONS } from '../../lib/mouseHunterSpots'
 import {
   auctionItemNumber,
   type AuctionRoundMeta,
   type BalloonPopRoundMeta,
   type ColorMatchRoundMeta,
+  type MouseHunterRoundMeta,
   type PixelCanvasRoundMeta,
 } from '../../lib/partyProtocol'
 import { PartyScoreList } from './PartyScoreList'
@@ -32,6 +36,9 @@ export function PartyRoundResults({ session }: Props) {
   const pixelCanvasMeta =
     lastRound.gameId === 'pixelCanvas' ? (lastRound.meta as PixelCanvasRoundMeta | undefined) : undefined
   const balloonPopMeta = lastRound.gameId === 'balloonPop' ? (lastRound.meta as BalloonPopRoundMeta | undefined) : undefined
+  const mouseHunterMeta = lastRound.gameId === 'mouseHunter' ? (lastRound.meta as MouseHunterRoundMeta | undefined) : undefined
+  // 다른 참가자의 위치는 안 보여주고 내가 찾던 3마리가 어디 있었는지만 공개한다
+  const myMouseHunterReveal = mouseHunterMeta?.results.find((r) => r.playerId === session.playerId)
 
   const detailOf = (entry: (typeof lastRound.ranking)[number]) => {
     if (entry.disconnected) return ' (연결 끊김)'
@@ -41,6 +48,10 @@ export function PartyRoundResults({ session }: Props) {
     // 픽셀 캔버스는 oneToFifty처럼 dnf(한 칸도 못 칠함)여도 차지한 칸 수를 그대로 보여준다
     if (lastRound.gameId === 'pixelCanvas' && entry.value !== undefined) {
       return ` (${entry.value}칸 차지)`
+    }
+    // 쥐 세 끼도 oneToFifty처럼 dnf(3마리를 다 못 찾음)여도 몇 마리 찾았는지 그대로 보여준다
+    if (lastRound.gameId === 'mouseHunter' && entry.value !== undefined) {
+      return entry.dnf ? ` (${entry.value}마리 찾음)` : ` (${(entry.value / 1000).toFixed(2)}초 만에 3마리 완료)`
     }
     if (entry.dnf) return ' (미제출)'
     if (lastRound.gameId === 'humanTimer' && entry.value !== undefined) {
@@ -163,6 +174,32 @@ export function PartyRoundResults({ session }: Props) {
               </li>
             ))}
         </ul>
+      )}
+
+      {myMouseHunterReveal && (
+        <div className="party-mousehunter-reveal">
+          {myMouseHunterReveal.mice.map((mouse) => {
+            const room = MOUSE_HUNTER_ROOMS.find((r) => r.id === mouse.roomId)!
+            const pos = MOUSE_HUNTER_SPOT_POSITIONS[mouse.roomId][mouse.spotId]
+            return (
+              <div className="party-mousehunter-reveal-item" key={mouse.id}>
+                <div className="party-mousehunter-reveal-thumb">
+                  <img src={room.image} alt={room.name} />
+                  <span className="party-mousehunter-reveal-marker" style={{ left: `${pos.x}%`, top: `${pos.y}%` }}>
+                    <img
+                      className={`party-mousehunter-reveal-mouse${mouse.facing === 'right' ? ' party-mousehunter-reveal-mouse-flip' : ''}`}
+                      src={MOUSE_HUNTER_SKIN_IMAGES[mouse.skin][mouse.variant]}
+                      alt="쥐"
+                    />
+                  </span>
+                </div>
+                <span className="party-mousehunter-reveal-label">
+                  {mouse.found ? '✅' : '❌'} {room.name}
+                </span>
+              </div>
+            )
+          })}
+        </div>
       )}
 
       <h2 className="party-section-title">이번 라운드 점수</h2>

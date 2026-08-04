@@ -1790,14 +1790,159 @@ button {
   display: none;
 }
 
-.party-mousehunter-room-image {
+/* 스크롤 스냅은 스크롤 컨테이너의 "바로 아래" 자식에만 적용되므로, 방 하나(이미지+그 안에 숨은 쥐들)를
+   통째로 감싸는 이 요소가 스냅 대상이자 쥐들의 절대위치 기준점이 된다 */
+.party-mousehunter-room {
+  position: relative;
   flex: 0 0 100%;
   width: 100%;
   height: 100%;
-  object-fit: cover;
   scroll-snap-align: start;
   scroll-snap-stop: always;
+}
+
+.party-mousehunter-room-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
   user-select: none;
+}
+
+/* 실제 보이는 쥐(party-mousehunter-mouse-image)보다 훨씬 넉넉한 판정 영역 — 부분노출(귀/꼬리)로
+   시각적으로 아주 작아진 쥐도 폰에서 쉽게 탭할 수 있어야 한다 */
+.party-mousehunter-mouse {
+  position: absolute;
+  width: 13%;
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  border: none;
+  background: none;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.party-mousehunter-mouse-image {
+  width: 75%;
+  height: 75%;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+/* 형체 전체가 아니라 위쪽(귀)만 살짝 보이게 아래쪽을 잘라낸다 */
+.party-mousehunter-mouse-visibility-ear {
+  clip-path: inset(0 0 62% 0);
+}
+
+/* 꼬리는 side 스프라이트에서만 등장 — 원본이 전부 왼쪽을 보고 있어 꼬리 끝이 몸통 오른쪽으로 살짝
+   말려 있다(대략 60~75% 지점). 그 뒤(75~100%)는 투명 여백이라 너무 오른쪽을 자르면 아무것도 안 보인다
+   (facing-right로 좌우 반전해도 잘라낸 영역이 통째로 같이 뒤집히므로 여전히 꼬리 쪽만 보인다) */
+.party-mousehunter-mouse-visibility-tail {
+  clip-path: inset(0 0 0 60%);
+}
+
+.party-mousehunter-mouse-facing-right {
+  transform: scaleX(-1);
+}
+
+/* 클릭 시 사라지는 연출 — 판정 영역(.party-mousehunter-mouse)이 아니라 보이는 이미지에만 걸어서,
+   좌우반전(scaleX)과 애니메이션이 서로 다른 요소에서 독립적으로 동작하게 한다 */
+.party-mousehunter-mouse-found {
+  pointer-events: none;
+  animation: party-mousehunter-pop 0.35s ease-out forwards;
+}
+
+@keyframes party-mousehunter-pop {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  40% {
+    transform: scale(1.3);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0);
+    opacity: 0;
+  }
+}
+
+/* facing-right + found가 동시에 걸리면 위 두 transform 규칙이 서로를 덮어써버리므로,
+   반전 상태를 애니메이션 키프레임 안에 합쳐서 별도로 처리한다 */
+.party-mousehunter-mouse-facing-right.party-mousehunter-mouse-found {
+  animation-name: party-mousehunter-pop-flipped;
+}
+
+@keyframes party-mousehunter-pop-flipped {
+  0% {
+    transform: scaleX(-1) scale(1);
+    opacity: 1;
+  }
+  40% {
+    transform: scaleX(-1) scale(1.3);
+    opacity: 1;
+  }
+  100% {
+    transform: scaleX(-1) scale(0);
+    opacity: 0;
+  }
+}
+
+.party-mousehunter-status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  font-weight: 600;
+}
+
+.party-mousehunter-toast {
+  position: absolute;
+  top: 0.75rem;
+  left: 50%;
+  transform: translateX(-50%);
+  margin: 0;
+  padding: 0.4rem 0.9rem;
+  border-radius: 999px;
+  background: rgba(13, 17, 23, 0.75);
+  color: var(--text);
+  font-weight: 600;
+  font-size: 0.9rem;
+  animation: party-mousehunter-toast-in 0.2s ease-out;
+}
+
+@keyframes party-mousehunter-toast-in {
+  0% {
+    transform: translate(-50%, -6px);
+    opacity: 0;
+  }
+  100% {
+    transform: translate(-50%, 0);
+    opacity: 1;
+  }
+}
+
+.party-mousehunter-complete {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 3rem 1rem;
+  text-align: center;
+}
+
+.party-mousehunter-complete-emoji {
+  font-size: 3rem;
+  margin: 0;
+}
+
+.party-mousehunter-complete-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin: 0;
 }
 
 .party-mousehunter-arrow {
@@ -1823,4 +1968,67 @@ button {
 
 .party-mousehunter-arrow-next {
   right: 0.5rem;
+}
+
+.party-mousehunter-reveal {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.party-mousehunter-reveal-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  width: 120px;
+}
+
+.party-mousehunter-reveal-thumb {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.party-mousehunter-reveal-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* 놓친 쥐가 실제로 어디, 어떤 모습으로 있었는지 — 빨간 테두리 안에 쥐 스프라이트를 그대로 보여준다
+   (라운드 중에는 귀/꼬리만 보이던 쥐도 여기선 항상 전체 모습으로 공개한다) */
+.party-mousehunter-reveal-marker {
+  position: absolute;
+  width: 26%;
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(13, 17, 23, 0.55);
+  border: 2px solid var(--danger);
+  border-radius: 6px;
+  box-shadow: 0 0 6px rgba(248, 81, 73, 0.8);
+}
+
+.party-mousehunter-reveal-mouse {
+  width: 85%;
+  height: 85%;
+  object-fit: contain;
+}
+
+.party-mousehunter-reveal-mouse-flip {
+  transform: scaleX(-1);
+}
+
+.party-mousehunter-reveal-label {
+  font-size: 0.8rem;
+  color: var(--text-muted);
 }
