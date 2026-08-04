@@ -76,58 +76,59 @@ export function MouseHunterGame({ socket, roundKey, startSignal, howToPlay, play
             {room.name} <span className="party-mousehunter-room-index">({roomIndex + 1}/{MOUSE_HUNTER_ROOMS.length})</span>
           </p>
 
-          <div className="party-mousehunter-viewport">
-            <div className="party-mousehunter-scroller" ref={viewportRef} onScroll={onScroll}>
-              {MOUSE_HUNTER_ROOMS.map((r) => (
-                <div key={r.id} className="party-mousehunter-room">
-                  <img className="party-mousehunter-room-image" src={r.image} alt={r.name} draggable={false} />
+          <div className="party-mousehunter-frame">
+            <button
+              type="button"
+              className={`party-mousehunter-arrow party-mousehunter-arrow-prev${roomIndex === 0 ? ' party-mousehunter-arrow-hidden' : ''}`}
+              onClick={goPrev}
+              disabled={roomIndex === 0}
+              aria-label="이전 방으로"
+            >
+              ‹
+            </button>
 
-                  {mice
-                    .filter((mouse) => mouse.roomId === r.id)
-                    .map((mouse) => {
-                      const pos = MOUSE_HUNTER_SPOT_POSITIONS[mouse.roomId][mouse.spotId]
-                      return (
-                        <button
-                          key={mouse.id}
-                          type="button"
-                          className="party-mousehunter-mouse"
-                          style={{ left: `${pos.x}%`, top: `${pos.y}%` }}
-                          onClick={() => tap(mouse.id)}
-                          aria-label="숨은 쥐"
-                        >
-                          <img
-                            className={`party-mousehunter-mouse-image${mouse.facing === 'right' ? ' party-mousehunter-mouse-facing-right' : ''}`}
-                            src={MOUSE_HUNTER_SKIN_IMAGES[mouse.skin][mouse.variant]}
-                            alt=""
-                            draggable={false}
-                          />
-                        </button>
-                      )
-                    })}
-                </div>
-              ))}
+            <div className="party-mousehunter-viewport">
+              <div className="party-mousehunter-scroller" ref={viewportRef} onScroll={onScroll}>
+                {MOUSE_HUNTER_ROOMS.map((r) => (
+                  <div key={r.id} className="party-mousehunter-room">
+                    <img className="party-mousehunter-room-image" src={r.image} alt={r.name} draggable={false} />
+
+                    {mice
+                      .filter((mouse) => mouse.roomId === r.id)
+                      .map((mouse) => {
+                        const pos = MOUSE_HUNTER_SPOT_POSITIONS[mouse.roomId][mouse.spotId]
+                        return (
+                          <button
+                            key={mouse.id}
+                            type="button"
+                            className="party-mousehunter-mouse"
+                            style={{ left: `${pos.x}%`, top: `${pos.y}%` }}
+                            onClick={() => tap(mouse.id)}
+                            aria-label="숨은 쥐"
+                          >
+                            <img
+                              className={`party-mousehunter-mouse-image${mouse.facing === 'right' ? ' party-mousehunter-mouse-facing-right' : ''}`}
+                              src={MOUSE_HUNTER_SKIN_IMAGES[mouse.skin][mouse.variant]}
+                              alt=""
+                              draggable={false}
+                            />
+                          </button>
+                        )
+                      })}
+                  </div>
+                ))}
+              </div>
             </div>
 
-            {roomIndex > 0 && (
-              <button
-                type="button"
-                className="party-mousehunter-arrow party-mousehunter-arrow-prev"
-                onClick={goPrev}
-                aria-label="이전 방으로"
-              >
-                ‹
-              </button>
-            )}
-            {roomIndex < LAST_ROOM_INDEX && (
-              <button
-                type="button"
-                className="party-mousehunter-arrow party-mousehunter-arrow-next"
-                onClick={goNext}
-                aria-label="다음 방으로"
-              >
-                ›
-              </button>
-            )}
+            <button
+              type="button"
+              className={`party-mousehunter-arrow party-mousehunter-arrow-next${roomIndex === LAST_ROOM_INDEX ? ' party-mousehunter-arrow-hidden' : ''}`}
+              onClick={goNext}
+              disabled={roomIndex === LAST_ROOM_INDEX}
+              aria-label="다음 방으로"
+            >
+              ›
+            </button>
           </div>
 
           <p className="party-round-hint">화면을 좌우로 밀거나 화살표를 눌러 다른 방을 살펴보세요.</p>

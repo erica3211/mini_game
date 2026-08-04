@@ -1753,13 +1753,22 @@ button {
   font-size: 0.85rem;
 }
 
-/* 바깥 틀: 화살표 버튼이 이 기준으로 고정되어 안쪽 스크롤 위치와 무관하게 항상 화면 가장자리에 붙어있는다.
-   기본 320px는 폰 화면 기준 — .site-main이 640px부터는 더 안 넓어지는 태블릿/데스크탑에서는 방 이미지
-   원본 해상도(500x500)를 넘지 않는 선에서 더 크게 보여준다 (넘으면 픽셀아트 특성상 흐릿하게 확대되어 보임) */
+/* 화살표를 방 사진 바깥 양옆에 두기 위한 가로 배치 틀 — 사진을 가리지 않게 화살표 폭만큼
+   사진 크기를 줄여서 셋을 나란히 배치한다 */
+.party-mousehunter-frame {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+/* 기본 260px는 폰 화면 기준(양옆 화살표를 빼고도 좁은 화면에 들어가는 크기) — .site-main이 640px부터는
+   더 안 넓어지는 태블릿/데스크탑에서는 방 이미지 원본 해상도(500x500)를 넘지 않는 선에서 더 크게 보여준다
+   (넘으면 픽셀아트 특성상 흐릿하게 확대되어 보임) */
 .party-mousehunter-viewport {
   position: relative;
-  width: 100%;
-  max-width: 320px;
+  width: min(100%, 260px);
   aspect-ratio: 1 / 1;
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -1768,7 +1777,7 @@ button {
 
 @media (min-width: 640px) {
   .party-mousehunter-viewport {
-    max-width: 480px;
+    width: min(100%, 420px);
   }
 }
 
@@ -1905,12 +1914,13 @@ button {
   border-radius: 999px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
   animation: party-toast-in 0.2s ease-out;
+  white-space: nowrap;
 }
 
+/* 예전엔 사진 안쪽 모서리에 겹쳐 그렸는데, 사진을 가리는 느낌이 있어서 .party-mousehunter-frame의
+   flex 정렬로 사진 바깥 양옆에 나란히 배치하는 방식으로 바꿨다 */
 .party-mousehunter-arrow {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
+  flex-shrink: 0;
   width: 2.25rem;
   height: 2.25rem;
   border: none;
@@ -1924,12 +1934,10 @@ button {
   justify-content: center;
 }
 
-.party-mousehunter-arrow-prev {
-  left: 0.5rem;
-}
-
-.party-mousehunter-arrow-next {
-  right: 0.5rem;
+/* 맨 앞/뒤 방에서는 그쪽 화살표를 안 보이게 하되, 자리는 그대로 차지해서(display:none이 아니라
+   visibility:hidden) 사진이 좌우로 쏠리지 않고 항상 가운데에 오게 한다 */
+.party-mousehunter-arrow-hidden {
+  visibility: hidden;
 }
 
 /* /dev/mouse-spots 전용 — 파티 라운드 플로우와 무관한 개발용 페이지라 party- 접두사를 쓰지 않는다 */
