@@ -363,8 +363,10 @@ export interface ServerToClientEvents {
   /** 캘리브레이션 단계 시작(또는 재접속 시 재전송). elapsedMs: 새 라운드면 0, 재접속 시엔 이미 지난 시간 */
   'shoutRace:roundStart': (data: { elapsedMs: number }) => void
   /** 전원 캘리브레이션 완료(또는 타임아웃) 직후 신호등(빨→주→초 Start!) 연출 시작 — 이 신호가 끝나야
-   *  shoutRace:go로 진짜 레이스가 시작된다. elapsedMs: 새로 시작이면 0, 재접속 시엔 이미 지난 시간 */
-  'shoutRace:countdown': (data: { elapsedMs: number }) => void
+   *  shoutRace:go로 진짜 레이스가 시작된다. 차량 색(slotColors/slotOfPlayer)은 여기서 확정되어 shoutRace:go와
+   *  동일한 값을 그대로 유지한다(화면에 차가 보이기 시작하는 순간부터 자기 색을 알 수 있어야 하므로).
+   *  elapsedMs: 새로 시작이면 0, 재접속 시엔 이미 지난 시간 */
+  'shoutRace:countdown': (data: { slotColors: string[]; slotOfPlayer: Record<PlayerId, number>; elapsedMs: number }) => void
   /** 전원 캘리브레이션 완료(또는 타임아웃)로 진짜 레이스가 시작됨 — slotColors/slotOfPlayer로 참가자별
    *  차량 색이 정해진다(모두 공개 정보). elapsedMs: 새로 시작이면 0, 재접속 시엔 레이스 시작 후 이미 지난 시간 */
   'shoutRace:go': (data: { slotColors: string[]; slotOfPlayer: Record<PlayerId, number>; elapsedMs: number }) => void

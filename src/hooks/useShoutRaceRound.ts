@@ -26,8 +26,9 @@ const DEADZONE_DB = 6
 const DB_RANGE = 30
 // 1보다 커서 볼록한 가속 곡선을 만든다 — 최고 데시벨 근처에서 가속이 폭발적으로 커지는 느낌
 const ACCEL_EXPONENT = 2.2
-// 소리를 전혀 안 내도 도로가 아주 느리게 흐르는 "아이들링" 최소 속도 비율 (완전 정지/후진은 없다)
-const IDLE_SPEED_FLOOR = 0.06
+// speedFactor가 이보다 작으면(=소음 기준과 비슷한 조용한 상태) 차가 완전히 멈춘 것으로 보고 도로/바퀴
+// 애니메이션도 멈춘다 (data-moving) — 부동소수점 잔여값 때문에 "정확히 0"만 멈춤으로 치지 않기 위한 여유
+const MOVING_EPSILON = 0.02
 // 최고 데시벨을 계속 유지했을 때 결승선(진행률 100)까지 걸리는 시간(초) — 나머지는 20초 제한시간 안에서
 // 숨쉬며 끊어질 때를 감안한 여유
 const SECONDS_TO_FINISH_AT_MAX = 3.5
@@ -36,6 +37,49 @@ const MAX_PROGRESS_PER_SEC = SHOUT_RACE_FINISH_PROGRESS / SECONDS_TO_FINISH_AT_M
 const PROGRESS_EMIT_MS = 150
 // 화면에 보이는 숫자/상대방 위치 갱신 주기 — 매 프레임 setState하면 리렌더가 과해진다
 const DISPLAY_REFRESH_MS = 100
+
+// 관성: 목소리가 커질 땐 즉각 반응하지만(초당 이만큼까지 상승), 작아지거나 멈추면 이보다 훨씬 느리게
+// 줄어들며 서서히 멈춘다 — 실제 진행률(progressRef)은 항상 그 순간의 목소리 크기(원시값)만으로 계산되고,
+// 이 관성은 바퀴 회전/도로·배경 스크롤 같은 "시각적 표현"에만 적용된다 (판정 공정성과는 무관)
+const VISUAL_SPEED_RISE_PER_SEC = 5
+const VISUAL_SPEED_FALL_PER_SEC = 0.7
+// 결승 후("finished") 차가 완전히 멈추지 않고 천천히 굴러가는 것처럼 보이도록 고정해두는 시각 속도
+const FINISHED_IDLE_SPEED = 0.15
+
+// 차량이 화면에 고정되는 위치 — .party-shoutrace-car의 CSS left:30%와 반드시 같은 값을 유지해야
+// 시작선/결승선이 차와 같은 좌표계에서 정확히 만난다
+const CAR_LEFT_PERCENT = 30
+// 시작선이 진행률 0→100 동안 왼쪽으로 얼마나(%) 밀려나는지 — carLeft(30%)에서 이 값만큼 빼면 음수가 되어
+// 화면 밖(overflow:hidden)으로 일찍 사라진다. 값이 작을수록 더 빨리(진행 초반에) 사라진다
+const START_LINE_TRAVEL_PERCENT = 100
+// 결승선이 진행률 0→100 동안 오른쪽 밖(carLeft + 이 값)에서 carLeft까지 이동해온다
+const FINISH_LINE_TRAVEL_PERCENT = 220
+
+// 도로/산/구름/바퀴/시작선/결승선은 전부 "시각 진행률(visualProgressRef, 0~100)" 하나로 위치를 계산한다 —
+// 예전엔 도로/산/구름/바퀴는 "초당 이만큼 스크롤"이라는 독립적인 속도로, 시작선/결승선은 진행률(%)이라는
+// 별개의 기준으로 움직여서, 실제로 화면에서 두 그룹이 서로 다른 속도로 움직이는 것처럼 보였다(도로가 그만큼
+// 흘렀으면 시작선도 그만큼 사라졌어야 하는데 안 그럼). 하나의 값으로 전부 구동하면 이 불일치가 근본적으로
+// 없어진다. visualProgressRef 자체는 실제 진행률(progressRef, 원시값)을 향해 서서히(관성 있게) 따라가므로
+// — 목소리가 갑자기 작아져도 뚝 끊기지 않고 서서히 느려지는 느낌은 그대로 유지된다.
+// (예전엔 CSS @keyframes의 animation-duration을 매 프레임 calc()로 바꿔서 속도를 표현했는데, CSS
+// 애니메이션은 위치를 "경과시간 ÷ duration"으로 계산하기 때문에 duration이 바뀌는 순간 같은 경과시간이
+// 다른 길이의 주기에 다시 매핑되면서 위치가 튀는 문제도 있었다 — 지금은 매 프레임 위치를 JS가 직접 계산해
+// 쓰므로 그 문제도 함께 없다.)
+const VISUAL_PROGRESS_FOLLOW_RATE = 3
+// 시각 진행률(0~100)이 100에 도달했을 때 도로/산/구름/바퀴가 각각 얼마나(px/deg) 움직여 있어야 하는지 —
+// 값 자체엔 물리적 의미가 없고, 그림이 자연스러워 보이도록 고른 상수다
+const ROAD_TOTAL_PX = 900
+const MOUNTAINS_TOTAL_PX = 500
+const CLOUDS_TOTAL_PX = 300
+const WHEEL_TOTAL_DEG = 5400
+// 완주("finished") 후엔 더 이상 진행률에 묶이지 않고, 마지막 위치에서부터 이 속도로 계속 천천히 굴러간다
+const FINISHED_IDLE_ROAD_PX_PER_SEC = 14
+const FINISHED_IDLE_MOUNTAINS_PX_PER_SEC = 6
+const FINISHED_IDLE_CLOUDS_PX_PER_SEC = 3
+const FINISHED_IDLE_WHEEL_DEG_PER_SEC = 240
+// 도로 점선/구름 무늬의 배경 타일 폭(px) — 각 CSS의 background-size와 반드시 같은 값이어야 이음매 없이 반복된다
+const ROAD_TILE_PX = 60
+const CLOUDS_TILE_PX = 220
 
 function clamp01(value: number): number {
   return Math.min(1, Math.max(0, value))
@@ -60,7 +104,7 @@ export function useShoutRaceRound(
   socket: PartySocket,
   roundKey: string,
   startSignal: { elapsedMs: number } | null,
-  countdownSignal: { elapsedMs: number } | null,
+  countdownSignal: { slotColors: string[]; slotOfPlayer: Record<PlayerId, number>; elapsedMs: number } | null,
   goSignal: { slotColors: string[]; slotOfPlayer: Record<PlayerId, number>; elapsedMs: number } | null,
   playerId: PlayerId | null,
 ) {
@@ -72,6 +116,13 @@ export function useShoutRaceRound(
   const [countdownLight, setCountdownLight] = useState<CountdownLight>(0)
 
   const stageRef = useRef<HTMLDivElement | null>(null)
+  const startLineRef = useRef<HTMLDivElement | null>(null)
+  const finishLineRef = useRef<HTMLDivElement | null>(null)
+  const roadLineRef = useRef<HTMLDivElement | null>(null)
+  const mountainsRef = useRef<HTMLDivElement | null>(null)
+  const cloudsRef = useRef<HTMLDivElement | null>(null)
+  const wheelFrontRef = useRef<HTMLDivElement | null>(null)
+  const wheelBackRef = useRef<HTMLDivElement | null>(null)
 
   const streamRef = useRef<MediaStream | null>(null)
   const audioCtxRef = useRef<AudioContext | null>(null)
@@ -84,6 +135,12 @@ export function useShoutRaceRound(
   const finishedRef = useRef(false)
   const rafRef = useRef<number | null>(null)
   const dbRef = useRef<number | null>(null)
+  const visualSpeedRef = useRef(0)
+  const visualProgressRef = useRef(0)
+  const roadOffsetRef = useRef(0)
+  const mountainsOffsetRef = useRef(0)
+  const cloudsOffsetRef = useRef(0)
+  const wheelRotationRef = useRef(0)
 
   const countdownStartedAt = useMonotonicStartedAt(roundKey, countdownSignal, 'running')
   const startedAt = useMonotonicStartedAt(roundKey, goSignal, phase === 'finished' ? 'finished' : 'running')
@@ -100,6 +157,12 @@ export function useShoutRaceRound(
     progressRef.current = 0
     finishedRef.current = false
     dbRef.current = null
+    visualSpeedRef.current = 0
+    visualProgressRef.current = 0
+    roadOffsetRef.current = 0
+    mountainsOffsetRef.current = 0
+    cloudsOffsetRef.current = 0
+    wheelRotationRef.current = 0
   }, [roundKey])
 
   // 마이크 스트림은 이 컴포넌트가 마운트돼 있는 동안(=이 게임 슬롯 하나) 한 번만 요청한다
@@ -205,6 +268,12 @@ export function useShoutRaceRound(
     return () => window.clearInterval(interval)
   }, [phase, countdownStartedAt])
 
+  // stage(차/도로)는 countdown 단계부터만 렌더되므로, 마운트될 때마다 지금 phase를 data 속성으로 심어준다 —
+  // CSS가 이걸로 "신호등 뜨기 전(countdown)엔 모든 애니메이션 정지" 규칙을 건다
+  useEffect(() => {
+    if (stageRef.current) stageRef.current.dataset.phase = phase
+  }, [phase])
+
   // shoutRace:go 도착 → 레이스 시작. 아직 스스로 캘리브레이션을 못 마쳤다면(재접속 등) 기본값으로 대체한다
   useEffect(() => {
     if (!goSignal) return
@@ -212,40 +281,94 @@ export function useShoutRaceRound(
     setPhase((prev) => (prev === 'finished' ? prev : 'racing'))
   }, [goSignal])
 
-  // 레이스 진행 중 매 프레임: dB를 읽어 진행률에 반영하고, 시각 연출용 CSS 변수를 직접 갱신한다
+  // 매 프레임: racing이면 dB를 읽어 진행률/시각 속도에 반영하고, finished가 되면 dB 대신 고정된 낮은
+  // 속도(FINISHED_IDLE_SPEED)로 계속 "천천히 굴러가는" 연출을 이어간다 — 두 상태를 하나의 루프로 묶어야
+  // 완주 순간 시각 속도가 뚝 끊기지 않고 관성 그대로 IDLE 속도로 서서히 가라앉는다
   useEffect(() => {
-    if (phase !== 'racing') return
+    if (phase !== 'racing' && phase !== 'finished') return
     let lastTime = performance.now()
 
     const tick = (now: number) => {
       const dtSec = Math.min(0.1, (now - lastTime) / 1000)
       lastTime = now
 
-      const analyser = analyserRef.current
-      const buffer = bufferRef.current
-      const noiseFloor = noiseFloorRef.current ?? DEFAULT_NOISE_FLOOR_DB
-      const db = analyser && buffer ? readDb(analyser, buffer) : Number.NEGATIVE_INFINITY
-      if (analyser && buffer) dbRef.current = db
-      const normalized = clamp01((db - noiseFloor - DEADZONE_DB) / DB_RANGE)
-      const speedFactor = IDLE_SPEED_FLOOR + (1 - IDLE_SPEED_FLOOR) * normalized ** ACCEL_EXPONENT
-
-      if (!finishedRef.current) {
+      let speedFactor = FINISHED_IDLE_SPEED
+      let normalized = 0
+      if (phase === 'racing' && !finishedRef.current) {
+        const analyser = analyserRef.current
+        const buffer = bufferRef.current
+        const noiseFloor = noiseFloorRef.current ?? DEFAULT_NOISE_FLOOR_DB
+        const db = analyser && buffer ? readDb(analyser, buffer) : Number.NEGATIVE_INFINITY
+        if (analyser && buffer) dbRef.current = db
+        normalized = clamp01((db - noiseFloor - DEADZONE_DB) / DB_RANGE)
+        // 소음 기준과 비슷한(데드존 이내) 조용한 상태면 normalized가 0이라 speedFactor도 정확히 0 —
+        // 예전엔 여기에 IDLE_SPEED_FLOOR를 더해 가만히 있어도 살짝 굴러가게 했지만, 사용자가 "측정한 평균
+        // 데시벨과 비슷하면 차가 완전히 멈춰 있으면 좋겠다"고 요청해 바닥값 없이 순수 dB 반응형으로 바꿨다
+        speedFactor = normalized ** ACCEL_EXPONENT
         progressRef.current = Math.min(SHOUT_RACE_FINISH_PROGRESS, progressRef.current + speedFactor * MAX_PROGRESS_PER_SEC * dtSec)
       }
 
+      // 관성: 시각 속도는 목표(speedFactor)를 향해 움직이되, 커질 땐 빠르게 · 줄어들 땐 느리게 따라간다
+      // (실제 진행률은 위에서 이미 원시 speedFactor로 확정했으므로 이 값은 오직 애니메이션 표현용)
+      const delta = speedFactor - visualSpeedRef.current
+      const maxStep = (delta >= 0 ? VISUAL_SPEED_RISE_PER_SEC : VISUAL_SPEED_FALL_PER_SEC) * dtSec
+      visualSpeedRef.current += Math.abs(delta) < maxStep ? delta : Math.sign(delta) * maxStep
+
       const stage = stageRef.current
       if (stage) {
-        stage.style.setProperty('--shoutrace-speed', speedFactor.toFixed(3))
+        stage.style.setProperty('--shoutrace-speed', visualSpeedRef.current.toFixed(3))
         stage.dataset.boosting = normalized > 0.35 ? 'true' : 'false'
         stage.dataset.maxspeed = normalized > 0.85 ? 'true' : 'false'
+        stage.dataset.moving = visualSpeedRef.current > MOVING_EPSILON ? 'true' : 'false'
       }
 
-      if (!finishedRef.current && progressRef.current >= SHOUT_RACE_FINISH_PROGRESS) {
-        finishedRef.current = true
-        const elapsedMs = startedAt !== null ? now - startedAt : SHOUT_RACE_ROUND_TIMEOUT_MS
-        socket.emit('shoutRace:finish', { elapsedMs })
-        setPhase('finished')
+      if (phase === 'racing') {
+        // 완주 판정을 먼저 처리한다 — 완주하는 바로 이 프레임에 시각 진행률(visualProgressRef)도 강제로
+        // 100까지 맞춰서, 결승선이 관성 지연 때문에 내 차 위치에 못 미친 채로 얼어붙는 일이 없게 한다
+        // (다른 모든 프레임에서는 관성 그대로 서서히 따라간다)
+        if (!finishedRef.current && progressRef.current >= SHOUT_RACE_FINISH_PROGRESS) {
+          finishedRef.current = true
+          visualProgressRef.current = SHOUT_RACE_FINISH_PROGRESS
+          const elapsedMs = startedAt !== null ? now - startedAt : SHOUT_RACE_ROUND_TIMEOUT_MS
+          socket.emit('shoutRace:finish', { elapsedMs })
+          setPhase('finished')
+        } else {
+          const progressGap = progressRef.current - visualProgressRef.current
+          visualProgressRef.current += progressGap * VISUAL_PROGRESS_FOLLOW_RATE * dtSec
+        }
+
+        // 도로/산/구름/바퀴/시작선/결승선 — 전부 같은 visualProgressRef 하나로 위치를 정하므로
+        // 서로 다른 속도로 움직이는 것처럼 어긋나 보일 수 없다
+        const worldFrac = visualProgressRef.current / SHOUT_RACE_FINISH_PROGRESS
+        roadOffsetRef.current = worldFrac * ROAD_TOTAL_PX
+        mountainsOffsetRef.current = worldFrac * MOUNTAINS_TOTAL_PX
+        cloudsOffsetRef.current = worldFrac * CLOUDS_TOTAL_PX
+        wheelRotationRef.current = worldFrac * WHEEL_TOTAL_DEG
+
+        const startLine = startLineRef.current
+        if (startLine) startLine.style.left = `${CAR_LEFT_PERCENT - START_LINE_TRAVEL_PERCENT * worldFrac}%`
+        const finishLine = finishLineRef.current
+        if (finishLine) finishLine.style.left = `${CAR_LEFT_PERCENT + FINISH_LINE_TRAVEL_PERCENT * (1 - worldFrac)}%`
+      } else {
+        // 완주 후("finished")엔 더 이상 진행률에 묶이지 않고, 마지막 위치에서부터 낮은 고정 속도로
+        // 계속 굴러간다 — 시작선/결승선은 건드리지 않아 완주 순간의 정확한 위치(결승선=내 차 위치)에 그대로 남는다
+        roadOffsetRef.current += FINISHED_IDLE_ROAD_PX_PER_SEC * dtSec
+        mountainsOffsetRef.current += FINISHED_IDLE_MOUNTAINS_PX_PER_SEC * dtSec
+        cloudsOffsetRef.current += FINISHED_IDLE_CLOUDS_PX_PER_SEC * dtSec
+        wheelRotationRef.current += FINISHED_IDLE_WHEEL_DEG_PER_SEC * dtSec
       }
+
+      const roadLine = roadLineRef.current
+      if (roadLine) roadLine.style.backgroundPositionX = `${-(roadOffsetRef.current % ROAD_TILE_PX)}px`
+      const clouds = cloudsRef.current
+      if (clouds) clouds.style.backgroundPositionX = `${-(cloudsOffsetRef.current % CLOUDS_TILE_PX)}px`
+      const mountains = mountainsRef.current
+      if (mountains) mountains.style.transform = `translateX(${-mountainsOffsetRef.current}px)`
+      const wheelRotation = wheelRotationRef.current % 360
+      const wheelFront = wheelFrontRef.current
+      if (wheelFront) wheelFront.style.transform = `rotate(${wheelRotation}deg)`
+      const wheelBack = wheelBackRef.current
+      if (wheelBack) wheelBack.style.transform = `rotate(${wheelRotation}deg)`
 
       rafRef.current = requestAnimationFrame(tick)
     }
@@ -290,8 +413,10 @@ export function useShoutRaceRound(
     socket.emit('round:requestResync')
   }, [socket, roundKey])
 
-  const mySlot = playerId !== null ? (goSignal?.slotOfPlayer[playerId] ?? null) : null
-  const slotColors = goSignal?.slotColors ?? []
+  // 차량 색은 신호등(countdown)에서 이미 확정되고 go에서도 같은 값이 반복되므로, 둘 중 먼저 도착한 쪽을 쓴다
+  const colorSignal = goSignal ?? countdownSignal
+  const mySlot = playerId !== null ? (colorSignal?.slotOfPlayer[playerId] ?? null) : null
+  const slotColors = colorSignal?.slotColors ?? []
 
   return {
     phase,
@@ -304,5 +429,12 @@ export function useShoutRaceRound(
     mySlot,
     startedAt,
     stageRef: stageRef as RefObject<HTMLDivElement | null>,
+    startLineRef: startLineRef as RefObject<HTMLDivElement | null>,
+    finishLineRef: finishLineRef as RefObject<HTMLDivElement | null>,
+    roadLineRef: roadLineRef as RefObject<HTMLDivElement | null>,
+    mountainsRef: mountainsRef as RefObject<HTMLDivElement | null>,
+    cloudsRef: cloudsRef as RefObject<HTMLDivElement | null>,
+    wheelFrontRef: wheelFrontRef as RefObject<HTMLDivElement | null>,
+    wheelBackRef: wheelBackRef as RefObject<HTMLDivElement | null>,
   }
 }

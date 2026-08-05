@@ -80,7 +80,11 @@ export function useGameSession(roomCodeFromUrl?: string) {
     elapsedMs: number
   } | null>(null)
   const [shoutRaceStart, setShoutRaceStart] = useState<{ elapsedMs: number } | null>(null)
-  const [shoutRaceCountdown, setShoutRaceCountdown] = useState<{ elapsedMs: number } | null>(null)
+  const [shoutRaceCountdown, setShoutRaceCountdown] = useState<{
+    slotColors: string[]
+    slotOfPlayer: Record<string, number>
+    elapsedMs: number
+  } | null>(null)
   const [shoutRaceGo, setShoutRaceGo] = useState<{
     slotColors: string[]
     slotOfPlayer: Record<string, number>
@@ -135,7 +139,8 @@ export function useGameSession(roomCodeFromUrl?: string) {
     const onScavengerHuntStart = (data: { subRoundIndex: number; target: ScavengerHuntRoundTarget; elapsedMs: number }) =>
       setScavengerHuntStart(data)
     const onShoutRaceStart = (data: { elapsedMs: number }) => setShoutRaceStart(data)
-    const onShoutRaceCountdown = (data: { elapsedMs: number }) => setShoutRaceCountdown(data)
+    const onShoutRaceCountdown = (data: { slotColors: string[]; slotOfPlayer: Record<string, number>; elapsedMs: number }) =>
+      setShoutRaceCountdown(data)
     const onShoutRaceGo = (data: { slotColors: string[]; slotOfPlayer: Record<string, number>; elapsedMs: number }) =>
       setShoutRaceGo(data)
     socket.on('room:state', onState)
