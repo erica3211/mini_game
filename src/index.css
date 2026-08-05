@@ -1004,6 +1004,36 @@ button {
   padding: 0.35rem 0.5rem;
 }
 
+.party-config-stepper {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.party-config-stepper-btn {
+  width: 2rem;
+  height: 2rem;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.party-config-stepper-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.party-config-stepper-value {
+  min-width: 1.5rem;
+  text-align: center;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
 .party-game-list {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));

@@ -22,7 +22,11 @@ export function PartyLobby({ session }: Props) {
   const connectedPlayers = state.players.filter((p) => p.connected)
   // 방장은 '게임 시작' 버튼을 누르는 행위 자체가 곧 준비 의사 표시라 준비완료 여부를 따로 검사하지 않는다
   const allReady = connectedPlayers.filter((p) => !p.isHost).every((p) => p.ready)
-  const canStart = connectedPlayers.length >= MIN_PLAYERS_TO_START && allReady
+  const hasSelectedGame = state.config.selectedGames.length > 0
+  const canStart = connectedPlayers.length >= MIN_PLAYERS_TO_START && allReady && hasSelectedGame
+  // comingSoon 게임은 카드 자체가 선택 불가능하니 "전체 선택"의 대상에서도 제외한다
+  const playableGames = state.gameCatalog.filter((g) => !g.comingSoon)
+  const allGamesSelected = playableGames.length > 0 && playableGames.every((g) => state.config.selectedGames.includes(g.id))
   // 방장을 맨 위로, 그다음은 연결 끊긴 사람을 맨 뒤로
   const sortedPlayers = [...state.players].sort((a, b) => {
     if (a.isHost !== b.isHost) return Number(b.isHost) - Number(a.isHost)
@@ -44,6 +48,10 @@ export function PartyLobby({ session }: Props) {
     const selected = state.config.selectedGames
     const next = selected.includes(gameId) ? selected.filter((id) => id !== gameId) : [...selected, gameId]
     session.updateConfig({ selectedGames: next })
+  }
+
+  const toggleAllGames = () => {
+    session.updateConfig({ selectedGames: allGamesSelected ? [] : playableGames.map((g) => g.id) })
   }
 
   return (
@@ -89,7 +97,9 @@ export function PartyLobby({ session }: Props) {
             <p className="error">
               {connectedPlayers.length < MIN_PLAYERS_TO_START
                 ? `최소 ${MIN_PLAYERS_TO_START}명이 필요해요.`
-                : '모든 참가자가 준비완료 상태여야 시작할 수 있어요.'}
+                : !hasSelectedGame
+                  ? '최소 1개 이상의 게임을 선택해주세요.'
+                  : '모든 참가자가 준비완료 상태여야 시작할 수 있어요.'}
             </p>
           )}
         </>
@@ -109,17 +119,39 @@ export function PartyLobby({ session }: Props) {
       <div className="party-config">
         <h2 className="party-section-title">게임 설정</h2>
 
-        <label className="party-config-row">
+        <div className="party-config-row">
           라운드 수
+          <div className="party-config-stepper">
+            <button
+              type="button"
+              className="party-config-stepper-btn"
+              disabled={!session.isHost || state.config.totalRounds <= 1}
+              onClick={() => session.updateConfig({ totalRounds: state.config.totalRounds - 1 })}
+              aria-label="라운드 수 줄이기"
+            >
+              −
+            </button>
+            <span className="party-config-stepper-value">{state.config.totalRounds}</span>
+            <button
+              type="button"
+              className="party-config-stepper-btn"
+              disabled={!session.isHost || state.config.totalRounds >= 20}
+              onClick={() => session.updateConfig({ totalRounds: state.config.totalRounds + 1 })}
+              aria-label="라운드 수 늘리기"
+            >
+              +
+            </button>
+          </div>
+        </div>
+
+        <label className="party-config-row">
           <input
-            type="number"
-            min={1}
-            max={20}
-            className="party-config-number"
-            value={state.config.totalRounds}
+            type="checkbox"
+            checked={allGamesSelected}
             disabled={!session.isHost}
-            onChange={(e) => session.updateConfig({ totalRounds: Number(e.target.value) })}
+            onChange={toggleAllGames}
           />
+          전체 선택
         </label>
 
         <label className="party-config-row">
