@@ -47,6 +47,9 @@ export function PartyRoundResults({ session }: Props) {
     if (lastRound.gameId === 'oneToFifty' && entry.value !== undefined) {
       return entry.dnf ? ` (${entry.value}개 터치)` : ` (${(entry.value / 1000).toFixed(2)}초 만에 완료)`
     }
+    if (lastRound.gameId === 'shoutRace' && entry.value !== undefined) {
+      return entry.dnf ? ` (${entry.value}% 도달)` : ` (${(entry.value / 1000).toFixed(2)}초 만에 완주)`
+    }
     // 픽셀 캔버스는 oneToFifty처럼 dnf(한 칸도 못 칠함)여도 차지한 칸 수를 그대로 보여준다
     if (lastRound.gameId === 'pixelCanvas' && entry.value !== undefined) {
       return ` (${entry.value}칸 차지)`

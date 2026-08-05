@@ -2254,3 +2254,403 @@ button {
   min-width: 0;
   scroll-snap-align: start;
 }
+
+/* 샤우팅 질주 — 상단 트랙 게이지 */
+.party-shoutrace-track {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  max-width: 420px;
+}
+
+.party-shoutrace-track-flag {
+  flex-shrink: 0;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  letter-spacing: 0.03em;
+}
+
+.party-shoutrace-track-bar {
+  position: relative;
+  flex: 1;
+  height: 2.5rem;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--surface-raised), var(--surface));
+  border: 1px solid var(--border);
+  overflow: visible;
+}
+
+.party-shoutrace-track-dot {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  transition: left 0.12s linear;
+}
+
+.party-shoutrace-track-dot-mark {
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 50%;
+  background: var(--dot-color, var(--accent));
+  border: 1px solid rgba(0, 0, 0, 0.4);
+  box-shadow: 0 0 0 2px var(--bg);
+}
+
+.party-shoutrace-track-dot-me .party-shoutrace-track-dot-mark {
+  width: 1rem;
+  height: 1rem;
+  box-shadow:
+    0 0 0 2px var(--bg),
+    0 0 8px var(--dot-color, var(--accent));
+}
+
+.party-shoutrace-track-nickname {
+  font-size: 0.62rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  white-space: nowrap;
+  background: var(--bg);
+  padding: 0 0.3rem;
+  border-radius: 4px;
+}
+
+.party-shoutrace-track-dot-me .party-shoutrace-track-nickname {
+  color: var(--text);
+}
+
+.party-shoutrace-finished {
+  font-weight: 700;
+  color: var(--accent);
+}
+
+/* 샤우팅 질주 — 캘리브레이션 끝난 뒤 신호등(빨→주→초 Start!) 연출. 서버가 신호 전체 길이만 알려주고
+   어느 색이 지금 켜져 있는지는 useShoutRaceRound가 경과 시간을 3등분해 계산한다(countdownLight) */
+.party-shoutrace-lights {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.party-shoutrace-light {
+  font-size: 2rem;
+  filter: grayscale(1) brightness(0.5);
+  opacity: 0.4;
+  transition: filter 0.15s, opacity 0.15s, transform 0.15s;
+}
+
+.party-shoutrace-light-active {
+  filter: none;
+  opacity: 1;
+  transform: scale(1.15);
+}
+
+.party-shoutrace-light-start {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--strike);
+  animation: party-countdown-pop 0.4s ease-out;
+}
+
+.party-shoutrace-db-meter {
+  font-size: 1.4rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+
+/* 샤우팅 질주 — 메인 레이스 뷰 + 게이지. --shoutrace-speed(0~1)는 useShoutRaceRound가 매 프레임
+   party-shoutrace-root에 직접 써넣는다(리렌더 없이) — 도로 스크롤 속도, 차체 틸트, 게이지 바늘이
+   전부 이 하나의 CSS 변수에서 calc()로 파생된다. data-boosting/data-maxspeed도 같은 방식으로 갱신 */
+.party-shoutrace-root {
+  --shoutrace-speed: 0.06;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.party-shoutrace-stage {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  height: 180px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  overflow: hidden;
+  image-rendering: pixelated;
+}
+
+.party-shoutrace-root[data-maxspeed='true'] .party-shoutrace-stage {
+  animation: shoutrace-camera-shake 0.22s infinite;
+}
+
+.party-shoutrace-sky {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, #1b2a4a 0%, #2c3e6b 45%, #4a3b6b 75%, #5b3a5c 100%);
+}
+
+.party-shoutrace-city {
+  position: absolute;
+  left: -80px;
+  right: -80px;
+  bottom: 34px;
+  height: 60px;
+  background-image: repeating-linear-gradient(
+    90deg,
+    rgba(10, 14, 26, 0.85) 0 18px,
+    transparent 18px 26px,
+    rgba(10, 14, 26, 0.85) 26px 40px,
+    transparent 40px 54px
+  );
+  background-size: 160px 100%;
+  animation: shoutrace-city-scroll 9s linear infinite;
+}
+
+.party-shoutrace-speedlines {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.35) 0 2px, transparent 2px 40px);
+  opacity: 0;
+  transition: opacity 0.15s;
+  pointer-events: none;
+}
+
+.party-shoutrace-root[data-maxspeed='true'] .party-shoutrace-speedlines {
+  opacity: 0.5;
+}
+
+.party-shoutrace-road {
+  /* 도로 "면" — 단색+미세한 그라데이션으로 노면 질감만 표현. 차선(점선)은 아래 ::before가 얇은 띠로 따로 그린다
+     (예전엔 이 요소 자체에 반복 그라데이션을 90deg로 걸어서 도로 전체 높이가 세로 줄무늬로 채워져
+     차선이 아니라 울타리/바코드처럼 보였다) */
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 34px;
+  background: linear-gradient(180deg, #2a2e37 0%, #1c1f26 60%, #14161b 100%);
+  border-top: 2px solid #454b57;
+}
+
+.party-shoutrace-road::before {
+  content: '';
+  position: absolute;
+  left: -60px;
+  right: -60px;
+  top: 50%;
+  height: 4px;
+  transform: translateY(-50%);
+  background-image: repeating-linear-gradient(90deg, #e6edf3 0 24px, transparent 24px 60px);
+  background-repeat: repeat-x;
+  animation: shoutrace-road-scroll 2.6s linear infinite;
+  animation-duration: calc(2.6s / (0.25 + var(--shoutrace-speed) * 3.5));
+}
+
+.party-shoutrace-car {
+  position: absolute;
+  left: 30%;
+  bottom: 24px;
+  width: 64px;
+  height: 40px;
+  animation: shoutrace-idle-bob 1.4s ease-in-out infinite;
+}
+
+.party-shoutrace-car-flames {
+  position: absolute;
+  right: 100%;
+  top: 55%;
+  transform: translateY(-50%);
+  display: flex;
+  gap: 2px;
+}
+
+.party-shoutrace-flame {
+  width: 10px;
+  height: 8px;
+  border-radius: 2px 6px 6px 2px;
+  background: linear-gradient(90deg, #ffcf5c, #ff7a3c);
+  opacity: 0;
+  transform-origin: right center;
+}
+
+.party-shoutrace-root[data-boosting='true'] .party-shoutrace-flame {
+  animation: shoutrace-flame-flicker 0.18s ease-in-out infinite;
+}
+
+.party-shoutrace-flame-1 {
+  animation-delay: 0s;
+}
+.party-shoutrace-flame-2 {
+  width: 16px;
+  animation-delay: 0.06s;
+}
+.party-shoutrace-flame-3 {
+  width: 8px;
+  animation-delay: 0.12s;
+}
+
+.party-shoutrace-car-body {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform: rotate(calc(var(--shoutrace-speed) * -9deg));
+  transform-origin: 80% 100%;
+}
+
+.party-shoutrace-car-body::before {
+  /* 차체 — box-shadow 픽셀 아트 대신 단순 박스 형태로 구성, --car-color로 참가자별 재색칠 */
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 12px;
+  width: 100%;
+  height: 18px;
+  background: var(--car-color, #3b82f6);
+  border-radius: 4px 10px 4px 4px;
+  box-shadow: inset 0 -4px 0 rgba(0, 0, 0, 0.25);
+}
+
+.party-shoutrace-car-cabin {
+  position: absolute;
+  left: 32%;
+  bottom: 26px;
+  width: 46%;
+  height: 14px;
+  background: var(--car-color, #3b82f6);
+  border-top-left-radius: 10px;
+  border-top-right-radius: 4px;
+  box-shadow: inset 0 6px 0 rgba(255, 255, 255, 0.25);
+}
+
+.party-shoutrace-car-wheel {
+  position: absolute;
+  bottom: 4px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: repeating-conic-gradient(#111 0deg 45deg, #444 45deg 90deg);
+  border: 2px solid #0b0d12;
+  animation: shoutrace-wheel-spin 1.2s linear infinite;
+  animation-duration: calc(0.9s / (0.25 + var(--shoutrace-speed) * 4));
+}
+
+.party-shoutrace-car-wheel-front {
+  right: 8px;
+}
+
+.party-shoutrace-car-wheel-back {
+  left: 4px;
+}
+
+.party-shoutrace-gauge {
+  width: 200px;
+  max-width: 60vw;
+}
+
+.party-shoutrace-gauge-track {
+  fill: none;
+  stroke: var(--border);
+  stroke-width: 14;
+  stroke-linecap: round;
+}
+
+.party-shoutrace-gauge-fill {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 14;
+  stroke-linecap: round;
+  stroke-dasharray: 100;
+  stroke-dashoffset: calc(100 - var(--shoutrace-speed) * 100);
+  transition: stroke 0.15s;
+}
+
+.party-shoutrace-root[data-maxspeed='true'] .party-shoutrace-gauge-fill {
+  stroke: var(--danger);
+}
+
+.party-shoutrace-gauge-needle-pivot {
+  transform-box: view-box;
+  transform-origin: 100px 100px;
+  transform: rotate(calc(-90deg + var(--shoutrace-speed) * 180deg));
+  transition: transform 0.05s linear;
+}
+
+.party-shoutrace-gauge-needle {
+  stroke: var(--danger);
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+
+.party-shoutrace-gauge-hub {
+  fill: var(--text-muted);
+}
+
+@keyframes shoutrace-road-scroll {
+  from {
+    background-position-x: 0;
+  }
+  to {
+    background-position-x: -60px;
+  }
+}
+
+@keyframes shoutrace-city-scroll {
+  from {
+    background-position-x: 0;
+  }
+  to {
+    background-position-x: -160px;
+  }
+}
+
+@keyframes shoutrace-idle-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-2px);
+  }
+}
+
+@keyframes shoutrace-wheel-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes shoutrace-flame-flicker {
+  0%,
+  100% {
+    opacity: 0.85;
+    transform: scaleX(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scaleX(1.2);
+  }
+}
+
+@keyframes shoutrace-camera-shake {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  25% {
+    transform: translate(-2px, 1px);
+  }
+  50% {
+    transform: translate(2px, -1px);
+  }
+  75% {
+    transform: translate(-1px, -2px);
+  }
+}

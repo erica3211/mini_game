@@ -8,6 +8,7 @@ import { MouseHunterGame } from './MouseHunterGame'
 import { OneToFiftyGame } from './OneToFiftyGame'
 import { PixelCanvasGame } from './PixelCanvasGame'
 import { ScavengerHuntGame } from './ScavengerHuntGame'
+import { ShoutRaceGame } from './ShoutRaceGame'
 import { WordChainGame } from './WordChainGame'
 
 interface Props {
@@ -75,6 +76,19 @@ function renderGame(session: GameSession, roundKey: string, gameMeta: GameMeta) 
           socket={session.socket}
           roundKey={roundKey}
           startSignal={session.scavengerHuntStart}
+          howToPlay={gameMeta.howToPlay}
+        />
+      )
+    case 'shoutRace':
+      return (
+        <ShoutRaceGame
+          socket={session.socket}
+          roundKey={roundKey}
+          startSignal={session.shoutRaceStart}
+          countdownSignal={session.shoutRaceCountdown}
+          goSignal={session.shoutRaceGo}
+          playerId={session.playerId}
+          players={state.players}
           howToPlay={gameMeta.howToPlay}
         />
       )

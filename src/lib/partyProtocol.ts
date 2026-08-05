@@ -242,6 +242,10 @@ export const MOUSE_HUNTER_ROUND_TIMEOUT_MS = 30_000
 export const SCAVENGER_HUNT_SUB_ROUNDS = 3
 export const SCAVENGER_HUNT_SUB_ROUND_MS = 30_000
 export const SCAVENGER_HUNT_REVEAL_MS = 3_000
+export const SHOUT_RACE_CALIBRATION_TIMEOUT_MS = 6_000
+export const SHOUT_RACE_COUNTDOWN_MS = 3_000
+export const SHOUT_RACE_ROUND_TIMEOUT_MS = 20_000
+export const SHOUT_RACE_FINISH_PROGRESS = 100
 
 type CreateRoomAck = { ok: true; roomCode: string; playerId: string } | { ok: false; error: string }
 type JoinRoomAck = { ok: true; playerId: string } | { ok: false; error: string }
@@ -286,6 +290,13 @@ export interface ClientToServerEvents {
   /** photo: 결과 화면에서 다른 참가자에게 공개할 작은 썸네일(dataURL, 결과 공개용으로 압축된 저화질 사본).
    *  사진 분석/일치율 계산 자체는 이미 클라이언트에서 끝난 뒤라 서버는 이 문자열을 그대로 저장·재배포만 한다 */
   'scavengerHunt:submit': (data: { matchPercent: number; photo?: string }) => void
+  /** 캘리브레이션 단계에서 측정한 주변 소음 기준(dBFS, 클수록 시끄러움 — 보통 음수)을 서버에 보고.
+   *  서버는 이 값 자체를 쓰지 않고(가속 곡선 계산은 클라이언트 몫), 전원이 보고를 마쳤는지만 확인해 레이스 시작 시점을 정한다 */
+  'shoutRace:calibrated': (data: { noiseFloor: number }) => void
+  /** 목소리 크기로 계산한 현재 진행률(0~100)을 주기적으로 보고. 서버는 역행 방지 클램프만 적용해 그대로 신뢰한다 */
+  'shoutRace:progress': (data: { progress: number }) => void
+  /** 진행률이 100에 도달해 결승선을 통과했을 때, 레이스 시작 시각 기준 경과 시간과 함께 전송 */
+  'shoutRace:finish': (data: { elapsedMs: number }) => void
 }
 
 /** Server -> Client */
@@ -349,4 +360,14 @@ export interface ServerToClientEvents {
     speedScore: number
     roundScore: number
   }) => void
+  /** 캘리브레이션 단계 시작(또는 재접속 시 재전송). elapsedMs: 새 라운드면 0, 재접속 시엔 이미 지난 시간 */
+  'shoutRace:roundStart': (data: { elapsedMs: number }) => void
+  /** 전원 캘리브레이션 완료(또는 타임아웃) 직후 신호등(빨→주→초 Start!) 연출 시작 — 이 신호가 끝나야
+   *  shoutRace:go로 진짜 레이스가 시작된다. elapsedMs: 새로 시작이면 0, 재접속 시엔 이미 지난 시간 */
+  'shoutRace:countdown': (data: { elapsedMs: number }) => void
+  /** 전원 캘리브레이션 완료(또는 타임아웃)로 진짜 레이스가 시작됨 — slotColors/slotOfPlayer로 참가자별
+   *  차량 색이 정해진다(모두 공개 정보). elapsedMs: 새로 시작이면 0, 재접속 시엔 레이스 시작 후 이미 지난 시간 */
+  'shoutRace:go': (data: { slotColors: string[]; slotOfPlayer: Record<PlayerId, number>; elapsedMs: number }) => void
+  /** 전체 참가자의 현재 진행률(0~100) 스냅샷을 주기적으로 방송 — 상단 트랙 게이지의 상대방 위치 표시에 쓰인다 */
+  'shoutRace:update': (data: { progress: Record<PlayerId, number> }) => void
 }

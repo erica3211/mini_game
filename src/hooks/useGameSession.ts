@@ -79,6 +79,13 @@ export function useGameSession(roomCodeFromUrl?: string) {
     target: ScavengerHuntRoundTarget
     elapsedMs: number
   } | null>(null)
+  const [shoutRaceStart, setShoutRaceStart] = useState<{ elapsedMs: number } | null>(null)
+  const [shoutRaceCountdown, setShoutRaceCountdown] = useState<{ elapsedMs: number } | null>(null)
+  const [shoutRaceGo, setShoutRaceGo] = useState<{
+    slotColors: string[]
+    slotOfPlayer: Record<string, number>
+    elapsedMs: number
+  } | null>(null)
 
   // room:state가 브로드캐스트되기도 전에 게임별 roundStart가 먼저 도착할 수 있어서
   // (라운드별 화면이 마운트되기 전에 신호를 놓치지 않도록) 세션이 살아있는 동안 항상 구독해둔다
@@ -97,6 +104,9 @@ export function useGameSession(roomCodeFromUrl?: string) {
         setBalloonPopStart(null)
         setMouseHunterStart(null)
         setScavengerHuntStart(null)
+        setShoutRaceStart(null)
+        setShoutRaceCountdown(null)
+        setShoutRaceGo(null)
       }
     }
     const onError = (message: string) => setError(message)
@@ -124,6 +134,10 @@ export function useGameSession(roomCodeFromUrl?: string) {
       setMouseHunterStart(data)
     const onScavengerHuntStart = (data: { subRoundIndex: number; target: ScavengerHuntRoundTarget; elapsedMs: number }) =>
       setScavengerHuntStart(data)
+    const onShoutRaceStart = (data: { elapsedMs: number }) => setShoutRaceStart(data)
+    const onShoutRaceCountdown = (data: { elapsedMs: number }) => setShoutRaceCountdown(data)
+    const onShoutRaceGo = (data: { slotColors: string[]; slotOfPlayer: Record<string, number>; elapsedMs: number }) =>
+      setShoutRaceGo(data)
     socket.on('room:state', onState)
     socket.on('room:error', onError)
     socket.on('humanTimer:roundStart', onHumanTimerStart)
@@ -137,6 +151,9 @@ export function useGameSession(roomCodeFromUrl?: string) {
     socket.on('balloonPop:roundStart', onBalloonPopStart)
     socket.on('mouseHunter:roundStart', onMouseHunterStart)
     socket.on('scavengerHunt:roundStart', onScavengerHuntStart)
+    socket.on('shoutRace:roundStart', onShoutRaceStart)
+    socket.on('shoutRace:countdown', onShoutRaceCountdown)
+    socket.on('shoutRace:go', onShoutRaceGo)
     return () => {
       socket.off('room:state', onState)
       socket.off('room:error', onError)
@@ -151,6 +168,9 @@ export function useGameSession(roomCodeFromUrl?: string) {
       socket.off('balloonPop:roundStart', onBalloonPopStart)
       socket.off('mouseHunter:roundStart', onMouseHunterStart)
       socket.off('scavengerHunt:roundStart', onScavengerHuntStart)
+      socket.off('shoutRace:roundStart', onShoutRaceStart)
+      socket.off('shoutRace:countdown', onShoutRaceCountdown)
+      socket.off('shoutRace:go', onShoutRaceGo)
     }
   }, [socket])
 
@@ -263,6 +283,9 @@ export function useGameSession(roomCodeFromUrl?: string) {
     balloonPopStart,
     mouseHunterStart,
     scavengerHuntStart,
+    shoutRaceStart,
+    shoutRaceCountdown,
+    shoutRaceGo,
     createRoom,
     joinRoom,
     setReady,
