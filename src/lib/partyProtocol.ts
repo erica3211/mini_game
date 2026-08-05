@@ -152,16 +152,16 @@ export interface ScavengerHuntObjectTarget {
   label: string
 }
 
-// 색상 검증 모드 제시어 — 촬영한 사진의 가이드 틀 영역 픽셀을 HSV로 변환해 이 범위 안에 드는 픽셀 비율을 계산한다.
-// hue는 0~360도이며, hueMin > hueMax면 0도를 넘어가는 색상(예: 빨강)으로 취급해 (hue >= hueMin || hue <= hueMax)로 판정한다. sat/val은 0~1
+// 색상 검증 모드 제시어 — 촬영한 사진의 가이드 틀 영역 픽셀을 HSV로 변환해 이 "이상적인" 색과 얼마나
+// 가까운지를 연속적인 점수로 매긴다 (하드 threshold가 아니라 거리 기반 감점). achromatic이면(검정/흰색/회색)
+// hue는 무시하고 명도(value)와 낮은 채도로만 판단한다. 실제 계산은 lib/scavengerHuntVision.ts 참고
 export interface ScavengerHuntColorTarget {
   id: string
   label: string
-  hueMin: number
-  hueMax: number
-  satMin: number
-  valMin: number
-  valMax: number
+  achromatic: boolean
+  hue: number
+  saturation: number
+  value: number
 }
 
 export interface ScavengerHuntRoundTarget {

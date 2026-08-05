@@ -19,12 +19,13 @@ interface Props {
   howToPlay: string
 }
 
+// 목표 색상의 HSV(hue/saturation/value)를 CSS가 이해하는 HSL로 변환해서 미리보기 스와치를 그린다
+// (achromatic 색은 saturation이 0으로 저장돼 있어 이 공식을 그대로 써도 자연히 회색조가 나온다)
 function swatchOf(color: ScavengerHuntColorTarget): string {
-  // hueMin > hueMax면 0도를 넘어가는 색상(빨강)이라 중앙값을 0도로 잡는다
-  const hue = color.hueMin <= color.hueMax ? (color.hueMin + color.hueMax) / 2 : 0
-  const saturation = Math.round(Math.max(color.satMin, 0.5) * 100)
-  const lightness = color.valMax <= 0.3 ? 15 : 50
-  return `hsl(${hue}, ${saturation}%, ${lightness}%)`
+  const { hue, saturation: s, value: v } = color
+  const lightness = v * (1 - s / 2)
+  const satHsl = lightness <= 0 || lightness >= 1 ? 0 : (v - lightness) / Math.min(lightness, 1 - lightness)
+  return `hsl(${hue}, ${Math.round(satHsl * 100)}%, ${Math.round(lightness * 100)}%)`
 }
 
 export function ScavengerHuntGame({ socket, roundKey, startSignal, howToPlay }: Props) {
