@@ -12,6 +12,7 @@ import {
   type ScavengerHuntRoundMeta,
 } from '../../lib/partyProtocol'
 import { PartyScoreList } from './PartyScoreList'
+import { PartySubRoundCarousel } from './PartySubRoundCarousel'
 import { PartySubRoundPager } from './PartySubRoundPager'
 import { PixelCanvasSnapshot } from './PixelCanvasSnapshot'
 
@@ -35,13 +36,11 @@ export function PartyRoundResults({ session }: Props) {
   // 베팅 화면과 같은 roundKey로 시드를 고정해야 그때 봤던 물품 이름/이미지가 결과 화면에서도 그대로 재현된다
   const auctionFlavors = auctionMeta ? pickAuctionFlavors(`${lastRound.roundIndex}-${lastRound.gameId}`) : null
   const colorMatchMeta = lastRound.gameId === 'colorMatch' ? (lastRound.meta as ColorMatchRoundMeta | undefined) : undefined
-  const colorMatchSubRound = colorMatchMeta?.subRounds[Math.min(subRoundPage, colorMatchMeta.subRounds.length - 1)]
   const pixelCanvasMeta =
     lastRound.gameId === 'pixelCanvas' ? (lastRound.meta as PixelCanvasRoundMeta | undefined) : undefined
   const balloonPopMeta = lastRound.gameId === 'balloonPop' ? (lastRound.meta as BalloonPopRoundMeta | undefined) : undefined
   const scavengerHuntMeta =
     lastRound.gameId === 'scavengerHunt' ? (lastRound.meta as ScavengerHuntRoundMeta | undefined) : undefined
-  const scavengerHuntSubRound = scavengerHuntMeta?.subRounds[Math.min(subRoundPage, scavengerHuntMeta.subRounds.length - 1)]
 
   const detailOf = (entry: (typeof lastRound.ranking)[number]) => {
     if (entry.disconnected) return ' (연결 끊김)'
@@ -144,27 +143,31 @@ export function PartyRoundResults({ session }: Props) {
         </div>
       )}
 
-      {colorMatchMeta && colorMatchSubRound && (
+      {colorMatchMeta && (
         <div className="party-colormatch-reveal">
           <PartySubRoundPager current={subRoundPage} total={colorMatchMeta.subRounds.length} onChange={setSubRoundPage} />
-          <div className="party-colormatch-reveal-item">
-            <div className="party-colormatch-reveal-header">
-              <span>{colorMatchSubRound.subRoundIndex + 1}번 문제</span>
-              <div className="party-colormatch-reveal-answer" style={{ background: rgbToCss(colorMatchSubRound.answerColor) }} />
-            </div>
-            <ul className="party-colormatch-reveal-picks">
-              {Object.entries(colorMatchSubRound.picks)
-                .sort(([, a], [, b]) => b.matchPercent - a.matchPercent)
-                .map(([playerId, pick]) => (
-                  <li key={playerId}>
-                    <div className="party-colormatch-reveal-pick-color" style={{ background: rgbToCss(pick.color) }} />
-                    <span>
-                      {nicknameOf(playerId)}: {pick.matchPercent}% ({colorMatchGradeOf(pick.matchPercent)})
-                    </span>
-                  </li>
-                ))}
-            </ul>
-          </div>
+          <PartySubRoundCarousel current={subRoundPage} onChange={setSubRoundPage}>
+            {colorMatchMeta.subRounds.map((subRound) => (
+              <div className="party-colormatch-reveal-item" key={subRound.subRoundIndex}>
+                <div className="party-colormatch-reveal-header">
+                  <span>{subRound.subRoundIndex + 1}번 문제</span>
+                  <div className="party-colormatch-reveal-answer" style={{ background: rgbToCss(subRound.answerColor) }} />
+                </div>
+                <ul className="party-colormatch-reveal-picks">
+                  {Object.entries(subRound.picks)
+                    .sort(([, a], [, b]) => b.matchPercent - a.matchPercent)
+                    .map(([playerId, pick]) => (
+                      <li key={playerId}>
+                        <div className="party-colormatch-reveal-pick-color" style={{ background: rgbToCss(pick.color) }} />
+                        <span>
+                          {nicknameOf(playerId)}: {pick.matchPercent}% ({colorMatchGradeOf(pick.matchPercent)})
+                        </span>
+                      </li>
+                    ))}
+                </ul>
+              </div>
+            ))}
+          </PartySubRoundCarousel>
         </div>
       )}
 
@@ -187,24 +190,35 @@ export function PartyRoundResults({ session }: Props) {
         </ul>
       )}
 
-      {scavengerHuntMeta && scavengerHuntSubRound && (
+      {scavengerHuntMeta && (
         <div className="party-scavengerhunt-reveal">
           <PartySubRoundPager current={subRoundPage} total={scavengerHuntMeta.subRounds.length} onChange={setSubRoundPage} />
-          <div className="party-scavengerhunt-reveal-item">
-            <div className="party-scavengerhunt-reveal-header">
-              <span>{scavengerHuntSubRound.subRoundIndex + 1}번 문제</span>
-              <span>{scavengerHuntTargetLabel(scavengerHuntSubRound.target)}</span>
-            </div>
-            <ul className="party-scavengerhunt-reveal-picks">
-              {Object.entries(scavengerHuntSubRound.picks)
-                .sort(([, a], [, b]) => b.roundScore - a.roundScore)
-                .map(([playerId, pick]) => (
-                  <li key={playerId}>
-                    {nicknameOf(playerId)}: {pick.submitted ? `일치율 ${pick.matchPercent}% · ${pick.roundScore}점` : '미제출 · 0점'}
-                  </li>
-                ))}
-            </ul>
-          </div>
+          <PartySubRoundCarousel current={subRoundPage} onChange={setSubRoundPage}>
+            {scavengerHuntMeta.subRounds.map((subRound) => (
+              <div className="party-scavengerhunt-reveal-item" key={subRound.subRoundIndex}>
+                <div className="party-scavengerhunt-reveal-header">
+                  <span>{subRound.subRoundIndex + 1}번 문제</span>
+                  <span>{scavengerHuntTargetLabel(subRound.target)}</span>
+                </div>
+                <ul className="party-scavengerhunt-reveal-picks">
+                  {Object.entries(subRound.picks)
+                    .sort(([, a], [, b]) => b.roundScore - a.roundScore)
+                    .map(([playerId, pick]) => (
+                      <li key={playerId}>
+                        {pick.photo ? (
+                          <img src={pick.photo} alt="" className="party-scavengerhunt-reveal-thumb" />
+                        ) : (
+                          <span className="party-scavengerhunt-reveal-thumb party-scavengerhunt-reveal-thumb-empty">📷</span>
+                        )}
+                        <span>
+                          {nicknameOf(playerId)}: {pick.submitted ? `일치율 ${pick.matchPercent}% · ${pick.roundScore}점` : '미제출 · 0점'}
+                        </span>
+                      </li>
+                    ))}
+                </ul>
+              </div>
+            ))}
+          </PartySubRoundCarousel>
         </div>
       )}
 

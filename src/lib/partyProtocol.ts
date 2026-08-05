@@ -174,7 +174,18 @@ export interface ScavengerHuntRoundTarget {
 export interface ScavengerHuntSubRoundResult {
   subRoundIndex: number
   target: ScavengerHuntRoundTarget
-  picks: Record<PlayerId, { matchPercent: number; matchScore: number; speedScore: number; roundScore: number; submitted: boolean }>
+  picks: Record<
+    PlayerId,
+    {
+      matchPercent: number
+      matchScore: number
+      speedScore: number
+      roundScore: number
+      submitted: boolean
+      /** 결과 화면에서 전원에게 공개하는 작은 썸네일(dataURL) — 촬영은 했지만 사진 전송이 없었거나 미제출이면 없다 */
+      photo?: string
+    }
+  >
 }
 
 export interface ScavengerHuntRoundMeta {
@@ -272,7 +283,9 @@ export interface ClientToServerEvents {
   'mouseHunter:tap': (data: { mouseId: string }) => void
   /** 촬영한 사진을 온디바이스 AI(사물 인식) 또는 캔버스 픽셀 분석(색상 검증)으로 직접 계산한 일치율(0~100)을
    *  제출. 사진 자체는 서버로 전송되지 않으므로 서버는 이 값을 그대로 신뢰하고, 제출이 도착한 시각으로 속도 점수를 계산한다 */
-  'scavengerHunt:submit': (data: { matchPercent: number }) => void
+  /** photo: 결과 화면에서 다른 참가자에게 공개할 작은 썸네일(dataURL, 결과 공개용으로 압축된 저화질 사본).
+   *  사진 분석/일치율 계산 자체는 이미 클라이언트에서 끝난 뒤라 서버는 이 문자열을 그대로 저장·재배포만 한다 */
+  'scavengerHunt:submit': (data: { matchPercent: number; photo?: string }) => void
 }
 
 /** Server -> Client */

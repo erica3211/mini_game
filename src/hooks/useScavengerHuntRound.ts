@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { Socket } from 'socket.io-client'
-import { analyzeScavengerHuntCapture } from '../lib/scavengerHuntVision'
+import { analyzeScavengerHuntCapture, createResultThumbnail } from '../lib/scavengerHuntVision'
 import {
   SCAVENGER_HUNT_SUB_ROUND_MS,
   type ClientToServerEvents,
@@ -29,6 +29,9 @@ export function useScavengerHuntRound(socket: PartySocket, roundKey: string, sta
   // null이면 아직 촬영 전(라이브 카메라 표시), 값이 있으면 촬영본 미리보기 + 재촬영/제출 버튼을 보여준다
   const [capturedMatchPercent, setCapturedMatchPercent] = useState<number | null>(null)
   const [capturedImage, setCapturedImage] = useState<string | null>(null)
+  // 결과 화면에서 다른 참가자에게 공개할 작은 썸네일 — capturedImage(로컬 미리보기용 원본 화질)와는
+  // 별개로, 서버에 제출할 때 이것만 함께 보낸다
+  const capturedThumbnailRef = useRef<string | null>(null)
   const [result, setResult] = useState<SubRoundResult | null>(null)
 
   const subRoundIndex = startSignal?.subRoundIndex ?? 0
@@ -48,6 +51,7 @@ export function useScavengerHuntRound(socket: PartySocket, roundKey: string, sta
     setAnalyzing(false)
     setCapturedMatchPercent(null)
     setCapturedImage(null)
+    capturedThumbnailRef.current = null
     setResult(null)
   }, [subRoundKey])
 
@@ -80,6 +84,7 @@ export function useScavengerHuntRound(socket: PartySocket, roundKey: string, sta
         if (subRoundKeyRef.current !== keyAtCapture) return
         setCapturedMatchPercent(matchPercent)
         setCapturedImage(canvas.toDataURL('image/jpeg', 0.85))
+        capturedThumbnailRef.current = createResultThumbnail(canvas)
       } finally {
         setAnalyzing(false)
       }
@@ -90,11 +95,12 @@ export function useScavengerHuntRound(socket: PartySocket, roundKey: string, sta
   const retake = useCallback(() => {
     setCapturedMatchPercent(null)
     setCapturedImage(null)
+    capturedThumbnailRef.current = null
   }, [])
 
   const submit = useCallback(() => {
     if (status !== 'running' || capturedMatchPercent === null) return
-    socket.emit('scavengerHunt:submit', { matchPercent: capturedMatchPercent })
+    socket.emit('scavengerHunt:submit', { matchPercent: capturedMatchPercent, photo: capturedThumbnailRef.current ?? undefined })
     setStatus('submitted')
   }, [socket, status, capturedMatchPercent])
 

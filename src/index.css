@@ -1081,12 +1081,15 @@ button {
 
 .party-final-actions {
   display: flex;
+  align-items: center;
   gap: 0.75rem;
   margin-top: 1rem;
 }
 
 .party-final-actions .btn {
-  flex: 1;
+  /* grow(1)로 남는 공간은 채우되 shrink는 0으로 막아서, 옆에 긴 안내 문구(예: PartyFinalResults의
+     "방장이 다시하기를 누르면...")가 있어도 버튼이 자기 글자 너비보다 좁아져 세로로 줄바꿈되지 않게 한다 */
+  flex: 1 0 auto;
 }
 
 .party-countdown {
@@ -2141,9 +2144,33 @@ button {
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.3rem;
+  gap: 0.4rem;
   font-size: 0.85rem;
   color: var(--text-muted);
+}
+
+.party-scavengerhunt-reveal-picks li {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.party-scavengerhunt-reveal-thumb {
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.party-scavengerhunt-reveal-thumb-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface);
+  font-size: 1.1rem;
+  opacity: 0.5;
 }
 
 /* colorMatch/scavengerHunt 결과 화면의 서브라운드 이전/다음 페이지네이션 */
@@ -2177,4 +2204,23 @@ button {
   text-align: center;
   font-weight: 700;
   color: var(--text-muted);
+}
+
+/* PartySubRoundPager 버튼과 짝을 이루는 가로 스와이프 캐러셀 — 네이티브 scroll-snap이 스와이프/모멘텀/
+   버튼 클릭 시의 슬라이드 애니메이션(scrollTo behavior:'smooth')을 전부 대신 해준다 */
+.party-subround-carousel {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+
+.party-subround-carousel::-webkit-scrollbar {
+  display: none;
+}
+
+.party-subround-carousel-page {
+  flex: 0 0 100%;
+  min-width: 0;
+  scroll-snap-align: start;
 }
