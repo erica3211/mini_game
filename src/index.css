@@ -2145,3 +2145,36 @@ button {
   font-size: 0.85rem;
   color: var(--text-muted);
 }
+
+/* colorMatch/scavengerHunt 결과 화면의 서브라운드 이전/다음 페이지네이션 */
+.party-subround-pager {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.party-subround-pager-arrow {
+  width: 2.2rem;
+  height: 2.2rem;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 1.2rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.party-subround-pager-arrow:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.party-subround-pager-label {
+  min-width: 5rem;
+  text-align: center;
+  font-weight: 700;
+  color: var(--text-muted);
+}
