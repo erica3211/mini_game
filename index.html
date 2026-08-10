@@ -3,13 +3,23 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#0d1117" />
+    <meta name="theme-color" content="#fffdf0" />
     <title>미니게임 모음집</title>
     <style>
       html {
-        background: #0d1117;
+        background: #fffdf0;
       }
     </style>
+    <script>
+      (function () {
+        var theme = localStorage.getItem('theme') === 'dark' ? 'dark' : 'light';
+        document.documentElement.dataset.theme = theme;
+        if (theme === 'dark') {
+          document.documentElement.style.background = '#0d1117';
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d1117');
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

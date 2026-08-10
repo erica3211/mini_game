@@ -1,23 +1,64 @@
-/* 미니멀 다크 테마 (다크 전용) */
-:root {
+/* 파스텔 라이트 테마 (기본) + 다크 테마 (토글) */
+:root,
+:root[data-theme='light'] {
+  --bg: #fffdf0;
+  --surface: #fffdf0;
+  --surface-raised: #ffd1dc;
+  --text: #5c4643;
+  --text-muted: #a68984;
+  --primary: #ff7b9c;
+  --primary-hover: #ff5c82;
+  /* 연핑크/코랄 배경 위에 얹을 수 없을 만큼 밝아서, 본문 위 강조 텍스트용으로는 더 짙은 코랄 잉크를 쓴다 */
+  --accent: #d6336c;
+  --info: #c5e3ff;
+  --text-info: #2b6cb0;
+  --lavender: #e6d7ff;
+  --strike: #c5f4e2;
+  --text-success: #12805a;
+  --text-danger: #d6336c;
+  --ball: #fff3b0;
+  --out: #e3d2ce;
+  --danger: #ff7b9c;
+  --border: #ffd1dc;
+  --border-strong: #ff7b9c;
+  --on-color: var(--text);
+  --tint-info: rgba(197, 227, 255, 0.55);
+  --tint-strike: rgba(197, 244, 226, 0.6);
+  --tint-danger: rgba(255, 123, 156, 0.18);
+  --border-strike: #7fe0bc;
+  --border-danger: #ff7b9c;
+  --radius: 16px;
+  color-scheme: light;
+  font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', system-ui, sans-serif;
+}
+
+:root[data-theme='dark'] {
   --bg: #0d1117;
   --surface: #161b22;
   --surface-raised: #21262d;
   --text: #e6edf3;
   --text-muted: #8b949e;
   --primary: #143c74;
-  --primary-hover: #375783; 
+  --primary-hover: #375783;
   --accent: #649ae2;
+  --info: #649ae2;
+  --text-info: #649ae2;
+  --lavender: #30363d;
   --strike: #238636;
+  --text-success: #3fb950;
+  --text-danger: #f85149;
   --ball: #c2b223;
-  /* --out: #21262d; */
   --out: #3e4244;
   --danger: #f85149;
   --border: #30363d;
   --border-strong: #8b949e;
-  --radius: 12px;
+  --on-color: #fff;
+  --tint-info: rgba(88, 166, 255, 0.08);
+  --tint-strike: rgba(46, 160, 67, 0.12);
+  --tint-danger: rgba(248, 81, 73, 0.1);
+  --border-strike: rgba(46, 160, 67, 0.45);
+  --border-danger: rgba(248, 81, 73, 0.4);
   color-scheme: dark;
-  font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', system-ui, sans-serif;
 }
 
 * {
@@ -31,21 +72,69 @@ body {
   line-height: 1.5;
 }
 
+/* 라이트 테마 전용 배경 낙서 패턴 — html(캔버스)에 걸어야 body 높이와 무관하게 스크롤 전체를 덮는다.
+   body는 투명하게 비워서 카드 사이 여백으로 패턴이 그대로 비쳐 보이게 한다. 다크 테마는 단색 배경 유지 */
+:root[data-theme='light'] {
+  background-color: var(--bg);
+  background-image: url('./assets/pattern-bg.svg');
+  background-repeat: repeat;
+  background-size: 320px 320px;
+}
+
+:root[data-theme='light'] body {
+  background: transparent;
+}
+
+/* .site-main이 콘텐츠 높이만큼만 차지하면 화면이 그보다 길 때 아래쪽에서 불투명 배경이 뚝
+   끊기고 패턴이 드러나 버린다 — #root를 세로 flex로 만들어 site-main이 항상 화면 높이 이상을
+   채우게 한다 */
+#root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
 button {
   font: inherit;
   cursor: pointer;
 }
 
 :focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--text-info);
   outline-offset: 2px;
 }
 
 /* 레이아웃 */
 .site-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   background: var(--surface);
   border-bottom: 1px solid var(--border);
   padding: 0.75rem 1.25rem;
+}
+
+/* 라이트 테마: 헤더를 포인트 컬러로 채워 화면 구분을 명확히 한다 */
+:root[data-theme='light'] .site-header {
+  background: var(--surface-raised);
+}
+
+.theme-toggle {
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  width: 2.25rem;
+  height: 2.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface);
+  font-size: 1.1rem;
+  line-height: 1;
+  padding: 0;
+}
+
+.theme-toggle:hover {
+  border-color: var(--border-strong);
 }
 
 .site-logo {
@@ -55,10 +144,15 @@ button {
   color: var(--text);
 }
 
+/* 배경 낙서 패턴은 헤더 밖 여백에서만 살짝 비치게 하고, 실제 콘텐츠가 놓이는 영역 전체는
+   불투명한 아이보리로 덮어 글자·카드 사이 여백 어디에도 패턴이 끼어들지 않게 한다 */
 .site-main {
+  flex: 1;
+  width: 100%;
   max-width: 640px;
   margin: 0 auto;
   padding: 2rem 1.25rem 4rem;
+  background: var(--bg);
 }
 
 .page-title {
@@ -218,13 +312,13 @@ button {
 }
 
 .banner-won {
-  background: rgba(46, 160, 67, 0.12);
-  border: 1px solid rgba(46, 160, 67, 0.45);
+  background: var(--tint-strike);
+  border: 1px solid var(--border-strike);
 }
 
 .banner-lost {
-  background: rgba(248, 81, 73, 0.1);
-  border: 1px solid rgba(248, 81, 73, 0.4);
+  background: var(--tint-danger);
+  border: 1px solid var(--border-danger);
 }
 
 .banner-title {
@@ -254,7 +348,7 @@ button {
 
 .btn-primary {
   background: var(--primary);
-  color: #fff;
+  color: var(--on-color);
 }
 
 .btn-primary:hover {
@@ -271,7 +365,7 @@ button {
 }
 
 .error {
-  color: var(--danger);
+  color: var(--text-danger);
   font-size: 0.875rem;
   margin: 0.5rem 0;
 }
@@ -327,7 +421,7 @@ button {
 }
 
 .guess-input:focus {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--text-info);
   border-color: transparent;
 }
 
@@ -358,8 +452,8 @@ button {
 }
 
 .slot-active {
-  border-color: var(--accent);
-  background: rgba(88, 166, 255, 0.08);
+  border-color: var(--text-info);
+  background: var(--tint-info);
 }
 
 /* 한글야구: 조합 미리보기 (ㄱㅏㅣㅁㅣ → 개미) */
@@ -438,7 +532,7 @@ button {
   font-weight: 700;     
   border: none;
   background: var(--primary);
-  color: #ffffff;
+  color: var(--on-color);
   cursor: pointer;
   transition: background 0.15s;
 }
@@ -446,13 +540,13 @@ button {
 .key.key-strike {
   background: var(--strike);
   border-color: var(--strike);
-  color: #ffffff; /* 가독성을 위해 흰색 글자 적용 */
+  color: var(--on-color); /* 가독성을 위해 배경 위에서 잘 보이는 글자색 적용 */
 }
 
 .key.key-ball {
   background: var(--ball);
   border-color: var(--ball);
-  color: #ffffff;
+  color: var(--on-color);
 }
 
 .key.key-out {
@@ -514,7 +608,7 @@ button {
   border-radius: 999px;
   font-size: 0.85rem;
   font-weight: 700;
-  color: #fff;
+  color: var(--on-color);
   white-space: nowrap;
 }
 
@@ -562,7 +656,7 @@ button {
   border-radius: 8px;
   font-size: 1.15rem;
   font-weight: 700;
-  color: #fff;
+  color: var(--on-color);
 }
 
 .tile-strike {
@@ -809,7 +903,7 @@ button {
 }
 
 .bj-card-red {
-  color: var(--danger);
+  color: var(--text-danger);
 }
 
 .bj-card-hidden {
@@ -859,7 +953,7 @@ button {
 }
 
 .bj-notification {
-  background: rgba(88, 166, 255, 0.08);
+  background: var(--tint-info);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 0.75rem 1rem;
@@ -868,8 +962,8 @@ button {
 }
 
 .bj-card-removal-prompt {
-  background: rgba(248, 81, 73, 0.1);
-  border: 1px solid rgba(248, 81, 73, 0.4);
+  background: var(--tint-danger);
+  border: 1px solid var(--border-danger);
   border-radius: var(--radius);
   padding: 0.75rem 1rem;
   font-size: 0.9rem;
@@ -902,7 +996,7 @@ button {
 }
 
 .bj-item-btn:not(:disabled):hover {
-  border-color: var(--accent);
+  border-color: var(--text-info);
 }
 
 .bj-item-btn:disabled {
@@ -977,7 +1071,7 @@ button {
   align-items: center;
   gap: 0.75rem;
   background: var(--surface);
-  border: 1px solid var(--border);
+  border: 1px solid var(--lavender);
   border-radius: 10px;
   padding: 0.6rem 0.9rem;
 }
@@ -1061,8 +1155,8 @@ button {
 }
 
 .party-game-card-selected {
-  border-color: var(--accent);
-  background: rgba(88, 166, 255, 0.08);
+  border-color: var(--text-info);
+  background: var(--tint-info);
 }
 
 .party-game-card:disabled {
@@ -1309,7 +1403,7 @@ button {
 }
 
 .party-wordchain-input:focus-visible {
-  border-color: var(--accent);
+  border-color: var(--text-info);
 }
 
 .party-wordchain-input-shake {
@@ -1331,13 +1425,18 @@ button {
 
 .party-wordchain-toast {
   margin: 0;
-  background: rgba(46, 160, 67, 0.9);
-  color: #fff;
+  background: rgba(13, 17, 23, 0.85);
+  color: var(--text);
   font-weight: 600;
   padding: 0.5rem 1rem;
   border-radius: 999px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
   animation: party-toast-in 0.2s ease-out;
+}
+
+/* 라이트 테마: mousehunter 토스트와 동일하게 검정 오버레이 대신 아이보리로 뒤집는다 */
+:root[data-theme='light'] .party-wordchain-toast {
+  background: rgba(255, 253, 240, 0.92);
 }
 
 @keyframes party-toast-in {
@@ -1371,8 +1470,8 @@ button {
 }
 
 .party-auction-hint-card {
-  background: rgba(100, 154, 226, 0.1);
-  border: 1px solid var(--accent);
+  background: var(--tint-info);
+  border: 1px solid var(--text-info);
   border-radius: var(--radius);
   padding: 0.75rem 1rem;
   text-align: center;
@@ -1383,7 +1482,7 @@ button {
 .party-auction-hint-label {
   display: block;
   font-size: 0.8rem;
-  color: var(--accent);
+  color: var(--text-info);
   font-weight: 700;
   margin-bottom: 0.3rem;
 }
@@ -1398,11 +1497,11 @@ button {
 }
 
 .party-auction-value-negative {
-  color: var(--danger);
+  color: var(--text-danger);
 }
 
 .party-auction-value-positive {
-  color: #3fb950;
+  color: var(--text-success);
 }
 
 .party-auction-item-grid {
@@ -1443,8 +1542,8 @@ button {
 
 .party-auction-item-hint-badge {
   font-size: 0.7rem;
-  background: rgba(100, 154, 226, 0.15);
-  color: var(--accent);
+  background: var(--tint-info);
+  color: var(--text-info);
   border-radius: 999px;
   padding: 0.15rem 0.5rem;
 }
@@ -1460,7 +1559,7 @@ button {
 }
 
 .party-auction-rejection {
-  color: var(--danger);
+  color: var(--text-danger);
   font-size: 0.85rem;
 }
 
@@ -1951,6 +2050,12 @@ button {
   white-space: nowrap;
 }
 
+/* 라이트 테마에서는 방 사진 위 오버레이가 어두운 배경 그대로면 글자(브라운)가 안 보이므로
+   배경을 아이보리로 뒤집는다 — 다크 테마는 원래의 검정 오버레이를 그대로 유지 */
+:root[data-theme='light'] .party-mousehunter-toast {
+  background: rgba(255, 253, 240, 0.92);
+}
+
 /* 예전엔 사진 안쪽 모서리에 겹쳐 그렸는데, 사진을 가리는 느낌이 있어서 .party-mousehunter-frame의
    flex 정렬로 사진 바깥 양옆에 나란히 배치하는 방식으로 바꿨다 */
 .party-mousehunter-arrow {
@@ -1966,6 +2071,12 @@ button {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+/* 라이트 테마: 검정 원 대신 브라운 잉크 색으로 채우고 화살표는 아이보리로 뒤집는다 */
+:root[data-theme='light'] .party-mousehunter-arrow {
+  background: var(--text);
+  color: var(--bg);
 }
 
 /* 맨 앞/뒤 방에서는 그쪽 화살표를 안 보이게 하되, 자리는 그대로 차지해서(display:none이 아니라
@@ -2353,7 +2464,7 @@ button {
 .party-shoutrace-light-start {
   font-size: 1.6rem;
   font-weight: 800;
-  color: var(--strike);
+  color: var(--text-success);
   animation: party-countdown-pop 0.4s ease-out;
 }
 

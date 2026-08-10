@@ -6,6 +6,7 @@ import { BlackJack } from './pages/BlackJack'
 import { MouseHunterSpotsDebug } from './pages/MouseHunterSpotsDebug'
 import { PartyGame } from './pages/PartyGame'
 import { PartyRoom } from './pages/PartyRoom'
+import { ThemeToggle } from './components/ThemeToggle'
 
 export function App() {
   return (
@@ -14,6 +15,7 @@ export function App() {
         <Link to="/" className="site-logo">
           🎮 미니게임
         </Link>
+        <ThemeToggle />
       </header>
       <main className="site-main">
         <Routes>
