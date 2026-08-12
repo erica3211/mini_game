@@ -10,7 +10,7 @@
     </g>
   </defs>
 
-  <rect width="320" height="320" fill="#fffdf0" />
+  <rect width="320" height="320" fill="#fefaf2" />
 
   <g stroke="#ffd1dc" stroke-width="1.5" opacity="0.6">
     <line x1="0" y1="40" x2="320" y2="40" />

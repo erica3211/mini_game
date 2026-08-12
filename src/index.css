@@ -1,8 +1,8 @@
 /* 파스텔 라이트 테마 (기본) + 다크 테마 (토글) */
 :root,
 :root[data-theme='light'] {
-  --bg: #fffdf0;
-  --surface: #fffdf0;
+  --bg: #fefaf2;
+  --surface: #fefaf2;
   --surface-raised: #ffd1dc;
   --text: #5c4643;
   --text-muted: #a68984;
@@ -76,9 +76,9 @@ body {
    body는 투명하게 비워서 카드 사이 여백으로 패턴이 그대로 비쳐 보이게 한다. 다크 테마는 단색 배경 유지 */
 :root[data-theme='light'] {
   background-color: var(--bg);
-  background-image: url('./assets/pattern-bg.svg');
+  background-image: url('./assets/pattern-bg.png');
   background-repeat: repeat;
-  background-size: 320px 320px;
+  background-size: 600px 380px;
 }
 
 :root[data-theme='light'] body {
