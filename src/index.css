@@ -2805,3 +2805,166 @@ button {
     transform: translate(-1px, -2px);
   }
 }
+
+/* 이심전심 그림 맞히기 */
+.party-catchmind-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  max-width: 420px;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.party-catchmind-word {
+  margin: 0;
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--accent);
+}
+
+.party-catchmind-blank {
+  width: 1.5rem;
+  height: 1.5rem;
+  font-size: 1rem;
+}
+
+.party-catchmind-board,
+.party-catchmind-snapshot {
+  width: 100%;
+  max-width: 420px;
+  aspect-ratio: 4 / 3;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: #fff;
+}
+
+.party-catchmind-board-drawable {
+  touch-action: none;
+  cursor: crosshair;
+}
+
+.party-catchmind-snapshot {
+  display: block;
+  margin: 0 auto;
+}
+
+.party-catchmind-toolbar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  width: 100%;
+  max-width: 420px;
+}
+
+.party-catchmind-palette {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.4rem;
+}
+
+.party-catchmind-swatch {
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  padding: 0;
+  cursor: pointer;
+}
+
+.party-catchmind-swatch-active {
+  border-color: var(--border-strong);
+  box-shadow: 0 0 0 2px var(--accent);
+}
+
+.party-catchmind-widths {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.party-catchmind-width-active {
+  border-color: var(--border-strong);
+  font-weight: 700;
+}
+
+.party-catchmind-reveal {
+  width: 100%;
+  max-width: 420px;
+  text-align: center;
+  background: var(--tint-info);
+  border-radius: var(--radius);
+  padding: 0.75rem 1rem;
+}
+
+.party-catchmind-reveal p {
+  margin: 0.15rem 0;
+}
+
+.party-catchmind-chat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+  max-width: 420px;
+}
+
+.party-catchmind-chat-log {
+  list-style: none;
+  margin: 0;
+  padding: 0.5rem 0.75rem;
+  max-height: 180px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 0.9rem;
+}
+
+.party-catchmind-chat-line {
+  overflow-wrap: anywhere;
+}
+
+.party-catchmind-chat-correct {
+  color: var(--text-success);
+  font-weight: 600;
+}
+
+.party-catchmind-chat-system {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.party-catchmind-reveal-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.party-catchmind-reveal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  max-width: 420px;
+  font-weight: 600;
+}
+
+.party-catchmind-reveal-picks {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}

@@ -2,6 +2,7 @@ import type { GameSession } from '../../hooks/useGameSession'
 import type { GameMeta } from '../../lib/partyProtocol'
 import { AuctionGame } from './AuctionGame'
 import { BalloonPopGame } from './BalloonPopGame'
+import { CatchmindGame } from './CatchmindGame'
 import { ColorMatchGame } from './ColorMatchGame'
 import { HumanTimerGame } from './HumanTimerGame'
 import { MouseHunterGame } from './MouseHunterGame'
@@ -87,6 +88,18 @@ function renderGame(session: GameSession, roundKey: string, gameMeta: GameMeta) 
           startSignal={session.shoutRaceStart}
           countdownSignal={session.shoutRaceCountdown}
           goSignal={session.shoutRaceGo}
+          playerId={session.playerId}
+          players={state.players}
+          howToPlay={gameMeta.howToPlay}
+        />
+      )
+    case 'catchmind':
+      return (
+        <CatchmindGame
+          socket={session.socket}
+          roundKey={roundKey}
+          turnStart={session.catchmindTurnStart}
+          wordSignal={session.catchmindWord}
           playerId={session.playerId}
           players={state.players}
           howToPlay={gameMeta.howToPlay}

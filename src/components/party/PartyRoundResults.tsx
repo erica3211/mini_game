@@ -7,10 +7,12 @@ import {
   auctionItemNumber,
   type AuctionRoundMeta,
   type BalloonPopRoundMeta,
+  type CatchmindRoundMeta,
   type ColorMatchRoundMeta,
   type PixelCanvasRoundMeta,
   type ScavengerHuntRoundMeta,
 } from '../../lib/partyProtocol'
+import { CatchmindSnapshot } from './CatchmindSnapshot'
 import { PartyScoreList } from './PartyScoreList'
 import { PartySubRoundCarousel } from './PartySubRoundCarousel'
 import { PartySubRoundPager } from './PartySubRoundPager'
@@ -41,6 +43,7 @@ export function PartyRoundResults({ session }: Props) {
   const balloonPopMeta = lastRound.gameId === 'balloonPop' ? (lastRound.meta as BalloonPopRoundMeta | undefined) : undefined
   const scavengerHuntMeta =
     lastRound.gameId === 'scavengerHunt' ? (lastRound.meta as ScavengerHuntRoundMeta | undefined) : undefined
+  const catchmindMeta = lastRound.gameId === 'catchmind' ? (lastRound.meta as CatchmindRoundMeta | undefined) : undefined
 
   const detailOf = (entry: (typeof lastRound.ranking)[number]) => {
     if (entry.disconnected) return ' (연결 끊김)'
@@ -73,6 +76,9 @@ export function PartyRoundResults({ session }: Props) {
     }
     if (lastRound.gameId === 'scavengerHunt' && entry.value !== undefined) {
       return ` (3라운드 합산 ${entry.value}점)`
+    }
+    if (lastRound.gameId === 'catchmind' && entry.value !== undefined) {
+      return ` (전체 턴 합산 ${entry.value}점)`
     }
     return ''
   }
@@ -218,6 +224,39 @@ export function PartyRoundResults({ session }: Props) {
                         </span>
                       </li>
                     ))}
+                </ul>
+              </div>
+            ))}
+          </PartySubRoundCarousel>
+        </div>
+      )}
+
+      {catchmindMeta && (
+        <div className="party-catchmind-reveal">
+          <PartySubRoundPager current={subRoundPage} total={catchmindMeta.turns.length} onChange={setSubRoundPage} />
+          <PartySubRoundCarousel current={subRoundPage} onChange={setSubRoundPage}>
+            {catchmindMeta.turns.map((turn) => (
+              <div className="party-catchmind-reveal-item" key={turn.turnIndex}>
+                <div className="party-catchmind-reveal-header">
+                  <span>{nicknameOf(turn.drawerId)}님의 턴</span>
+                  <span>
+                    정답: <strong>{turn.word}</strong>
+                  </span>
+                </div>
+                <CatchmindSnapshot strokes={turn.strokes} />
+                <ul className="party-catchmind-reveal-picks">
+                  <li>
+                    출제자 {nicknameOf(turn.drawerId)}: {turn.drawerPoints}점
+                  </li>
+                  {turn.correctGuessers.length === 0 ? (
+                    <li>아무도 못 맞혔어요</li>
+                  ) : (
+                    turn.correctGuessers.map((g, i) => (
+                      <li key={g.playerId}>
+                        {i + 1}등 {nicknameOf(g.playerId)}: {(g.elapsedMs / 1000).toFixed(2)}초 · {g.points}점
+                      </li>
+                    ))
+                  )}
                 </ul>
               </div>
             ))}

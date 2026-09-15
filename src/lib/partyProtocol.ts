@@ -12,6 +12,7 @@ export type GameId =
   | 'scavengerHunt'
   | 'shoutRace'
   | 'pixelCanvas'
+  | 'catchmind'
 
 export interface ModeCategory {
   id: 'INDIVIDUAL' | 'TEAM' | 'COOP'
@@ -192,6 +193,52 @@ export interface ScavengerHuntRoundMeta {
   subRounds: ScavengerHuntSubRoundResult[]
 }
 
+// 이심전심 그림 맞히기: 획 하나 — 좌표는 0~1로 정규화되어 있어서 캔버스 비율(고정 aspect-ratio)만
+// 맞으면 어느 클라이언트에서든 왜곡 없이 재생된다
+export interface CatchmindStroke {
+  color: string
+  width: number
+  points: { x: number; y: number }[]
+}
+
+export interface CatchmindGuesserResult {
+  playerId: PlayerId
+  elapsedMs: number
+  points: number
+}
+
+export interface CatchmindTurnMeta {
+  turnIndex: number
+  drawerId: PlayerId
+  word: string
+  strokes: CatchmindStroke[]
+  correctGuessers: CatchmindGuesserResult[]
+  drawerPoints: number
+}
+
+export interface CatchmindRoundMeta {
+  turns: CatchmindTurnMeta[]
+}
+
+export const CATCHMIND_TURN_TIMEOUT_MS = 60_000
+export const CATCHMIND_HINT_REVEAL_MS = 30_000
+export const CATCHMIND_REVEAL_MS = 4_000
+export const CATCHMIND_MAX_GUESS_LENGTH = 40
+export const CATCHMIND_MIN_STROKE_WIDTH = 2
+export const CATCHMIND_MAX_STROKE_WIDTH = 32
+
+// 흰색은 도화지 배경색과 같아서 지우개 역할을 겸한다
+export const CATCHMIND_COLORS = [
+  '#1f2937',
+  '#ef4444',
+  '#f97316',
+  '#eab308',
+  '#22c55e',
+  '#3b82f6',
+  '#a855f7',
+  '#ffffff',
+]
+
 export interface RoundResult {
   roundIndex: number
   gameId: GameId
@@ -297,6 +344,16 @@ export interface ClientToServerEvents {
   'shoutRace:progress': (data: { progress: number }) => void
   /** 진행률이 100에 도달해 결승선을 통과했을 때, 레이스 시작 시각 기준 경과 시간과 함께 전송 */
   'shoutRace:finish': (data: { elapsedMs: number }) => void
+  /** 출제자가 새 획을 시작. x/y는 0~1 정규화 좌표. 출제자가 아니거나 이미 턴이 끝났으면 서버가 무시한다 */
+  'catchmind:strokeStart': (data: { color: string; width: number; x: number; y: number }) => void
+  /** 진행 중인 획에 좌표를 이어붙임 — 포인터 이동을 짧게 배치로 모아 보낸다 */
+  'catchmind:strokePoints': (data: { points: { x: number; y: number }[] }) => void
+  /** 진행 중이던 획을 확정 */
+  'catchmind:strokeEnd': () => void
+  /** 캔버스 전체 지우기 */
+  'catchmind:clear': () => void
+  /** 정답 시도. 오답이면 채팅 메시지로 전체 공개되고, 정답이면 텍스트는 공개되지 않고 "정답!" 표시만 방송된다 */
+  'catchmind:guess': (data: { text: string }) => void
 }
 
 /** Server -> Client */
@@ -372,4 +429,35 @@ export interface ServerToClientEvents {
   'shoutRace:go': (data: { slotColors: string[]; slotOfPlayer: Record<PlayerId, number>; elapsedMs: number }) => void
   /** 전체 참가자의 현재 진행률(0~100) 스냅샷을 주기적으로 방송 — 상단 트랙 게이지의 상대방 위치 표시에 쓰인다 */
   'shoutRace:update': (data: { progress: Record<PlayerId, number> }) => void
+  /** 턴(출제자 한 명) 시작 — 공개 정보만 담겨 있고 제시어는 없다(별도로 catchmind:word를 출제자에게만 전송).
+   *  strokes: 새 턴이면 빈 배열, 재접속 시엔 지금까지 그려진 획 전체(스냅샷). elapsedMs: 새 턴이면 0, 재접속 시엔 이미 지난 시간 */
+  'catchmind:turnStart': (data: {
+    turnIndex: number
+    totalTurns: number
+    drawerId: PlayerId
+    strokes: CatchmindStroke[]
+    elapsedMs: number
+  }) => void
+  /** 이번 턴의 제시어 — 출제자 본인에게만 전송(재접속 시에도 다시 전송) */
+  'catchmind:word': (data: { turnIndex: number; word: string }) => void
+  /** 턴 시작 30초 후 글자 수 공개. 전원 동일하게 공개되므로 방송 */
+  'catchmind:hintRevealed': (data: { length: number }) => void
+  /** 오답을 포함해 채팅창에 그대로 노출되는 메시지 — 본인 것도 포함해서 전체에게 방송된다 */
+  'catchmind:chatMessage': (data: { playerId: PlayerId; text: string }) => void
+  /** 누군가 정답을 맞혔을 때 전체에게 방송 (본인 포함) — 실제 정답 텍스트는 공개하지 않는다.
+   *  points는 이번 턴에서 이 사람이 받은 점수 */
+  'catchmind:correctGuess': (data: { playerId: PlayerId; points: number }) => void
+  /** 턴이 끝났을 때(전원 정답 또는 타임아웃) 정답과 이번 턴 결과를 전체 공개 */
+  'catchmind:turnEnd': (data: {
+    turnIndex: number
+    drawerId: PlayerId
+    word: string
+    correctGuessers: CatchmindGuesserResult[]
+    drawerPoints: number
+  }) => void
+  /** 출제자의 draw 이벤트를 그대로 전원에게 중계(출제자 본인 포함) */
+  'catchmind:strokeStart': (data: { color: string; width: number; x: number; y: number }) => void
+  'catchmind:strokePoints': (data: { points: { x: number; y: number }[] }) => void
+  'catchmind:strokeEnd': () => void
+  'catchmind:clear': () => void
 }

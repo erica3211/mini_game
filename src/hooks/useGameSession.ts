@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useState } from 'react'
 import type {
   AuctionItemId,
+  CatchmindStroke,
   MouseHunterMouse,
+  PlayerId,
   RgbColor,
   RoomState,
   ScavengerHuntRoundTarget,
@@ -90,6 +92,14 @@ export function useGameSession(roomCodeFromUrl?: string) {
     slotOfPlayer: Record<string, number>
     elapsedMs: number
   } | null>(null)
+  const [catchmindTurnStart, setCatchmindTurnStart] = useState<{
+    turnIndex: number
+    totalTurns: number
+    drawerId: PlayerId
+    strokes: CatchmindStroke[]
+    elapsedMs: number
+  } | null>(null)
+  const [catchmindWord, setCatchmindWord] = useState<{ turnIndex: number; word: string } | null>(null)
 
   // room:state가 브로드캐스트되기도 전에 게임별 roundStart가 먼저 도착할 수 있어서
   // (라운드별 화면이 마운트되기 전에 신호를 놓치지 않도록) 세션이 살아있는 동안 항상 구독해둔다
@@ -111,6 +121,8 @@ export function useGameSession(roomCodeFromUrl?: string) {
         setShoutRaceStart(null)
         setShoutRaceCountdown(null)
         setShoutRaceGo(null)
+        setCatchmindTurnStart(null)
+        setCatchmindWord(null)
       }
     }
     const onError = (message: string) => setError(message)
@@ -143,6 +155,14 @@ export function useGameSession(roomCodeFromUrl?: string) {
       setShoutRaceCountdown(data)
     const onShoutRaceGo = (data: { slotColors: string[]; slotOfPlayer: Record<string, number>; elapsedMs: number }) =>
       setShoutRaceGo(data)
+    const onCatchmindTurnStart = (data: {
+      turnIndex: number
+      totalTurns: number
+      drawerId: PlayerId
+      strokes: CatchmindStroke[]
+      elapsedMs: number
+    }) => setCatchmindTurnStart(data)
+    const onCatchmindWord = (data: { turnIndex: number; word: string }) => setCatchmindWord(data)
     socket.on('room:state', onState)
     socket.on('room:error', onError)
     socket.on('humanTimer:roundStart', onHumanTimerStart)
@@ -159,6 +179,8 @@ export function useGameSession(roomCodeFromUrl?: string) {
     socket.on('shoutRace:roundStart', onShoutRaceStart)
     socket.on('shoutRace:countdown', onShoutRaceCountdown)
     socket.on('shoutRace:go', onShoutRaceGo)
+    socket.on('catchmind:turnStart', onCatchmindTurnStart)
+    socket.on('catchmind:word', onCatchmindWord)
     return () => {
       socket.off('room:state', onState)
       socket.off('room:error', onError)
@@ -176,6 +198,8 @@ export function useGameSession(roomCodeFromUrl?: string) {
       socket.off('shoutRace:roundStart', onShoutRaceStart)
       socket.off('shoutRace:countdown', onShoutRaceCountdown)
       socket.off('shoutRace:go', onShoutRaceGo)
+      socket.off('catchmind:turnStart', onCatchmindTurnStart)
+      socket.off('catchmind:word', onCatchmindWord)
     }
   }, [socket])
 
@@ -291,6 +315,8 @@ export function useGameSession(roomCodeFromUrl?: string) {
     shoutRaceStart,
     shoutRaceCountdown,
     shoutRaceGo,
+    catchmindTurnStart,
+    catchmindWord,
     createRoom,
     joinRoom,
     setReady,
