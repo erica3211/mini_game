@@ -3051,7 +3051,9 @@ button {
   list-style: none;
   margin: 0;
   padding: 0.5rem 0.75rem;
-  max-height: 180px;
+  /* max-height가 아니라 고정 height — 메시지가 쌓일 때마다 박스 자체가 커지면서 아래 입력창이
+     같이 밀려나는 걸 막고, 처음부터 항상 같은 크기로 자리를 잡는다 */
+  height: 180px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;

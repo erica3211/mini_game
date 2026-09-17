@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState, type FormEvent, type PointerEvent } from 'react'
+import { useCallback, useEffect, useRef, useState, type FormEvent, type PointerEvent } from 'react'
 import type { Socket } from 'socket.io-client'
 import { type CatchmindTurnStartSignal, type CatchmindWordSignal, useCatchmindRound } from '../../hooks/useCatchmindRound'
 import {
@@ -49,6 +49,14 @@ export function CatchmindGame({ socket, roundKey, turnStart, wordSignal, playerI
   const [width, setWidth] = useState(BRUSH_THIN)
   const [guessInput, setGuessInput] = useState('')
   const isDraggingRef = useRef(false)
+  const chatLogRef = useRef<HTMLUListElement>(null)
+
+  // 채팅이 새로 쌓일 때마다 맨 아래로 자동 스크롤 — 안 그러면 예전 메시지 위치에 그대로 멈춰 있어서
+  // 새로 도착한 채팅을 보려면 매번 직접 내려야 했다
+  useEffect(() => {
+    const el = chatLogRef.current
+    if (el) el.scrollTop = el.scrollHeight
+  }, [chat])
 
   const nicknameOf = useCallback((id: PlayerId) => players.find((p) => p.id === id)?.nickname ?? '???', [players])
 
@@ -205,7 +213,11 @@ export function CatchmindGame({ socket, roundKey, turnStart, wordSignal, playerI
       )}
 
       <div className="party-catchmind-chat">
-        <ul className="party-catchmind-chat-log">
+        <ul ref={chatLogRef} className="party-catchmind-chat-log">
+            <li className="party-catchmind-chat-line party-catchmind-chat-system">
+              여기에서 채팅 로그를 확인할 수 있어요.<br />그림을 보고 정답 같으면 아래에 입력해보세요!<br />
+              
+            </li>
           {chat.map((entry) => {
             if (entry.kind === 'chat') {
               return (
@@ -223,7 +235,7 @@ export function CatchmindGame({ socket, roundKey, turnStart, wordSignal, playerI
             }
             return (
               <li key={entry.id} className="party-catchmind-chat-line party-catchmind-chat-system">
-                정답은 '{entry.word}'였습니다!
+                정답은 '{entry.word}'!
               </li>
             )
           })}
