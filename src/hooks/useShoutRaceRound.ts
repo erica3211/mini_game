@@ -46,7 +46,7 @@ const VISUAL_SPEED_FALL_PER_SEC = 0.7
 // 결승 후("finished") 차가 완전히 멈추지 않고 천천히 굴러가는 것처럼 보이도록 고정해두는 시각 속도
 const FINISHED_IDLE_SPEED = 0.15
 
-// 차량이 화면에 고정되는 위치 — .party-shoutrace-car의 CSS left:30%와 반드시 같은 값을 유지해야
+// 차량이 화면에 고정되는 위치 — .party-race-car의 CSS left:30%와 반드시 같은 값을 유지해야
 // 시작선/결승선이 차와 같은 좌표계에서 정확히 만난다
 const CAR_LEFT_PERCENT = 30
 // 시작선이 진행률 0→100 동안 왼쪽으로 얼마나(%) 밀려나는지 — carLeft(30%)에서 이 값만큼 빼면 음수가 되어
@@ -316,7 +316,7 @@ export function useShoutRaceRound(
 
       const stage = stageRef.current
       if (stage) {
-        stage.style.setProperty('--shoutrace-speed', visualSpeedRef.current.toFixed(3))
+        stage.style.setProperty('--race-speed', visualSpeedRef.current.toFixed(3))
         stage.dataset.boosting = normalized > 0.35 ? 'true' : 'false'
         stage.dataset.maxspeed = normalized > 0.85 ? 'true' : 'false'
         stage.dataset.moving = visualSpeedRef.current > MOVING_EPSILON ? 'true' : 'false'

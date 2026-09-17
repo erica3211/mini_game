@@ -10,6 +10,7 @@ import { OneToFiftyGame } from './OneToFiftyGame'
 import { PixelCanvasGame } from './PixelCanvasGame'
 import { ScavengerHuntGame } from './ScavengerHuntGame'
 import { ShoutRaceGame } from './ShoutRaceGame'
+import { TypeRaceGame } from './TypeRaceGame'
 import { WordChainGame } from './WordChainGame'
 
 interface Props {
@@ -100,6 +101,17 @@ function renderGame(session: GameSession, roundKey: string, gameMeta: GameMeta) 
           roundKey={roundKey}
           turnStart={session.catchmindTurnStart}
           wordSignal={session.catchmindWord}
+          playerId={session.playerId}
+          players={state.players}
+          howToPlay={gameMeta.howToPlay}
+        />
+      )
+    case 'typeRace':
+      return (
+        <TypeRaceGame
+          socket={session.socket}
+          roundKey={roundKey}
+          startSignal={session.typeRaceStart}
           playerId={session.playerId}
           players={state.players}
           howToPlay={gameMeta.howToPlay}

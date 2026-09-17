@@ -13,6 +13,7 @@ export type GameId =
   | 'shoutRace'
   | 'pixelCanvas'
   | 'catchmind'
+  | 'typeRace'
 
 export interface ModeCategory {
   id: 'INDIVIDUAL' | 'TEAM' | 'COOP'
@@ -220,6 +221,11 @@ export interface CatchmindRoundMeta {
   turns: CatchmindTurnMeta[]
 }
 
+// 타자 질주: 라운드 종료 후 결과 화면에 전원 공개하는 참가자별 평균 타자 속도(분당 실제 키보드 입력 횟수, 한컴타자연습식)
+export interface TypeRaceRoundMeta {
+  avgCpm: Record<PlayerId, number>
+}
+
 export const CATCHMIND_TURN_TIMEOUT_MS = 60_000
 export const CATCHMIND_HINT_REVEAL_MS = 30_000
 export const CATCHMIND_REVEAL_MS = 4_000
@@ -293,6 +299,8 @@ export const SHOUT_RACE_CALIBRATION_TIMEOUT_MS = 6_000
 export const SHOUT_RACE_COUNTDOWN_MS = 3_000
 export const SHOUT_RACE_ROUND_TIMEOUT_MS = 20_000
 export const SHOUT_RACE_FINISH_PROGRESS = 100
+export const TYPE_RACE_ROUND_TIMEOUT_MS = 90_000
+export const TYPE_RACE_FINISH_PROGRESS = 100
 
 type CreateRoomAck = { ok: true; roomCode: string; playerId: string } | { ok: false; error: string }
 type JoinRoomAck = { ok: true; playerId: string } | { ok: false; error: string }
@@ -354,6 +362,18 @@ export interface ClientToServerEvents {
   'catchmind:clear': () => void
   /** 정답 시도. 오답이면 채팅 메시지로 전체 공개되고, 정답이면 텍스트는 공개되지 않고 "정답!" 표시만 방송된다 */
   'catchmind:guess': (data: { text: string }) => void
+  /** 지금까지 정확하게 입력을 확정한 누적 글자수(confirmedChars)와, 관전용으로 보여줄 현재 문장 인덱스/입력값을 주기적으로 보고.
+   *  keystrokes: Backspace 등 제어키를 제외한 실제 키보드 입력 누적 횟수(평균 타수 계산용, 완성 글자가 아니라 자판 입력 횟수 기준).
+   *  activeMs: 첫 입력부터 지금까지 경과한 시간 */
+  'typeRace:progress': (data: {
+    confirmedChars: number
+    sentenceIndex: number
+    typed: string
+    keystrokes: number
+    activeMs: number
+  }) => void
+  /** 문장 시퀀스 전체를 다 쳤을 때, 레이스 시작 시각 기준 경과 시간과 실제 키보드 입력 누적 횟수(keystrokes)와 함께 전송 */
+  'typeRace:finish': (data: { elapsedMs: number; keystrokes: number }) => void
 }
 
 /** Server -> Client */
@@ -460,4 +480,19 @@ export interface ServerToClientEvents {
   'catchmind:strokePoints': (data: { points: { x: number; y: number }[] }) => void
   'catchmind:strokeEnd': () => void
   'catchmind:clear': () => void
+  /** 라운드(재)시작 — sentences는 이번 라운드에 이어붙여 타이핑할 문장 시퀀스 전체(전원 동일). slotColors/slotOfPlayer로
+   *  참가자별 차량 색이 정해진다(모두 공개 정보). myConfirmedChars: 새 라운드면 0, 재접속 시엔 본인이 지금까지 확정한 글자수.
+   *  elapsedMs: 새 라운드면 0, 재접속 시엔 이미 지난 시간 */
+  'typeRace:roundStart': (data: {
+    sentences: string[]
+    slotColors: string[]
+    slotOfPlayer: Record<PlayerId, number>
+    myConfirmedChars: number
+    elapsedMs: number
+  }) => void
+  /** 전체 참가자의 현재 진행률(0~100)과, 관전 모드에서 보여줄 각자의 실시간 타이핑 상태(현재 문장 인덱스 + 입력값)를 주기적으로 방송 */
+  'typeRace:update': (data: {
+    progress: Record<PlayerId, number>
+    live: Record<PlayerId, { sentenceIndex: number; typed: string }>
+  }) => void
 }

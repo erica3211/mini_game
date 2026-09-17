@@ -10,6 +10,7 @@ import type {
   SessionConfig,
 } from '../lib/partyProtocol'
 import { useSocket } from './useSocket'
+import type { TypeRaceStartSignal } from './useTypeRaceRound'
 
 const REJOIN_TTL_MS = 60 * 60 * 1000 // 마지막 접속 후 1시간이 지나면 재접속 정보를 만료시킨다
 
@@ -100,6 +101,7 @@ export function useGameSession(roomCodeFromUrl?: string) {
     elapsedMs: number
   } | null>(null)
   const [catchmindWord, setCatchmindWord] = useState<{ turnIndex: number; word: string } | null>(null)
+  const [typeRaceStart, setTypeRaceStart] = useState<TypeRaceStartSignal | null>(null)
 
   // room:state가 브로드캐스트되기도 전에 게임별 roundStart가 먼저 도착할 수 있어서
   // (라운드별 화면이 마운트되기 전에 신호를 놓치지 않도록) 세션이 살아있는 동안 항상 구독해둔다
@@ -123,6 +125,7 @@ export function useGameSession(roomCodeFromUrl?: string) {
         setShoutRaceGo(null)
         setCatchmindTurnStart(null)
         setCatchmindWord(null)
+        setTypeRaceStart(null)
       }
     }
     const onError = (message: string) => setError(message)
@@ -163,6 +166,7 @@ export function useGameSession(roomCodeFromUrl?: string) {
       elapsedMs: number
     }) => setCatchmindTurnStart(data)
     const onCatchmindWord = (data: { turnIndex: number; word: string }) => setCatchmindWord(data)
+    const onTypeRaceStart = (data: TypeRaceStartSignal) => setTypeRaceStart(data)
     socket.on('room:state', onState)
     socket.on('room:error', onError)
     socket.on('humanTimer:roundStart', onHumanTimerStart)
@@ -181,6 +185,7 @@ export function useGameSession(roomCodeFromUrl?: string) {
     socket.on('shoutRace:go', onShoutRaceGo)
     socket.on('catchmind:turnStart', onCatchmindTurnStart)
     socket.on('catchmind:word', onCatchmindWord)
+    socket.on('typeRace:roundStart', onTypeRaceStart)
     return () => {
       socket.off('room:state', onState)
       socket.off('room:error', onError)
@@ -200,6 +205,7 @@ export function useGameSession(roomCodeFromUrl?: string) {
       socket.off('shoutRace:go', onShoutRaceGo)
       socket.off('catchmind:turnStart', onCatchmindTurnStart)
       socket.off('catchmind:word', onCatchmindWord)
+      socket.off('typeRace:roundStart', onTypeRaceStart)
     }
   }, [socket])
 
@@ -317,6 +323,7 @@ export function useGameSession(roomCodeFromUrl?: string) {
     shoutRaceGo,
     catchmindTurnStart,
     catchmindWord,
+    typeRaceStart,
     createRoom,
     joinRoom,
     setReady,

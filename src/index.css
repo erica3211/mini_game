@@ -2366,8 +2366,9 @@ button {
   scroll-snap-align: start;
 }
 
-/* 샤우팅 질주 — 상단 트랙 게이지 */
-.party-shoutrace-track {
+/* 레이싱 게임 공통(샤우팅 질주 / 타자 질주가 공유) — 상단 트랙 게이지. 참가자 수만큼 색상 점이 진행률(%)에 따라
+   좌우로 움직이고, 점을 클릭하면(관전 모드가 있는 게임에서) 그 사람 화면으로 전환된다 */
+.party-race-track {
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -2375,7 +2376,7 @@ button {
   max-width: 420px;
 }
 
-.party-shoutrace-track-flag {
+.party-race-track-flag {
   flex-shrink: 0;
   font-size: 0.7rem;
   font-weight: 700;
@@ -2383,7 +2384,7 @@ button {
   letter-spacing: 0.03em;
 }
 
-.party-shoutrace-track-bar {
+.party-race-track-bar {
   position: relative;
   flex: 1;
   height: 2.5rem;
@@ -2393,7 +2394,7 @@ button {
   overflow: visible;
 }
 
-.party-shoutrace-track-dot {
+.party-race-track-dot {
   position: absolute;
   top: 50%;
   transform: translate(-50%, -50%);
@@ -2404,7 +2405,7 @@ button {
   transition: left 0.12s linear;
 }
 
-.party-shoutrace-track-dot-mark {
+.party-race-track-dot-mark {
   width: 0.75rem;
   height: 0.75rem;
   border-radius: 50%;
@@ -2413,7 +2414,7 @@ button {
   box-shadow: 0 0 0 2px var(--bg);
 }
 
-.party-shoutrace-track-dot-me .party-shoutrace-track-dot-mark {
+.party-race-track-dot-me .party-race-track-dot-mark {
   width: 1rem;
   height: 1rem;
   box-shadow:
@@ -2421,7 +2422,11 @@ button {
     0 0 8px var(--dot-color, var(--accent));
 }
 
-.party-shoutrace-track-nickname {
+.party-race-track-dot-clickable {
+  cursor: pointer;
+}
+
+.party-race-track-nickname {
   font-size: 0.62rem;
   font-weight: 600;
   color: var(--text-muted);
@@ -2431,11 +2436,11 @@ button {
   border-radius: 4px;
 }
 
-.party-shoutrace-track-dot-me .party-shoutrace-track-nickname {
+.party-race-track-dot-me .party-race-track-nickname {
   color: var(--text);
 }
 
-.party-shoutrace-finished {
+.party-race-finished {
   font-weight: 700;
   color: var(--accent);
 }
@@ -2475,12 +2480,13 @@ button {
   color: var(--text);
 }
 
-/* 샤우팅 질주 — 메인 레이스 뷰 + 게이지. --shoutrace-speed(0~1)는 useShoutRaceRound가 매 프레임
-   party-shoutrace-root에 직접 써넣는다(리렌더 없이) — 도로 스크롤 속도, 차체 틸트, 게이지 바늘이
-   전부 이 하나의 CSS 변수에서 calc()로 파생된다. data-boosting/data-maxspeed도 같은 방식으로 갱신 */
-.party-shoutrace-root {
-  /* 소음 기준과 비슷한(조용한) 상태의 기본값 — 데드존 안이면 항상 0이라 차가 완전히 멈춰 있다 */
-  --shoutrace-speed: 0;
+/* 레이싱 게임 공통(샤우팅 질주 / 타자 질주가 공유) — 메인 레이스 뷰 + 게이지. --race-speed(0~1)는 각 게임의
+   훅(useShoutRaceRound/useTypeRaceRound)이 매 프레임 party-race-root에 직접 써넣는다(리렌더 없이) — 도로
+   스크롤 속도, 차체 틸트, 게이지 바늘이 전부 이 하나의 CSS 변수에서 calc()로 파생된다.
+   data-boosting/data-maxspeed도 같은 방식으로 갱신 */
+.party-race-root {
+  /* 입력 신호(목소리 크기/타자 속도)가 데드존 안인 기본값 — 차가 완전히 멈춰 있다 */
+  --race-speed: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -2489,13 +2495,14 @@ button {
 }
 
 /* 신호등(countdown) 단계: 차는 이미 보이고 색도 정해져 있지만, "출발" 전까지는 모든 애니메이션이 멈춰 있다.
-   도로/산/구름/바퀴는 CSS 애니메이션이 아니라 매 프레임 JS가 위치를 직접 쓰는 방식이라(useShoutRaceRound.ts
-   참고) 이 규칙이 필요 없다 — tick 루프 자체가 racing/finished 상태에서만 도니까 자동으로 멈춰 있다 */
-.party-shoutrace-root[data-phase='countdown'] .party-shoutrace-car {
+   도로/산/구름/바퀴는 CSS 애니메이션이 아니라 매 프레임 JS가 위치를 직접 쓰는 방식이라 이 규칙이 필요 없다 —
+   tick 루프 자체가 racing/finished 상태에서만 도니까 자동으로 멈춰 있다. 신호등 연출이 없는 게임(타자 질주)에는
+   data-phase='countdown'이 아예 안 실리므로 이 규칙은 자연히 적용되지 않는다 */
+.party-race-root[data-phase='countdown'] .party-race-car {
   animation-play-state: paused;
 }
 
-.party-shoutrace-stage {
+.party-race-stage {
   position: relative;
   width: 100%;
   max-width: 420px;
@@ -2506,20 +2513,20 @@ button {
   image-rendering: pixelated;
 }
 
-.party-shoutrace-root[data-maxspeed='true'] .party-shoutrace-stage {
-  animation: shoutrace-camera-shake 0.22s infinite;
+.party-race-root[data-maxspeed='true'] .party-race-stage {
+  animation: race-camera-shake 0.22s infinite;
 }
 
-.party-shoutrace-sky {
+.party-race-sky {
   position: absolute;
   inset: 0;
   background: linear-gradient(180deg, #6fb6ef 0%, #9adcf5 55%, #cdeffc 100%);
 }
 
 /* 구름 — 하늘 위쪽을 흐르는 가장 먼 레이어라 산보다도 느리게 스크롤한다(패럴랙스). background-position-x는
-   useShoutRaceRound.ts의 tick 루프가 매 프레임 누적 거리로 직접 쓴다(CLOUDS_TILE_PX=220과 같은 폭으로
+   각 게임 훅의 tick 루프가 매 프레임 누적 거리로 직접 쓴다(CLOUDS_TILE_PX=220과 같은 폭으로
    반복되므로 모듈로 계산만으로 이음매 없이 반복) */
-.party-shoutrace-clouds {
+.party-race-clouds {
   position: absolute;
   left: -110px;
   right: -110px;
@@ -2538,9 +2545,9 @@ button {
    직접(px) 지정해서 그린다 — 이전엔 45/135deg 그라데이션 두 장을 겹치는 방식으로 만들었는데, 타일 폭 대비
    높이가 맞지 않아 삼각형이 대각선 중간에서 잘려(꼭대기가 평평하게 잘린 모양) 보이는 문제가 있었다.
    폭 1800px 안에 봉우리를 미리 다 그려두고(주기적으로 타일링하지 않음) JS가 transform: translateX()로
-   그대로 밀기만 하므로, 한 라운드(최대 20초 × 초당 MOUNTAINS_PX_PER_SEC) 동안 스크롤해도 그림이 바닥나지
-   않는다 — 이음매를 신경 쓸 필요가 없어 반복 타일링보다 훨씬 단순하고 확실하다 */
-.party-shoutrace-mountains {
+   그대로 밀기만 하므로, 레이스 내내(최대 라운드 제한시간 × 초당 MOUNTAINS_PX_PER_SEC) 스크롤해도 그림이
+   바닥나지 않는다 — 이음매를 신경 쓸 필요가 없어 반복 타일링보다 훨씬 단순하고 확실하다 */
+.party-race-mountains {
   position: absolute;
   left: -500px;
   bottom: 34px;
@@ -2570,7 +2577,7 @@ button {
   );
 }
 
-.party-shoutrace-speedlines {
+.party-race-speedlines {
   position: absolute;
   inset: 0;
   background: repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.35) 0 2px, transparent 2px 40px);
@@ -2579,12 +2586,12 @@ button {
   pointer-events: none;
 }
 
-.party-shoutrace-root[data-maxspeed='true'] .party-shoutrace-speedlines {
+.party-race-root[data-maxspeed='true'] .party-race-speedlines {
   opacity: 0.5;
 }
 
-.party-shoutrace-road {
-  /* 도로 "면" — 단색+미세한 그라데이션으로 노면 질감만 표현. 차선(점선)은 안쪽 .party-shoutrace-road-line이
+.party-race-road {
+  /* 도로 "면" — 단색+미세한 그라데이션으로 노면 질감만 표현. 차선(점선)은 안쪽 .party-race-road-line이
      얇은 띠로 따로 그린다 (예전엔 이 요소 자체에 반복 그라데이션을 90deg로 걸어서 도로 전체 높이가 세로
      줄무늬로 채워져 차선이 아니라 울타리/바코드처럼 보였다) */
   position: absolute;
@@ -2596,9 +2603,9 @@ button {
   border-top: 2px solid #454b57;
 }
 
-/* 차선(점선) — background-position-x는 useShoutRaceRound.ts의 tick 루프가 매 프레임 누적 거리로 직접 쓴다
+/* 차선(점선) — background-position-x는 각 게임 훅의 tick 루프가 매 프레임 누적 거리로 직접 쓴다
    (ROAD_TILE_PX=60과 같은 폭으로 반복). ::before 가상요소는 ref를 붙일 수 없어서 실제 자식 엘리먼트로 뺐다 */
-.party-shoutrace-road-line {
+.party-race-road-line {
   position: absolute;
   left: -60px;
   right: -60px;
@@ -2609,11 +2616,11 @@ button {
   background-repeat: repeat-x;
 }
 
-/* 시작선/결승선 — .party-shoutrace-stage의 직계 자식으로 둬서 .party-shoutrace-car의 left:30%(=
-   useShoutRaceRound.ts의 CAR_LEFT_PERCENT)와 같은 좌표계를 쓴다. left는 매 프레임 진행률에서 직접
+/* 시작선/결승선 — .party-race-stage의 직계 자식으로 둬서 .party-race-car의 left:30%(=
+   각 게임 훅의 CAR_LEFT_PERCENT)와 같은 좌표계를 쓴다. left는 매 프레임 진행률에서 직접
    계산해 JS가 써주므로(리렌더 없이) 여기서는 색/모양만 정의한다 */
-.party-shoutrace-startline,
-.party-shoutrace-finishline {
+.party-race-startline,
+.party-race-finishline {
   position: absolute;
   bottom: 0;
   width: 6px;
@@ -2621,25 +2628,25 @@ button {
   transform: translateX(-50%);
 }
 
-.party-shoutrace-startline {
+.party-race-startline {
   background: repeating-linear-gradient(45deg, #e6edf3 0 4px, #1c1f26 4px 8px);
 }
 
-.party-shoutrace-finishline {
+.party-race-finishline {
   background-image: conic-gradient(#111 90deg, #f5f5f5 90deg 180deg, #111 180deg 270deg, #f5f5f5 270deg);
   background-size: 6px 6px;
 }
 
-.party-shoutrace-car {
+.party-race-car {
   position: absolute;
   left: 30%;
   bottom: 24px;
   width: 64px;
   height: 40px;
-  animation: shoutrace-idle-bob 1.4s ease-in-out infinite;
+  animation: race-idle-bob 1.4s ease-in-out infinite;
 }
 
-.party-shoutrace-car-flames {
+.party-race-car-flames {
   position: absolute;
   right: 100%;
   top: 55%;
@@ -2648,7 +2655,7 @@ button {
   gap: 2px;
 }
 
-.party-shoutrace-flame {
+.party-race-flame {
   width: 10px;
   height: 8px;
   border-radius: 2px 6px 6px 2px;
@@ -2657,31 +2664,31 @@ button {
   transform-origin: right center;
 }
 
-.party-shoutrace-root[data-boosting='true'] .party-shoutrace-flame {
-  animation: shoutrace-flame-flicker 0.18s ease-in-out infinite;
+.party-race-root[data-boosting='true'] .party-race-flame {
+  animation: race-flame-flicker 0.18s ease-in-out infinite;
 }
 
-.party-shoutrace-flame-1 {
+.party-race-flame-1 {
   animation-delay: 0s;
 }
-.party-shoutrace-flame-2 {
+.party-race-flame-2 {
   width: 16px;
   animation-delay: 0.06s;
 }
-.party-shoutrace-flame-3 {
+.party-race-flame-3 {
   width: 8px;
   animation-delay: 0.12s;
 }
 
-.party-shoutrace-car-body {
+.party-race-car-body {
   position: relative;
   width: 100%;
   height: 100%;
-  transform: rotate(calc(var(--shoutrace-speed) * -9deg));
+  transform: rotate(calc(var(--race-speed) * -9deg));
   transform-origin: 80% 100%;
 }
 
-.party-shoutrace-car-body::before {
+.party-race-car-body::before {
   /* 차체 — box-shadow 픽셀 아트 대신 단순 박스 형태로 구성, --car-color로 참가자별 재색칠 */
   content: '';
   position: absolute;
@@ -2694,7 +2701,7 @@ button {
   box-shadow: inset 0 -4px 0 rgba(0, 0, 0, 0.25);
 }
 
-.party-shoutrace-car-cabin {
+.party-race-car-cabin {
   position: absolute;
   left: 32%;
   bottom: 26px;
@@ -2706,8 +2713,8 @@ button {
   box-shadow: inset 0 6px 0 rgba(255, 255, 255, 0.25);
 }
 
-.party-shoutrace-car-wheel {
-  /* 회전각(transform: rotate())은 useShoutRaceRound.ts의 tick 루프가 매 프레임 누적 각도로 직접 쓴다 */
+.party-race-car-wheel {
+  /* 회전각(transform: rotate())은 각 게임 훅의 tick 루프가 매 프레임 누적 각도로 직접 쓴다 */
   position: absolute;
   bottom: 4px;
   width: 14px;
@@ -2717,58 +2724,58 @@ button {
   border: 2px solid #0b0d12;
 }
 
-.party-shoutrace-car-wheel-front {
+.party-race-car-wheel-front {
   right: 8px;
 }
 
-.party-shoutrace-car-wheel-back {
+.party-race-car-wheel-back {
   left: 4px;
 }
 
-.party-shoutrace-gauge {
+.party-race-gauge {
   width: 200px;
   max-width: 60vw;
 }
 
-.party-shoutrace-gauge-track {
+.party-race-gauge-track {
   fill: none;
   stroke: var(--border);
   stroke-width: 14;
   stroke-linecap: round;
 }
 
-.party-shoutrace-gauge-fill {
+.party-race-gauge-fill {
   fill: none;
   stroke: var(--accent);
   stroke-width: 14;
   stroke-linecap: round;
   stroke-dasharray: 100;
-  stroke-dashoffset: calc(100 - var(--shoutrace-speed) * 100);
+  stroke-dashoffset: calc(100 - var(--race-speed) * 100);
   transition: stroke 0.15s;
 }
 
-.party-shoutrace-root[data-maxspeed='true'] .party-shoutrace-gauge-fill {
+.party-race-root[data-maxspeed='true'] .party-race-gauge-fill {
   stroke: var(--danger);
 }
 
-.party-shoutrace-gauge-needle-pivot {
+.party-race-gauge-needle-pivot {
   transform-box: view-box;
   transform-origin: 100px 100px;
-  transform: rotate(calc(-90deg + var(--shoutrace-speed) * 180deg));
+  transform: rotate(calc(-90deg + var(--race-speed) * 180deg));
   transition: transform 0.05s linear;
 }
 
-.party-shoutrace-gauge-needle {
+.party-race-gauge-needle {
   stroke: var(--danger);
   stroke-width: 3;
   stroke-linecap: round;
 }
 
-.party-shoutrace-gauge-hub {
+.party-race-gauge-hub {
   fill: var(--text-muted);
 }
 
-@keyframes shoutrace-idle-bob {
+@keyframes race-idle-bob {
   0%,
   100% {
     transform: translateY(0);
@@ -2778,7 +2785,7 @@ button {
   }
 }
 
-@keyframes shoutrace-flame-flicker {
+@keyframes race-flame-flicker {
   0%,
   100% {
     opacity: 0.85;
@@ -2790,7 +2797,7 @@ button {
   }
 }
 
-@keyframes shoutrace-camera-shake {
+@keyframes race-camera-shake {
   0%,
   100% {
     transform: translate(0, 0);
@@ -2804,6 +2811,135 @@ button {
   75% {
     transform: translate(-1px, -2px);
   }
+}
+
+/* 타자 질주 — 제시 문장 + 실시간 입력 피드백(맞으면 초록, 틀리면 빨강+흔들림) */
+.party-typerace-prompt {
+  width: 100%;
+  max-width: 420px;
+  font-size: 1.15rem;
+  font-weight: 700;
+  line-height: 1.6;
+  letter-spacing: 0.01em;
+  word-break: keep-all;
+  text-align: center;
+}
+
+.party-typerace-char {
+  color: var(--text-muted);
+}
+
+.party-typerace-char-correct {
+  color: var(--text-success);
+}
+
+.party-typerace-char-wrong {
+  color: var(--text-danger);
+  animation: typerace-shake 0.18s ease-in-out;
+}
+
+.party-typerace-char-cursor {
+  color: var(--text);
+  border-bottom: 2px solid var(--accent);
+}
+
+.party-typerace-input {
+  width: 100%;
+  max-width: 420px;
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.6rem 0.9rem;
+  font-size: 1.1rem;
+}
+
+.party-typerace-input:focus {
+  outline: 2px solid var(--text-info);
+  border-color: transparent;
+}
+
+/* 관전 모드에서 상대방의 입력란을 그대로 보여줄 때 쓰는 변형 — <input>이 아니라 <div>라 포커스 스타일이
+   필요 없고, 내 입력란과 구분되도록 살짝 톤을 낮춘다 */
+.party-typerace-input-readonly {
+  background: var(--surface);
+  color: var(--text-muted);
+  min-height: 1.4em;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.party-typerace-cpm {
+  font-size: 1.4rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+
+.party-typerace-sentence-progress {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+@keyframes typerace-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-3px);
+  }
+  75% {
+    transform: translateX(3px);
+  }
+}
+
+/* 타자 질주 — 완주 후 관전 모드. 트랙의 상대방 색 점(.party-race-track-dot-clickable)을 누르면 이 패널이 뜬다 */
+.party-typerace-spectate {
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.85rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.party-typerace-spectate-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.party-typerace-spectate-nickname {
+  color: var(--text);
+}
+
+.party-typerace-spectate-close {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  cursor: pointer;
+  padding: 0.2rem 0.4rem;
+}
+
+.party-typerace-spectate-prompt {
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.6;
+  word-break: keep-all;
+}
+
+.party-typerace-waiting {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  text-align: center;
 }
 
 /* 이심전심 그림 맞히기 */

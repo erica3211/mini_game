@@ -11,6 +11,7 @@ import {
   type ColorMatchRoundMeta,
   type PixelCanvasRoundMeta,
   type ScavengerHuntRoundMeta,
+  type TypeRaceRoundMeta,
 } from '../../lib/partyProtocol'
 import { CatchmindSnapshot } from './CatchmindSnapshot'
 import { PartyScoreList } from './PartyScoreList'
@@ -44,6 +45,7 @@ export function PartyRoundResults({ session }: Props) {
   const scavengerHuntMeta =
     lastRound.gameId === 'scavengerHunt' ? (lastRound.meta as ScavengerHuntRoundMeta | undefined) : undefined
   const catchmindMeta = lastRound.gameId === 'catchmind' ? (lastRound.meta as CatchmindRoundMeta | undefined) : undefined
+  const typeRaceMeta = lastRound.gameId === 'typeRace' ? (lastRound.meta as TypeRaceRoundMeta | undefined) : undefined
 
   const detailOf = (entry: (typeof lastRound.ranking)[number]) => {
     if (entry.disconnected) return ' (연결 끊김)'
@@ -52,6 +54,11 @@ export function PartyRoundResults({ session }: Props) {
     }
     if (lastRound.gameId === 'shoutRace' && entry.value !== undefined) {
       return entry.dnf ? ` (${entry.value}% 도달)` : ` (${(entry.value / 1000).toFixed(2)}초 만에 완주)`
+    }
+    if (lastRound.gameId === 'typeRace' && entry.value !== undefined) {
+      const avgCpm = typeRaceMeta?.avgCpm[entry.playerId]
+      const cpmText = avgCpm !== undefined ? `, 평균 ${avgCpm}타/분` : ''
+      return entry.dnf ? ` (${entry.value}% 타이핑${cpmText})` : ` (${(entry.value / 1000).toFixed(2)}초 만에 완주${cpmText})`
     }
     // 픽셀 캔버스는 oneToFifty처럼 dnf(한 칸도 못 칠함)여도 차지한 칸 수를 그대로 보여준다
     if (lastRound.gameId === 'pixelCanvas' && entry.value !== undefined) {
