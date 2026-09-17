@@ -143,7 +143,7 @@ export function CatchmindGame({ socket, roundKey, turnStart, wordSignal, playerI
       {!isDrawer && (
         <div className="party-catchmind-hint">
           {hintLength === null ? (
-            <p className="party-round-hint">30초 후 글자 수가 공개돼요</p>
+            <p className="party-round-hint">30초 남았을 때 글자 수가 공개돼요</p>
           ) : (
             <div className="party-chosung-display">
               {Array.from({ length: hintLength }).map((_, i) => (
@@ -216,7 +216,7 @@ export function CatchmindGame({ socket, roundKey, turnStart, wordSignal, playerI
         <ul ref={chatLogRef} className="party-catchmind-chat-log">
             <li className="party-catchmind-chat-line party-catchmind-chat-system">
               여기에서 채팅 로그를 확인할 수 있어요.<br />그림을 보고 정답 같으면 아래에 입력해보세요!<br />
-              
+
             </li>
           {chat.map((entry) => {
             if (entry.kind === 'chat') {
