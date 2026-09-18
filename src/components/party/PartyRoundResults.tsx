@@ -14,6 +14,7 @@ import {
   type TypeRaceRoundMeta,
 } from '../../lib/partyProtocol'
 import { CatchmindSnapshot } from './CatchmindSnapshot'
+import { PartyExitToLobbyButton } from './PartyExitToLobbyButton'
 import { PartyScoreList } from './PartyScoreList'
 import { PartySubRoundCarousel } from './PartySubRoundCarousel'
 import { PartySubRoundPager } from './PartySubRoundPager'
@@ -110,7 +111,12 @@ export function PartyRoundResults({ session }: Props) {
 
   return (
     <section className="game-page">
-      <h1 className="page-title">{state.currentRoundIndex + 1}라운드 결과</h1>
+      <div>
+        <PartyExitToLobbyButton session={session} />  
+      </div>
+      <div className="party-page-header">
+        <h1 className="page-title">{state.currentRoundIndex + 1}라운드 결과</h1>
+      </div>
 
       {wordChainMeta && (
         <div className="party-wordchain-answer">

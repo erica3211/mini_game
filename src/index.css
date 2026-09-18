@@ -151,7 +151,7 @@ button {
   width: 100%;
   max-width: 640px;
   margin: 0 auto;
-  padding: 2rem 1.25rem 4rem;
+  padding: 1.25rem 1.25rem 4rem;
   background: var(--bg);
 }
 
@@ -163,6 +163,22 @@ button {
 .page-subtitle {
   color: var(--text-muted);
   margin: 0 0 1.5rem;
+}
+
+/* 라운드 진행 중/카운트다운 화면 제목 옆에 방장 전용 "로비로 돌아가기" 버튼을 나란히 붙일 때 쓰는 래퍼 */
+.party-page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.party-exit-to-lobby {
+  flex-shrink: 0;
+  white-space: nowrap;
+  font-size: 0.8rem;
+  padding: 0.4rem 0.75rem;
+  margin-bottom: 1.2rem;
 }
 
 /* 홈: 게임 카드 */
@@ -368,6 +384,43 @@ button {
   color: var(--text-danger);
   font-size: 0.875rem;
   margin: 0.5rem 0;
+}
+
+/* window.confirm 대신 쓰는 공용 확인 모달 */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+  z-index: 100;
+}
+
+.modal-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  max-width: 22rem;
+  width: 100%;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
+}
+
+.modal-message {
+  margin: 0 0 1.25rem;
+  color: var(--text);
+  line-height: 1.5;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 0.6rem;
+}
+
+.modal-actions .btn {
+  flex: 1;
 }
 
 /* 파티게임: 로딩 화면 */

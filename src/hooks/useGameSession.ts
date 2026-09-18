@@ -286,6 +286,7 @@ export function useGameSession(roomCodeFromUrl?: string) {
   const updateConfig = useCallback((patch: Partial<SessionConfig>) => socket.emit('host:updateConfig', patch), [socket])
   const start = useCallback(() => socket.emit('host:start'), [socket])
   const nextRound = useCallback(() => socket.emit('host:nextRound'), [socket])
+  const returnToLobby = useCallback(() => socket.emit('host:returnToLobby'), [socket])
   const playAgain = useCallback(() => socket.emit('room:playAgain'), [socket])
 
   const leaveRoom = useCallback(() => {
@@ -330,6 +331,7 @@ export function useGameSession(roomCodeFromUrl?: string) {
     updateConfig,
     start,
     nextRound,
+    returnToLobby,
     playAgain,
     leaveRoom,
   }

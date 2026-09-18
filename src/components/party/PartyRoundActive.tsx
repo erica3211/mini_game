@@ -7,6 +7,7 @@ import { ColorMatchGame } from './ColorMatchGame'
 import { HumanTimerGame } from './HumanTimerGame'
 import { MouseHunterGame } from './MouseHunterGame'
 import { OneToFiftyGame } from './OneToFiftyGame'
+import { PartyExitToLobbyButton } from './PartyExitToLobbyButton'
 import { PixelCanvasGame } from './PixelCanvasGame'
 import { ScavengerHuntGame } from './ScavengerHuntGame'
 import { ShoutRaceGame } from './ShoutRaceGame'
@@ -130,9 +131,14 @@ export function PartyRoundActive({ session }: Props) {
 
   return (
     <section className="game-page">
-      <h1 className="page-title">
-        라운드 {state.currentRoundIndex + 1} / {state.config.totalRounds}
-      </h1>
+      <div>
+        <PartyExitToLobbyButton session={session} />  
+      </div>
+      <div className="party-page-header">
+        <h1 className="page-title">
+          라운드 {state.currentRoundIndex + 1} / {state.config.totalRounds}
+        </h1>
+      </div>
       <p className="page-subtitle">{gameMeta ? `${gameMeta.emoji} ${gameMeta.title}` : '게임 준비 중...'}</p>
 
       {!isParticipating ? (

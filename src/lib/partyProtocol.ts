@@ -325,6 +325,9 @@ export interface ClientToServerEvents {
   'host:updateConfig': (config: Partial<SessionConfig>) => void
   'host:start': () => void
   'host:nextRound': () => void
+  /** 게임 도중(카운트다운/라운드 진행/결과 공개 중) 방장이 눌러서 즉시 중단하고 대기실로 돌아간다.
+   *  설정은 유지, 점수/기록/진행 중이던 라운드는 모두 초기화된다 */
+  'host:returnToLobby': () => void
   /** 최종결과 화면에서 아무나 눌러서 같은 방으로 대기실로 돌아간다 (설정은 유지, 점수/준비상태는 초기화) */
   'room:playAgain': () => void
   'humanTimer:submit': (data: { elapsedMs: number }) => void
