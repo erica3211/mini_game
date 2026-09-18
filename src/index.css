@@ -423,6 +423,35 @@ button {
   flex: 1;
 }
 
+/* 최종 결과: 1등 축하 색종이 폭죽 */
+.party-confetti {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 200;
+}
+
+.party-confetti-piece {
+  position: absolute;
+  top: -8%;
+  border-radius: 2px;
+  animation-name: party-confetti-fall;
+  animation-timing-function: cubic-bezier(0.35, 0, 0.65, 1);
+  animation-fill-mode: forwards;
+}
+
+@keyframes party-confetti-fall {
+  0% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(115vh) rotate(600deg);
+    opacity: 0.85;
+  }
+}
+
 /* 파티게임: 로딩 화면 */
 .party-loading {
   display: flex;

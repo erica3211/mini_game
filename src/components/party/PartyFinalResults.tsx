@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import type { GameSession } from '../../hooks/useGameSession'
+import { PartyConfetti } from './PartyConfetti'
 import { PartyScoreList } from './PartyScoreList'
 
 interface Props {
@@ -12,6 +13,8 @@ export function PartyFinalResults({ session }: Props) {
   const ranked = [...state.players].sort((a, b) => (state.scores[b.id] ?? 0) - (state.scores[a.id] ?? 0))
   const winner = ranked[0]
   const entries = ranked.map((p, index) => ({ id: p.id, label: `${index + 1}위 ${p.nickname}`, points: state.scores[p.id] ?? 0 }))
+  // 공동 1위도 우승자이니 최고 점수와 같으면 함께 색종이를 본다
+  const isWinner = winner !== undefined && session.playerId !== null && state.scores[session.playerId] === state.scores[winner.id]
 
   const handleLeave = () => {
     session.leaveRoom()
@@ -20,6 +23,7 @@ export function PartyFinalResults({ session }: Props) {
 
   return (
     <section className="game-page">
+      {isWinner && <PartyConfetti />}
       <h1 className="page-title">🏆 최종 결과</h1>
       {winner && <p className="page-subtitle">{winner.nickname}님 우승!</p>}
 
