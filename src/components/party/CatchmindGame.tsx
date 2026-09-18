@@ -71,6 +71,8 @@ export function CatchmindGame({ socket, roundKey, turnStart, wordSignal, playerI
   const onPointerDown = useCallback(
     (e: PointerEvent<HTMLCanvasElement>) => {
       if (!isDrawer) return
+      // 모바일 웹뷰 중에는 touch-action: none만으로 스크롤/확대 제스처가 안 막히는 경우가 있어 직접 막는다
+      e.preventDefault()
       isDraggingRef.current = true
       try {
         e.currentTarget.setPointerCapture(e.pointerId)
@@ -86,6 +88,7 @@ export function CatchmindGame({ socket, roundKey, turnStart, wordSignal, playerI
   const onPointerMove = useCallback(
     (e: PointerEvent<HTMLCanvasElement>) => {
       if (!isDraggingRef.current) return
+      e.preventDefault()
       const { x, y } = toPoint(e)
       continueStroke(x, y)
     },
@@ -157,10 +160,12 @@ export function CatchmindGame({ socket, roundKey, turnStart, wordSignal, playerI
       <canvas
         ref={canvasRef}
         className={`party-catchmind-board${isDrawer ? ' party-catchmind-board-drawable' : ''}`}
+        style={isDrawer ? { touchAction: 'none' } : undefined}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
         onPointerCancel={onPointerUp}
+        onContextMenu={isDrawer ? (e) => e.preventDefault() : undefined}
       />
 
       {isDrawer && (
