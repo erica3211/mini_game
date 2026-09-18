@@ -42,6 +42,7 @@ export function CatchmindGame({ socket, roundKey, turnStart, wordSignal, playerI
     continueStroke,
     endStroke,
     clearBoard,
+    undoStroke,
     submitGuess,
   } = useCatchmindRound(socket, roundKey, turnStart, wordSignal, playerId, canvasRef)
 
@@ -83,13 +84,20 @@ export function CatchmindGame({ socket, roundKey, turnStart, wordSignal, playerI
 
   useEffect(() => unlockPageScroll, [unlockPageScroll])
 
+  // 데스크톱(마우스)엔 스크롤바가 있어서 overflow: hidden을 걸었다 풀 때마다 스크롤바가
+  // 사라졌다 나타나며 화면 폭이 흔들린다 — 터치/펜(모바일 사파리 주소창 문제)일 때만 잠근다
+  const scrollLockedRef = useRef(false)
+
   const onPointerDown = useCallback(
     (e: PointerEvent<HTMLCanvasElement>) => {
       if (!isDrawer) return
       // 모바일 웹뷰 중에는 touch-action: none만으로 스크롤/확대 제스처가 안 막히는 경우가 있어 직접 막는다
       e.preventDefault()
       isDraggingRef.current = true
-      lockPageScroll()
+      if (e.pointerType === 'touch' || e.pointerType === 'pen') {
+        lockPageScroll()
+        scrollLockedRef.current = true
+      }
       try {
         e.currentTarget.setPointerCapture(e.pointerId)
       } catch {
@@ -114,7 +122,10 @@ export function CatchmindGame({ socket, roundKey, turnStart, wordSignal, playerI
   const onPointerUp = useCallback(() => {
     if (!isDraggingRef.current) return
     isDraggingRef.current = false
-    unlockPageScroll()
+    if (scrollLockedRef.current) {
+      unlockPageScroll()
+      scrollLockedRef.current = false
+    }
     endStroke()
   }, [endStroke, unlockPageScroll])
 
@@ -213,6 +224,9 @@ export function CatchmindGame({ socket, roundKey, turnStart, wordSignal, playerI
               onClick={() => setWidth(BRUSH_THICK)}
             >
               굵게
+            </button>
+            <button type="button" className="btn btn-secondary" onClick={undoStroke}>
+              되돌리기
             </button>
             <button type="button" className="btn btn-secondary" onClick={clearBoard}>
               전체 지우기

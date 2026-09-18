@@ -368,6 +368,8 @@ export interface ClientToServerEvents {
   'catchmind:strokeEnd': () => void
   /** 캔버스 전체 지우기 */
   'catchmind:clear': () => void
+  /** 마지막으로 확정된 획 하나를 취소. 그리는 중(획 진행 중)이거나 취소할 획이 없으면 서버가 무시한다 */
+  'catchmind:undo': () => void
   /** 정답 시도. 오답이면 채팅 메시지로 전체 공개되고, 정답이면 텍스트는 공개되지 않고 "정답!" 표시만 방송된다 */
   'catchmind:guess': (data: { text: string }) => void
   /** 지금까지 정확하게 입력을 확정한 누적 글자수(confirmedChars)와, 관전용으로 보여줄 현재 문장 인덱스/입력값을 주기적으로 보고.
@@ -488,6 +490,8 @@ export interface ServerToClientEvents {
   'catchmind:strokePoints': (data: { points: { x: number; y: number }[] }) => void
   'catchmind:strokeEnd': () => void
   'catchmind:clear': () => void
+  /** 마지막 획을 취소한 뒤 남은 획 전체 — 래스터 캔버스라 부분 삭제가 안 되니 받는 쪽은 이걸로 전체를 다시 그린다 */
+  'catchmind:undo': (data: { strokes: CatchmindStroke[] }) => void
   /** 라운드(재)시작 — sentences는 이번 라운드에 이어붙여 타이핑할 문장 시퀀스 전체(전원 동일). slotColors/slotOfPlayer로
    *  참가자별 차량 색이 정해진다(모두 공개 정보). myConfirmedChars: 새 라운드면 0, 재접속 시엔 본인이 지금까지 확정한 글자수.
    *  elapsedMs: 새 라운드면 0, 재접속 시엔 이미 지난 시간 */

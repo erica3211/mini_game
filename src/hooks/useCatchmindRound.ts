@@ -140,6 +140,14 @@ export function useCatchmindRound(
       if (canvas) clearCatchmindCanvas(canvas)
       remoteLastPointRef.current = null
     }
+    // 래스터 캔버스라 획 하나만 지울 수 없어서, 서버가 확정해준 "남은 획 전체"로 다시 그린다.
+    // 출제자 본인도 로컬엔 남은 획 목록이 없으니(그냥 픽셀만 있음) 서버 응답으로 함께 다시 그린다.
+    const onUndo = (data: { strokes: CatchmindStroke[] }) => {
+      const canvas = canvasRef.current
+      if (canvas) drawFullBoard(canvas, data.strokes)
+      remoteLastPointRef.current = null
+      myLastPointRef.current = null
+    }
 
     socket.on('catchmind:hintRevealed', onHintRevealed)
     socket.on('catchmind:chatMessage', onChatMessage)
@@ -149,6 +157,7 @@ export function useCatchmindRound(
     socket.on('catchmind:strokePoints', onStrokePoints)
     socket.on('catchmind:strokeEnd', onStrokeEnd)
     socket.on('catchmind:clear', onClear)
+    socket.on('catchmind:undo', onUndo)
     return () => {
       socket.off('catchmind:hintRevealed', onHintRevealed)
       socket.off('catchmind:chatMessage', onChatMessage)
@@ -158,6 +167,7 @@ export function useCatchmindRound(
       socket.off('catchmind:strokePoints', onStrokePoints)
       socket.off('catchmind:strokeEnd', onStrokeEnd)
       socket.off('catchmind:clear', onClear)
+      socket.off('catchmind:undo', onUndo)
     }
   }, [socket, isDrawer, playerId, roundKey, canvasRef])
 
@@ -215,6 +225,11 @@ export function useCatchmindRound(
     socket.emit('catchmind:clear')
   }, [isDrawer, socket, canvasRef])
 
+  const undoStroke = useCallback(() => {
+    if (!isDrawer) return
+    socket.emit('catchmind:undo')
+  }, [isDrawer, socket])
+
   const submitGuess = useCallback(
     (text: string) => {
       if (isDrawer || guessed || status !== 'running' || !text.trim()) return
@@ -239,6 +254,7 @@ export function useCatchmindRound(
     continueStroke,
     endStroke,
     clearBoard,
+    undoStroke,
     submitGuess,
   }
 }
