@@ -235,14 +235,22 @@ export const CATCHMIND_MAX_STROKE_WIDTH = 32
 
 // 흰색은 도화지 배경색과 같아서 지우개 역할을 겸한다
 export const CATCHMIND_COLORS = [
-  '#1f2937',
-  '#ef4444',
+  '#1f2937', 
+  '#71717a', 
+  '#ec4899', 
+  '#ef4444', 
   '#f97316',
-  '#eab308',
-  '#22c55e',
-  '#3b82f6',
-  '#a855f7',
-  '#ffffff',
+  '#f7db9f', 
+  '#b45309', 
+  '#78350f', 
+  '#fde047', 
+  '#84cc16', 
+  '#22c55e', 
+  '#06b6d4', 
+  '#3b82f6', 
+  '#1e3a8a', 
+  '#a855f7', 
+  '#ffffff', 
 ]
 
 export interface RoundResult {

@@ -2999,7 +2999,8 @@ button {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 0.4rem;
+  gap: 1rem;
+  max-width: 22rem;
 }
 
 .party-catchmind-swatch {
@@ -3009,6 +3010,8 @@ button {
   border: 2px solid var(--border);
   padding: 0;
   cursor: pointer;
+  /* flex: 0 0 calc(12.5% - 0.35rem); */
+  aspect-ratio: 1 / 1;
 }
 
 .party-catchmind-swatch-active {
