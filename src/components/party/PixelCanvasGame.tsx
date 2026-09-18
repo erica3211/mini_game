@@ -1,4 +1,4 @@
-import { useCallback, useRef, type PointerEvent } from 'react'
+import { useCallback, useEffect, useRef, type PointerEvent } from 'react'
 import type { Socket } from 'socket.io-client'
 import { usePixelCanvasRound } from '../../hooks/usePixelCanvasRound'
 import {
@@ -74,6 +74,21 @@ export function PixelCanvasGame({ socket, roundKey, startSignal, playerId, playe
     isDraggingRef.current = false
     endStroke()
   }, [endStroke])
+
+  // 삼성인터넷 등 일부 안드로이드 브라우저는 Pointer Event 쪽 preventDefault만으로는 터치 스크롤이
+  // 안 막혀서 실제 touchmove 이벤트를 막아야 한다. React는 JSX onTouchMove를 passive 리스너로 등록해버려서
+  // 그 안에서 preventDefault를 불러도 씹히니(경고만 뜸), useEffect에서 캔버스에 직접 non-passive로 붙인다
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const preventTouchScroll = (e: TouchEvent) => e.preventDefault()
+    canvas.addEventListener('touchstart', preventTouchScroll, { passive: false })
+    canvas.addEventListener('touchmove', preventTouchScroll, { passive: false })
+    return () => {
+      canvas.removeEventListener('touchstart', preventTouchScroll)
+      canvas.removeEventListener('touchmove', preventTouchScroll)
+    }
+  }, [startSignal])
 
   const nicknameOf = (id: PlayerId) => players.find((p) => p.id === id)?.nickname ?? '???'
   const slotOfPlayer = startSignal?.slotOfPlayer ?? {}

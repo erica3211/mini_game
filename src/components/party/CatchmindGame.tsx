@@ -84,6 +84,22 @@ export function CatchmindGame({ socket, roundKey, turnStart, wordSignal, playerI
 
   useEffect(() => unlockPageScroll, [unlockPageScroll])
 
+  // 삼성인터넷 등 일부 안드로이드 브라우저는 Pointer Event 쪽 preventDefault만으로는 터치 스크롤이
+  // 안 막히고 실제 touchmove 이벤트를 막아야 한다. React가 JSX onTouchMove는 passive 리스너로 등록해버려서
+  // 그 안에서 preventDefault를 불러도 씹히니(경고만 뜸), useEffect에서 캔버스에 직접 non-passive로 붙인다
+  useEffect(() => {
+    if (!isDrawer) return
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const preventTouchScroll = (e: TouchEvent) => e.preventDefault()
+    canvas.addEventListener('touchstart', preventTouchScroll, { passive: false })
+    canvas.addEventListener('touchmove', preventTouchScroll, { passive: false })
+    return () => {
+      canvas.removeEventListener('touchstart', preventTouchScroll)
+      canvas.removeEventListener('touchmove', preventTouchScroll)
+    }
+  }, [isDrawer])
+
   // 데스크톱(마우스)엔 스크롤바가 있어서 overflow: hidden을 걸었다 풀 때마다 스크롤바가
   // 사라졌다 나타나며 화면 폭이 흔들린다 — 터치/펜(모바일 사파리 주소창 문제)일 때만 잠근다
   const scrollLockedRef = useRef(false)

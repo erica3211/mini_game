@@ -13,9 +13,27 @@ import { useSocket } from './useSocket'
 import type { TypeRaceStartSignal } from './useTypeRaceRound'
 
 const REJOIN_TTL_MS = 60 * 60 * 1000 // 마지막 접속 후 1시간이 지나면 재접속 정보를 만료시킨다
+const STORAGE_PREFIX = 'party_player_'
 
 function storageKey(roomCode: string) {
-  return `party_player_${roomCode.toUpperCase()}`
+  return `${STORAGE_PREFIX}${roomCode.toUpperCase()}`
+}
+
+/** 만료 체크가 그 방으로 재접속을 시도할 때만 일어나다 보니, 한 번 쓰고 안 돌아온 방의 키는 계속 쌓인다.
+ *  앱이 뜰 때마다 한 번씩 훑어서 만료된 것들을 정리한다 */
+function sweepExpiredSessions() {
+  const now = Date.now()
+  for (let i = localStorage.length - 1; i >= 0; i--) {
+    const key = localStorage.key(i)
+    if (!key?.startsWith(STORAGE_PREFIX)) continue
+    const raw = localStorage.getItem(key)
+    try {
+      const { savedAt } = JSON.parse(raw ?? '') as { savedAt: number }
+      if (typeof savedAt !== 'number' || now - savedAt > REJOIN_TTL_MS) localStorage.removeItem(key)
+    } catch {
+      localStorage.removeItem(key)
+    }
+  }
 }
 
 /** 만료됐으면 저장된 값을 지우고 null을 반환한다 */
@@ -102,6 +120,10 @@ export function useGameSession(roomCodeFromUrl?: string) {
   } | null>(null)
   const [catchmindWord, setCatchmindWord] = useState<{ turnIndex: number; word: string } | null>(null)
   const [typeRaceStart, setTypeRaceStart] = useState<TypeRaceStartSignal | null>(null)
+
+  useEffect(() => {
+    sweepExpiredSessions()
+  }, [])
 
   // room:state가 브로드캐스트되기도 전에 게임별 roundStart가 먼저 도착할 수 있어서
   // (라운드별 화면이 마운트되기 전에 신호를 놓치지 않도록) 세션이 살아있는 동안 항상 구독해둔다
