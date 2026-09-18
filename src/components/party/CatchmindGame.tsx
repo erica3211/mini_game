@@ -68,12 +68,28 @@ export function CatchmindGame({ socket, roundKey, turnStart, wordSignal, playerI
     }
   }, [])
 
+  // 아이폰 사파리는 캔버스가 touch-action: none이어도, 문서 자체가 뷰포트보다 길면
+  // 드래그 제스처를 감지해서 주소창/뒤로가기 바를 접었다 폈다 한다 — 그림은 안 밀리는데 바만 깜빡이는 이유.
+  // 획을 긋는 동안만 문서 스크롤 자체를 잠가서 사파리가 반응할 거리를 없앤다.
+  const lockPageScroll = useCallback(() => {
+    document.documentElement.style.overflow = 'hidden'
+    document.body.style.overflow = 'hidden'
+  }, [])
+
+  const unlockPageScroll = useCallback(() => {
+    document.documentElement.style.overflow = ''
+    document.body.style.overflow = ''
+  }, [])
+
+  useEffect(() => unlockPageScroll, [unlockPageScroll])
+
   const onPointerDown = useCallback(
     (e: PointerEvent<HTMLCanvasElement>) => {
       if (!isDrawer) return
       // 모바일 웹뷰 중에는 touch-action: none만으로 스크롤/확대 제스처가 안 막히는 경우가 있어 직접 막는다
       e.preventDefault()
       isDraggingRef.current = true
+      lockPageScroll()
       try {
         e.currentTarget.setPointerCapture(e.pointerId)
       } catch {
@@ -82,7 +98,7 @@ export function CatchmindGame({ socket, roundKey, turnStart, wordSignal, playerI
       const { x, y } = toPoint(e)
       beginStroke(color, width, x, y)
     },
-    [isDrawer, beginStroke, color, width, toPoint],
+    [isDrawer, beginStroke, color, width, toPoint, lockPageScroll],
   )
 
   const onPointerMove = useCallback(
@@ -98,8 +114,9 @@ export function CatchmindGame({ socket, roundKey, turnStart, wordSignal, playerI
   const onPointerUp = useCallback(() => {
     if (!isDraggingRef.current) return
     isDraggingRef.current = false
+    unlockPageScroll()
     endStroke()
-  }, [endStroke])
+  }, [endStroke, unlockPageScroll])
 
   const onSubmitGuess = useCallback(
     (e: FormEvent) => {
