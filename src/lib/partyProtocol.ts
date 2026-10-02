@@ -85,6 +85,14 @@ export interface AuctionItemResult {
   bids: Record<PlayerId, number>
 }
 
+// 초성 퀴즈: 정답 공개 + 플레이어별 입력 기록(입력 순서대로, 맞혔다면 마지막이 정답). guesses는 이전 버전 라운드엔 없을 수 있다
+export interface WordChainRoundMeta {
+  word: string
+  category: string
+  definition: string
+  guesses?: Record<PlayerId, string[]>
+}
+
 export interface AuctionRoundMeta {
   items: AuctionItemResult[]
 }

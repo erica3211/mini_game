@@ -12,6 +12,7 @@ import {
   type PixelCanvasRoundMeta,
   type ScavengerHuntRoundMeta,
   type TypeRaceRoundMeta,
+  type WordChainRoundMeta,
 } from '../../lib/partyProtocol'
 import { CatchmindSnapshot } from './CatchmindSnapshot'
 import { PartyExitToLobbyButton } from './PartyExitToLobbyButton'
@@ -32,10 +33,7 @@ export function PartyRoundResults({ session }: Props) {
   const [subRoundPage, setSubRoundPage] = useState(0)
   const nicknameOf = (playerId: string) => state.players.find((p) => p.id === playerId)?.nickname ?? '???'
   const isLastRound = state.currentRoundIndex + 1 >= state.config.totalRounds
-  const wordChainMeta =
-    lastRound.gameId === 'wordChain'
-      ? (lastRound.meta as { word: string; category: string; definition: string } | undefined)
-      : undefined
+  const wordChainMeta = lastRound.gameId === 'wordChain' ? (lastRound.meta as WordChainRoundMeta | undefined) : undefined
   const auctionMeta = lastRound.gameId === 'auction' ? (lastRound.meta as AuctionRoundMeta | undefined) : undefined
   // 베팅 화면과 같은 roundKey로 시드를 고정해야 그때 봤던 물품 이름/이미지가 결과 화면에서도 그대로 재현된다
   const auctionFlavors = auctionMeta ? pickAuctionFlavors(`${lastRound.roundIndex}-${lastRound.gameId}`) : null
@@ -125,6 +123,35 @@ export function PartyRoundResults({ session }: Props) {
           </p>
           <p className="party-wordchain-answer-definition">{wordChainMeta.definition}</p>
         </div>
+      )}
+
+      {wordChainMeta?.guesses && (
+        <ul className="party-wordchain-guesses">
+          {[...lastRound.ranking]
+            .sort((a, b) => a.rank - b.rank)
+            .map((entry) => {
+              const playerGuesses = wordChainMeta.guesses?.[entry.playerId] ?? []
+              return (
+                <li key={entry.playerId}>
+                  <span className="party-wordchain-guesses-name">{nicknameOf(entry.playerId)}</span>
+                  {playerGuesses.length === 0 ? (
+                    <span className="party-wordchain-guesses-empty">입력 없음</span>
+                  ) : (
+                    <ol>
+                      {playerGuesses.map((guess, i) => (
+                        <li
+                          key={i}
+                          className={guess === wordChainMeta.word ? 'party-wordchain-guesses-correct' : undefined}
+                        >
+                          {guess}
+                        </li>
+                      ))}
+                    </ol>
+                  )}
+                </li>
+              )
+            })}
+        </ul>
       )}
 
       {auctionMeta && auctionFlavors && (
