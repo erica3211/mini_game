@@ -35,6 +35,14 @@ export type CatchmindChatEntry =
 
 // 포인터 이동을 모아 서버로 보내는 주기 — pixelCanvas의 PAINT_FLUSH_MS와 같은 이유(소켓 과다 전송 방지)
 const STROKE_FLUSH_MS = 40
+// 정답 토스트 노출 시간 — 초성 퀴즈 정답 토스트와 같은 값
+const TOAST_DURATION_MS = 1500
+
+export interface CatchmindCorrectToast {
+  id: number
+  playerId: PlayerId
+  points: number
+}
 
 let chatIdSeq = 0
 
@@ -60,6 +68,8 @@ export function useCatchmindRound(
   const [guessed, setGuessed] = useState(false)
   const [chat, setChat] = useState<CatchmindChatEntry[]>([])
   const [lastTurnEnd, setLastTurnEnd] = useState<CatchmindTurnEndInfo | null>(null)
+  // 채팅창이 화면 아래로 스크롤돼 있어도 정답 소식을 놓치지 않게, 화면 상단에 고정된 토스트로도 띄운다
+  const [toasts, setToasts] = useState<CatchmindCorrectToast[]>([])
 
   const myWord = isDrawer && wordSignal?.turnIndex === turnIndex ? wordSignal.word : null
   const status: LocalStatus = !turnStart ? 'waiting' : finishedTurnKey === turnKey ? 'finished' : 'running'
@@ -95,6 +105,7 @@ export function useCatchmindRound(
   useEffect(() => {
     setChat([])
     setLastTurnEnd(null)
+    setToasts([])
   }, [roundKey])
 
   useEffect(() => {
@@ -104,10 +115,10 @@ export function useCatchmindRound(
     }
     const onCorrectGuess = (data: { playerId: PlayerId; points: number }) => {
       if (data.playerId === playerId) setGuessed(true)
-      setChat((prev) => [
-        ...prev.slice(-49),
-        { id: chatIdSeq++, kind: 'correct', playerId: data.playerId, points: data.points },
-      ])
+      const id = chatIdSeq++
+      setChat((prev) => [...prev.slice(-49), { id, kind: 'correct', playerId: data.playerId, points: data.points }])
+      setToasts((prev) => [...prev, { id, playerId: data.playerId, points: data.points }])
+      window.setTimeout(() => setToasts((prev) => prev.filter((t) => t.id !== id)), TOAST_DURATION_MS)
     }
     const onTurnEnd = (data: CatchmindTurnEndInfo) => {
       setLastTurnEnd(data)
@@ -249,6 +260,7 @@ export function useCatchmindRound(
     hintLength,
     guessed,
     chat,
+    toasts,
     lastTurnEnd,
     beginStroke,
     continueStroke,

@@ -8,7 +8,6 @@ interface Props {
   socket: Socket<ServerToClientEvents, ClientToServerEvents>
   roundKey: string
   startSignal: { elapsedMs: number } | null
-  howToPlay: string
 }
 
 // 풍선 색은 순전히 코스메틱이라(채점과 무관) 서버가 정할 필요 없이 라운드마다 클라이언트가 하나 무작위로 고른다
@@ -16,7 +15,7 @@ const BALLOON_COLORS = ['#f85149', '#649ae2', '#e2b23e', '#3ecf8e', '#c264dd', '
 // .party-balloonpop-stage 칸(260x300) 안에 여유 있게 들어가는 상한 — 이보다 크게 하면 칸 밖으로 잘려 보인다
 const MAX_SCALE = 1.5
 
-export function BalloonPopGame({ socket, roundKey, startSignal, howToPlay }: Props) {
+export function BalloonPopGame({ socket, roundKey, startSignal }: Props) {
   const { status, pumps, startPumping, pausePumping, stop, startedAt } = useBalloonPopRound(socket, roundKey, startSignal)
   const color = useMemo(() => BALLOON_COLORS[Math.floor(Math.random() * BALLOON_COLORS.length)], [roundKey])
 
@@ -42,10 +41,6 @@ export function BalloonPopGame({ socket, roundKey, startSignal, howToPlay }: Pro
 
   return (
     <div className="party-round-stage">
-      <div className="rules">
-        <p>{howToPlay}</p>
-      </div>
-
       {status === 'waiting' && <p className="party-round-hint">곧 시작합니다...</p>}
 
       {status !== 'waiting' && (

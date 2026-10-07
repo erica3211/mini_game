@@ -1,5 +1,5 @@
 import type { GameSession } from '../../hooks/useGameSession'
-import type { GameMeta } from '../../lib/partyProtocol'
+import { RulesBox } from '../RulesBox'
 import { AuctionGame } from './AuctionGame'
 import { BalloonPopGame } from './BalloonPopGame'
 import { CatchmindGame } from './CatchmindGame'
@@ -19,16 +19,16 @@ interface Props {
 }
 
 /** 현재 라운드의 게임 화면 하나를 고른다. gameId마다 게임 모듈이 필요로 하는 startSignal 등 개인화된 props가 달라서 분기가 필요하다 */
-function renderGame(session: GameSession, roundKey: string, gameMeta: GameMeta) {
+function renderGame(session: GameSession, roundKey: string) {
   const state = session.roomState!
   switch (state.currentGameId) {
     case 'humanTimer':
       return (
-        <HumanTimerGame socket={session.socket} roundKey={roundKey} startSignal={session.humanTimerStart} howToPlay={gameMeta.howToPlay} />
+        <HumanTimerGame socket={session.socket} roundKey={roundKey} startSignal={session.humanTimerStart} />
       )
     case 'oneToFifty':
       return (
-        <OneToFiftyGame socket={session.socket} roundKey={roundKey} startSignal={session.oneToFiftyStart} howToPlay={gameMeta.howToPlay} />
+        <OneToFiftyGame socket={session.socket} roundKey={roundKey} startSignal={session.oneToFiftyStart} />
       )
     case 'wordChain':
       return (
@@ -38,15 +38,14 @@ function renderGame(session: GameSession, roundKey: string, gameMeta: GameMeta) 
           startSignal={session.wordChainStart}
           category={session.wordChainCategory}
           definition={session.wordChainDefinition}
-          howToPlay={gameMeta.howToPlay}
           players={state.players}
         />
       )
     case 'auction':
-      return <AuctionGame socket={session.socket} roundKey={roundKey} startSignal={session.auctionStart} howToPlay={gameMeta.howToPlay} />
+      return <AuctionGame socket={session.socket} roundKey={roundKey} startSignal={session.auctionStart} />
     case 'colorMatch':
       return (
-        <ColorMatchGame socket={session.socket} roundKey={roundKey} startSignal={session.colorMatchStart} howToPlay={gameMeta.howToPlay} />
+        <ColorMatchGame socket={session.socket} roundKey={roundKey} startSignal={session.colorMatchStart} />
       )
     case 'pixelCanvas':
       return (
@@ -56,12 +55,11 @@ function renderGame(session: GameSession, roundKey: string, gameMeta: GameMeta) 
           startSignal={session.pixelCanvasStart}
           playerId={session.playerId}
           players={state.players}
-          howToPlay={gameMeta.howToPlay}
         />
       )
     case 'balloonPop':
       return (
-        <BalloonPopGame socket={session.socket} roundKey={roundKey} startSignal={session.balloonPopStart} howToPlay={gameMeta.howToPlay} />
+        <BalloonPopGame socket={session.socket} roundKey={roundKey} startSignal={session.balloonPopStart} />
       )
     case 'mouseHunter':
       return (
@@ -69,7 +67,6 @@ function renderGame(session: GameSession, roundKey: string, gameMeta: GameMeta) 
           socket={session.socket}
           roundKey={roundKey}
           startSignal={session.mouseHunterStart}
-          howToPlay={gameMeta.howToPlay}
           players={state.players}
         />
       )
@@ -79,7 +76,6 @@ function renderGame(session: GameSession, roundKey: string, gameMeta: GameMeta) 
           socket={session.socket}
           roundKey={roundKey}
           startSignal={session.scavengerHuntStart}
-          howToPlay={gameMeta.howToPlay}
         />
       )
     case 'shoutRace':
@@ -92,7 +88,6 @@ function renderGame(session: GameSession, roundKey: string, gameMeta: GameMeta) 
           goSignal={session.shoutRaceGo}
           playerId={session.playerId}
           players={state.players}
-          howToPlay={gameMeta.howToPlay}
         />
       )
     case 'catchmind':
@@ -104,7 +99,6 @@ function renderGame(session: GameSession, roundKey: string, gameMeta: GameMeta) 
           wordSignal={session.catchmindWord}
           playerId={session.playerId}
           players={state.players}
-          howToPlay={gameMeta.howToPlay}
         />
       )
     case 'typeRace':
@@ -115,7 +109,6 @@ function renderGame(session: GameSession, roundKey: string, gameMeta: GameMeta) 
           startSignal={session.typeRaceStart}
           playerId={session.playerId}
           players={state.players}
-          howToPlay={gameMeta.howToPlay}
         />
       )
     default:
@@ -130,7 +123,7 @@ export function PartyRoundActive({ session }: Props) {
   const isParticipating = session.playerId !== null && state.currentRoundPlayerIds.includes(session.playerId)
 
   return (
-    <section className="game-page">
+    <section className="game-page game-page-fill">
       <div>
         <PartyExitToLobbyButton session={session} />  
       </div>
@@ -144,7 +137,12 @@ export function PartyRoundActive({ session }: Props) {
       {!isParticipating ? (
         <p className="party-round-hint">이미 게임이 진행중이라 참여할 수 없어요. 다음 라운드부터 참여 가능해요.</p>
       ) : (
-        gameMeta && renderGame(session, roundKey, gameMeta)
+        gameMeta && (
+          <>
+            {renderGame(session, roundKey)}
+            <RulesBox summary={gameMeta.howToPlay} />
+          </>
+        )
       )}
     </section>
   )

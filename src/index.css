@@ -245,6 +245,49 @@ button {
   color: var(--text);
 }
 
+/* 규칙 박스를 화면 하단에 붙이는 페이지 — .site-main을 세로 flex로 바꿔 페이지가 화면 높이를 꽉 채우게 하고,
+   규칙 박스(margin-top: auto)를 남는 공간만큼 아래로 민다. 콘텐츠가 화면보다 길면 그냥 콘텐츠 바로 뒤에 온다 */
+.site-main:has(> .game-page-fill) {
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 1.25rem;
+}
+
+.game-page-fill {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* margin-top: auto는 콘텐츠가 길면 0이 되므로, 게임 영역과의 최소 간격은 padding으로 확보한다 */
+.rules-dock {
+  margin-top: auto;
+  padding-top: 2rem;
+}
+
+/* 요약 문단의 기본 여백 때문에 박스 위쪽이 휑해 보이지 않게 없앤다 (간격은 .rules padding이 담당) */
+.rules > p:first-child {
+  margin: 0;
+}
+
+.rules-clamped {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+}
+
+.rules-toggles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.rules-toggles:empty {
+  display: none;
+}
+
 .rules-toggle {
   margin-top: 0.5rem;
   border: 1px solid var(--border);
@@ -1493,9 +1536,12 @@ button {
   animation: party-shake 0.3s;
 }
 
-.party-wordchain-toasts {
+/* 캐치마인드 정답 토스트도 같은 모양을 쓴다 */
+.party-wordchain-toasts,
+.party-catchmind-toasts {
   position: fixed;
-  top: 1rem;
+  /* 모바일 키보드가 올라와 보이는 영역이 아래로 옮겨져도 그 상단에 붙는다 (useVisualViewportTop 참고) */
+  top: calc(var(--visual-viewport-top, 0px) + 1rem);
   left: 50%;
   transform: translateX(-50%);
   display: flex;
@@ -1505,7 +1551,8 @@ button {
   z-index: 10;
 }
 
-.party-wordchain-toast {
+.party-wordchain-toast,
+.party-catchmind-toast {
   margin: 0;
   background: rgba(13, 17, 23, 0.85);
   color: var(--text);
@@ -1517,7 +1564,8 @@ button {
 }
 
 /* 라이트 테마: mousehunter 토스트와 동일하게 검정 오버레이 대신 아이보리로 뒤집는다 */
-:root[data-theme='light'] .party-wordchain-toast {
+:root[data-theme='light'] .party-wordchain-toast,
+:root[data-theme='light'] .party-catchmind-toast {
   background: rgba(255, 253, 240, 0.92);
 }
 
@@ -2166,7 +2214,7 @@ button {
 /* 초성 퀴즈의 정답 토스트와 같은 구조 — 누가 몇 마리째인지 전원에게 공개로 알려준다 */
 .party-mousehunter-toasts {
   position: fixed;
-  top: 1rem;
+  top: calc(var(--visual-viewport-top, 0px) + 1rem);
   left: 50%;
   transform: translateX(-50%);
   display: flex;

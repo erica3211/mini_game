@@ -18,13 +18,12 @@ interface Props {
   wordSignal: CatchmindWordSignal | null
   playerId: PlayerId | null
   players: PlayerInfo[]
-  howToPlay: string
 }
 
 const BRUSH_THIN = 4
 const BRUSH_THICK = 10
 
-export function CatchmindGame({ socket, roundKey, turnStart, wordSignal, playerId, players, howToPlay }: Props) {
+export function CatchmindGame({ socket, roundKey, turnStart, wordSignal, playerId, players }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const {
     status,
@@ -37,6 +36,7 @@ export function CatchmindGame({ socket, roundKey, turnStart, wordSignal, playerI
     hintLength,
     guessed,
     chat,
+    toasts,
     lastTurnEnd,
     beginStroke,
     continueStroke,
@@ -158,9 +158,6 @@ export function CatchmindGame({ socket, roundKey, turnStart, wordSignal, playerI
   if (!turnStart) {
     return (
       <div className="party-round-stage">
-        <div className="rules">
-          <p>{howToPlay}</p>
-        </div>
         <p className="party-round-hint">곧 시작합니다...</p>
       </div>
     )
@@ -170,9 +167,15 @@ export function CatchmindGame({ socket, roundKey, turnStart, wordSignal, playerI
 
   return (
     <div className="party-round-stage">
-      <div className="rules">
-        <p>{howToPlay}</p>
-      </div>
+      {toasts.length > 0 && (
+        <div className="party-catchmind-toasts">
+          {toasts.map((t) => (
+            <p key={t.id} className="party-catchmind-toast">
+              🎉 {nicknameOf(t.playerId)}님 정답! (+{t.points}점)
+            </p>
+          ))}
+        </div>
+      )}
 
       <div className="party-catchmind-header">
         <span>

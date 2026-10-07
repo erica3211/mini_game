@@ -326,8 +326,13 @@ export function BlackJack() {
   const { state } = game
 
   return (
-    <section className="game-page bj-page">
+    <section className="game-page game-page-fill bj-page">
       <h1 className="page-title">🂡 블랙잭</h1>
+      {state.phase === 'shop' && <ShopScreen game={game} />}
+      {(state.phase === 'playing' || state.phase === 'roundEnd') && <TableScreen game={game} />}
+      {state.phase === 'gameOver' && <GameOverScreen game={game} />}
+      {state.phase === 'victory' && <VictoryScreen game={game} />}
+
       <RulesBox
         summary={
           <>
@@ -386,11 +391,6 @@ export function BlackJack() {
           </>
         }
       />
-
-      {state.phase === 'shop' && <ShopScreen game={game} />}
-      {(state.phase === 'playing' || state.phase === 'roundEnd') && <TableScreen game={game} />}
-      {state.phase === 'gameOver' && <GameOverScreen game={game} />}
-      {state.phase === 'victory' && <VictoryScreen game={game} />}
     </section>
   )
 }

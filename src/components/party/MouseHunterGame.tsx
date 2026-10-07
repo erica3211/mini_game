@@ -17,13 +17,12 @@ interface Props {
   socket: Socket<ServerToClientEvents, ClientToServerEvents>
   roundKey: string
   startSignal: { mice: MouseHunterMouse[]; caughtCount: number; elapsedMs: number } | null
-  howToPlay: string
   players: PlayerInfo[]
 }
 
 const LAST_ROOM_INDEX = MOUSE_HUNTER_ROOMS.length - 1
 
-export function MouseHunterGame({ socket, roundKey, startSignal, howToPlay, players }: Props) {
+export function MouseHunterGame({ socket, roundKey, startSignal, players }: Props) {
   const { status, mice, myTotalCaught, toasts, tap, startedAt } = useMouseHunterRound(socket, roundKey, startSignal)
   const viewportRef = useRef<HTMLDivElement>(null)
   const [roomIndex, setRoomIndex] = useState(0)
@@ -49,10 +48,6 @@ export function MouseHunterGame({ socket, roundKey, startSignal, howToPlay, play
 
   return (
     <div className="party-round-stage">
-      <div className="rules">
-        <p>{howToPlay}</p>
-      </div>
-
       {toasts.length > 0 && (
         <div className="party-mousehunter-toasts">
           {toasts.map((t) => (

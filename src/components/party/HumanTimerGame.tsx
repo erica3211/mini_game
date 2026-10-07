@@ -10,18 +10,13 @@ interface Props {
   socket: Socket<ServerToClientEvents, ClientToServerEvents>
   roundKey: string
   startSignal: { elapsedMs: number } | null
-  howToPlay: string
 }
 
-export function HumanTimerGame({ socket, roundKey, startSignal, howToPlay }: Props) {
+export function HumanTimerGame({ socket, roundKey, startSignal }: Props) {
   const { status, stop, startedAt } = useHumanTimerRound(socket, roundKey, startSignal)
 
   return (
     <div className="party-round-stage">
-      <div className="rules">
-        <p>{howToPlay}</p>
-      </div>
-
       {status === 'waiting' && <p className="party-round-hint">곧 시작합니다...</p>}
       {status === 'running' && (
         <>

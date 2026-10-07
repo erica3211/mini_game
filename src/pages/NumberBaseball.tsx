@@ -35,8 +35,40 @@ export function NumberBaseball() {
   }
 
   return (
-    <section className="game-page">
+    <section className="game-page game-page-fill">
       <h1 className="page-title">⚾ 숫자야구</h1>
+      <GameStatusBanner
+        status={game.status}
+        answer={game.answer}
+        attemptsLeft={game.attemptsLeft}
+        error={null}
+        onReset={handleReset}
+      />
+
+      {game.status === 'playing' && (
+        <form className="guess-form" onSubmit={handleSubmit}>
+          <input
+            className="guess-input"
+            type="text"
+            inputMode="numeric"
+            maxLength={3}
+            placeholder="예: 123"
+            value={input}
+            onChange={(event) => {
+              setInput(event.target.value.replace(/\D/g, ''))
+              setError(null)
+            }}
+            autoFocus
+          />
+          <button type="submit" className="btn btn-primary">
+            던지기!
+          </button>
+        </form>
+      )}
+      {error && <p className="error">{error}</p>}
+
+      <GuessHistory history={game.history} />
+
       <RulesBox
         summary={
           <>
@@ -95,38 +127,6 @@ export function NumberBaseball() {
           </>
         }
       />
-
-      <GameStatusBanner
-        status={game.status}
-        answer={game.answer}
-        attemptsLeft={game.attemptsLeft}
-        error={null}
-        onReset={handleReset}
-      />
-
-      {game.status === 'playing' && (
-        <form className="guess-form" onSubmit={handleSubmit}>
-          <input
-            className="guess-input"
-            type="text"
-            inputMode="numeric"
-            maxLength={3}
-            placeholder="예: 123"
-            value={input}
-            onChange={(event) => {
-              setInput(event.target.value.replace(/\D/g, ''))
-              setError(null)
-            }}
-            autoFocus
-          />
-          <button type="submit" className="btn btn-primary">
-            던지기!
-          </button>
-        </form>
-      )}
-      {error && <p className="error">{error}</p>}
-
-      <GuessHistory history={game.history} />
     </section>
   )
 }

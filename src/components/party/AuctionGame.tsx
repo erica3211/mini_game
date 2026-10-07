@@ -17,10 +17,9 @@ interface Props {
   socket: Socket<ServerToClientEvents, ClientToServerEvents>
   roundKey: string
   startSignal: { budget: number; hint: { itemId: AuctionItemId; text: string }; elapsedMs: number } | null
-  howToPlay: string
 }
 
-export function AuctionGame({ socket, roundKey, startSignal, howToPlay }: Props) {
+export function AuctionGame({ socket, roundKey, startSignal }: Props) {
   const { status, budget, hint, bids, setBid, remaining, submit, rejection, startedAt } = useAuctionRound(
     socket,
     roundKey,
@@ -31,10 +30,6 @@ export function AuctionGame({ socket, roundKey, startSignal, howToPlay }: Props)
 
   return (
     <div className="party-round-stage">
-      <div className="rules">
-        <p>{howToPlay}</p>
-      </div>
-
       {status === 'waiting' && <p className="party-round-hint">곧 시작합니다...</p>}
 
       {status !== 'waiting' && (

@@ -14,11 +14,10 @@ interface Props {
   startSignal: { chosung: string[]; elapsedMs: number } | null
   category: string | null
   definition: string | null
-  howToPlay: string
   players: PlayerInfo[]
 }
 
-export function WordChainGame({ socket, roundKey, startSignal, category, definition, howToPlay, players }: Props) {
+export function WordChainGame({ socket, roundKey, startSignal, category, definition, players }: Props) {
   const { status, chosung, guess, setGuess, submit, isWrong, toasts, startedAt } = useWordChainRound(
     socket,
     roundKey,
@@ -28,10 +27,6 @@ export function WordChainGame({ socket, roundKey, startSignal, category, definit
 
   return (
     <div className="party-round-stage">
-      <div className="rules">
-        <p>{howToPlay}</p>
-      </div>
-
       {toasts.length > 0 && (
         <div className="party-wordchain-toasts">
           {toasts.map((t) => (

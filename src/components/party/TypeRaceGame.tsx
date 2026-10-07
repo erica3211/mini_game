@@ -10,10 +10,9 @@ interface Props {
   startSignal: TypeRaceStartSignal | null
   playerId: PlayerId | null
   players: PlayerInfo[]
-  howToPlay: string
 }
 
-export function TypeRaceGame({ socket, roundKey, startSignal, playerId, players, howToPlay }: Props) {
+export function TypeRaceGame({ socket, roundKey, startSignal, playerId, players }: Props) {
   const {
     phase,
     sentences,
@@ -57,10 +56,6 @@ export function TypeRaceGame({ socket, roundKey, startSignal, playerId, players,
 
   return (
     <div className="party-round-stage">
-      <div className="rules">
-        <p>{howToPlay}</p>
-      </div>
-
       {startedAt !== null && phase === 'racing' && (
         <RemainingTime startedAt={startedAt} timeoutMs={TYPE_RACE_ROUND_TIMEOUT_MS} />
       )}

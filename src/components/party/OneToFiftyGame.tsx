@@ -7,18 +7,13 @@ interface Props {
   socket: Socket<ServerToClientEvents, ClientToServerEvents>
   roundKey: string
   startSignal: { board: number[]; progress: number; elapsedMs: number } | null
-  howToPlay: string
 }
 
-export function OneToFiftyGame({ socket, roundKey, startSignal, howToPlay }: Props) {
+export function OneToFiftyGame({ socket, roundKey, startSignal }: Props) {
   const { status, board, next, tap, shakeValue, startedAt } = useOneToFiftyRound(socket, roundKey, startSignal)
 
   return (
     <div className="party-round-stage">
-      <div className="rules">
-        <p>{howToPlay}</p>
-      </div>
-
       {status === 'waiting' && <p className="party-round-hint">곧 시작합니다...</p>}
 
       {status !== 'waiting' && (

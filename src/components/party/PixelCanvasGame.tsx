@@ -23,10 +23,9 @@ interface Props {
   } | null
   playerId: PlayerId | null
   players: PlayerInfo[]
-  howToPlay: string
 }
 
-export function PixelCanvasGame({ socket, roundKey, startSignal, playerId, players, howToPlay }: Props) {
+export function PixelCanvasGame({ socket, roundKey, startSignal, playerId, players }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const { status, startedAt, counts, slotColors, mySlot, paintAt, endStroke } = usePixelCanvasRound(
     socket,
@@ -98,10 +97,6 @@ export function PixelCanvasGame({ socket, roundKey, startSignal, playerId, playe
 
   return (
     <div className="party-round-stage">
-      <div className="rules">
-        <p>{howToPlay}</p>
-      </div>
-
       {!startSignal && <p className="party-round-hint">곧 시작합니다...</p>}
 
       {/* 캔버스는 startSignal이 오는 즉시 그린다 — 훅이 첫 스냅샷을 그리려면 그 시점에 이미 DOM에 있어야 한다 */}

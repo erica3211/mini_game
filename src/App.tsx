@@ -7,8 +7,11 @@ import { MouseHunterSpotsDebug } from './pages/MouseHunterSpotsDebug'
 import { PartyGame } from './pages/PartyGame'
 import { PartyRoom } from './pages/PartyRoom'
 import { ThemeToggle } from './components/ThemeToggle'
+import { useVisualViewportTop } from './hooks/useVisualViewportTop'
 
 export function App() {
+  useVisualViewportTop()
+
   return (
     <BrowserRouter>
       <header className="site-header">

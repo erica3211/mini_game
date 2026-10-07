@@ -12,12 +12,11 @@ interface Props {
   goSignal: { slotColors: string[]; slotOfPlayer: Record<PlayerId, number>; elapsedMs: number } | null
   playerId: PlayerId | null
   players: PlayerInfo[]
-  howToPlay: string
 }
 
 const LIGHT_LABELS = ['🔴', '🟡', '🟢']
 
-export function ShoutRaceGame({ socket, roundKey, startSignal, countdownSignal, goSignal, playerId, players, howToPlay }: Props) {
+export function ShoutRaceGame({ socket, roundKey, startSignal, countdownSignal, goSignal, playerId, players }: Props) {
   const {
     phase,
     micError,
@@ -53,10 +52,6 @@ export function ShoutRaceGame({ socket, roundKey, startSignal, countdownSignal, 
 
   return (
     <div className="party-round-stage">
-      <div className="rules">
-        <p>{howToPlay}</p>
-      </div>
-
       {micError && <p className="party-round-hint">{micError}</p>}
 
       {phase === 'calibrating' && !micError && (

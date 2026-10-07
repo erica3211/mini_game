@@ -15,7 +15,6 @@ interface Props {
   socket: Socket<ServerToClientEvents, ClientToServerEvents>
   roundKey: string
   startSignal: { subRoundIndex: number; answerColor: RgbColor; elapsedMs: number } | null
-  howToPlay: string
 }
 
 // 드래그 위치를 기준으로 그때그때 다시 그리는 지도 배경 — 실제 채점에 쓰이는 색은 훅이 계산하는
@@ -36,7 +35,7 @@ function mapBackground(hue: number, lightness: number, saturation: number) {
   ].join(', ')
 }
 
-export function ColorMatchGame({ socket, roundKey, startSignal, howToPlay }: Props) {
+export function ColorMatchGame({ socket, roundKey, startSignal }: Props) {
   const { status, hue, lightness, color, saturation, drag, result, startedAt, answerColor, subRoundIndex } = useColorMatchRound(
     socket,
     roundKey,
@@ -72,10 +71,6 @@ export function ColorMatchGame({ socket, roundKey, startSignal, howToPlay }: Pro
 
   return (
     <div className="party-round-stage">
-      <div className="rules">
-        <p>{howToPlay}</p>
-      </div>
-
       {status === 'waiting' && <p className="party-round-hint">곧 시작합니다...</p>}
 
       {status !== 'waiting' && answerColor && (

@@ -16,7 +16,6 @@ interface Props {
   socket: Socket<ServerToClientEvents, ClientToServerEvents>
   roundKey: string
   startSignal: { subRoundIndex: number; target: ScavengerHuntRoundTarget; elapsedMs: number } | null
-  howToPlay: string
 }
 
 // 목표 색상의 HSV(hue/saturation/value)를 CSS가 이해하는 HSL로 변환해서 미리보기 스와치를 그린다
@@ -28,7 +27,7 @@ function swatchOf(color: ScavengerHuntColorTarget): string {
   return `hsl(${hue}, ${Math.round(satHsl * 100)}%, ${Math.round(lightness * 100)}%)`
 }
 
-export function ScavengerHuntGame({ socket, roundKey, startSignal, howToPlay }: Props) {
+export function ScavengerHuntGame({ socket, roundKey, startSignal }: Props) {
   const {
     status,
     analyzing,
@@ -98,10 +97,6 @@ export function ScavengerHuntGame({ socket, roundKey, startSignal, howToPlay }: 
 
   return (
     <div className="party-round-stage">
-      <div className="rules">
-        <p>{howToPlay}</p>
-      </div>
-
       {cameraError && <p className="party-round-hint">{cameraError}</p>}
 
       {/* 카메라 미리보기는 세부 라운드 상태(status)와 무관하게 컴포넌트가 살아있는 동안 항상 마운트해둔다 —
