@@ -3298,3 +3298,165 @@ button {
   font-size: 0.9rem;
   color: var(--text-muted);
 }
+
+/* 초성 퀴즈 (혼자 하기) — 파티 초성퀴즈(party-wordchain-*)와 같은 모양을 독립 페이지용으로 둔다 */
+.cq-message {
+  text-align: center;
+  color: var(--text-muted);
+  margin: 1.5rem 0 1rem;
+}
+
+.cq-message strong {
+  color: var(--accent);
+}
+
+.cq-intro {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.cq-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+  margin-top: 1rem;
+}
+
+.cq-status {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 320px;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.cq-status strong {
+  color: var(--accent);
+}
+
+.cq-chosung {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.cq-chosung-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.cq-hints {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.cq-hints p {
+  margin: 0;
+}
+
+.cq-hints strong {
+  color: var(--text);
+}
+
+.cq-form {
+  display: flex;
+  gap: 0.5rem;
+  width: 100%;
+  max-width: 320px;
+}
+
+.cq-input {
+  flex: 1;
+  min-width: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.6rem 0.8rem;
+  color: var(--text);
+  font-size: 1rem;
+}
+
+.cq-input:focus-visible {
+  border-color: var(--text-info);
+}
+
+.cq-input-shake {
+  border-color: var(--danger);
+  animation: party-shake 0.3s;
+}
+
+.cq-pass {
+  font-size: 0.85rem;
+  padding: 0.4rem 1rem;
+}
+
+.cq-reveal {
+  width: 100%;
+  margin: 0;
+}
+
+.cq-definition {
+  margin: -0.5rem 0 1rem;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.cq-results {
+  list-style: none;
+  margin: 0 auto 1rem;
+  padding: 0;
+  max-width: 320px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  text-align: left;
+}
+
+.cq-results li {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.35rem 0.75rem;
+  background: var(--surface);
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+.cq-result-word {
+  font-weight: 600;
+}
+
+.cq-result-detail {
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.cq-result-correct .cq-result-word {
+  color: var(--text-success);
+}
+
+.cq-result-wrong .cq-result-word {
+  color: var(--text-danger);
+}
+
+/* 공용 배너는 자모 정답용으로 자간을 벌려두는데, 단어 정답은 붙여 써야 읽기 쉽다 */
+.cq-reveal .banner-answer strong {
+  letter-spacing: normal;
+}

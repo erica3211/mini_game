@@ -19,6 +19,12 @@ const games = [
     title: '블랙잭',
     description: '21에 가장 가까운 숫자를 만들어 5명의 딜러를 파산시켜보세요.',
   },
+  {
+    path: '/choseong-quiz',
+    emoji: 'ㄱㄴㄷ',
+    title: '초성 퀴즈',
+    description: '주어진 초성으로 이루어진 단어를 맞혀보세요.',
+  },
 ] as const
 
 export function Home() {
