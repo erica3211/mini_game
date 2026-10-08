@@ -10,8 +10,10 @@ import {
   type ItemId,
   type RoundResult,
 } from '../lib/blackjack'
+import { readBestScore, writeBestScore } from '../lib/soloScore'
 
-export type Phase = 'shop' | 'playing' | 'roundEnd' | 'gameOver' | 'victory'
+/** intro: 새 판을 시작하기 전 안내 화면 (진행 중인 판을 이어서 할 때는 거치지 않는다) */
+export type Phase = 'intro' | 'shop' | 'playing' | 'roundEnd' | 'gameOver' | 'victory'
 /** roundEnd 배너에서 '확인'을 눌렀을 때 이동할 다음 화면 */
 export type PendingPhase = 'shop' | 'gameOver' | 'victory'
 
@@ -38,7 +40,9 @@ export interface BlackjackState {
 }
 
 const STORAGE_KEY = 'blackjack_save'
-const STARTING_MONEY = 3000
+// 5명의 딜러를 모두 이겼을 때의 최종 소지금 최고기록 (파산한 판은 기록하지 않는다)
+const BEST_MONEY_KEY = 'blackjack_best_money'
+export const STARTING_MONEY = 3000
 export const MIN_BET = 1000
 const MAX_INVENTORY = 3
 
@@ -51,7 +55,7 @@ function createInitialState(): BlackjackState {
     deck: [],
     playerHand: [],
     dealerHand: [],
-    phase: 'shop',
+    phase: 'intro',
     pendingPhase: 'shop',
     roundResult: null,
     message: '',
@@ -65,7 +69,10 @@ function loadInitialState(): BlackjackState {
   const saved = localStorage.getItem(STORAGE_KEY)
   if (!saved) return createInitialState()
   try {
-    return { ...createInitialState(), ...JSON.parse(saved) }
+    const state: BlackjackState = { ...createInitialState(), ...JSON.parse(saved) }
+    // 시작 화면이 생기기 전 버전에서 저장된 "아직 아무것도 안 한 첫 상점" 상태는 새 판과 같으니 시작 화면부터 보여준다
+    const untouched = state.phase === 'shop' && state.stage === 1 && state.money === STARTING_MONEY && state.inventory.length === 0
+    return untouched ? { ...state, phase: 'intro' } : state
   } catch {
     return createInitialState()
   }
@@ -147,10 +154,22 @@ function resolveAfterStand(state: BlackjackState, emergencyClamped: boolean): Bl
 
 export function useBlackjackGame() {
   const [state, setState] = useState<BlackjackState>(loadInitialState)
+  const [bestMoney, setBestMoney] = useState(() => readBestScore(BEST_MONEY_KEY))
+  const [isNewBest, setIsNewBest] = useState(false)
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
   }, [state])
+
+  // 마지막 딜러를 이긴 순간(결과 배너 단계 포함) 최종 소지금을 최고기록과 비교한다.
+  // 새로고침해도 같은 판이 다시 기록되지는 않는다 — 이미 저장된 값보다 클 때만 갱신하므로
+  const isVictory = state.phase === 'victory' || (state.phase === 'roundEnd' && state.pendingPhase === 'victory')
+  useEffect(() => {
+    if (!isVictory || state.money <= bestMoney) return
+    writeBestScore(BEST_MONEY_KEY, state.money)
+    setBestMoney(state.money)
+    setIsNewBest(true)
+  }, [isVictory, state.money, bestMoney])
 
   const addBet = useCallback((amount: number) => {
     setState((prev) => {
@@ -339,13 +358,20 @@ export function useBlackjackGame() {
     }))
   }, [])
 
+  const startGame = useCallback(() => {
+    setState((prev) => (prev.phase === 'intro' ? { ...prev, phase: 'shop' } : prev))
+  }, [])
+
   const resetGame = useCallback(() => {
     localStorage.removeItem(STORAGE_KEY)
     setState(createInitialState())
+    setIsNewBest(false)
   }, [])
 
   return {
     state,
+    bestMoney,
+    isNewBest,
     stage: currentStage(state),
     playerScore: calculateScore(state.playerHand),
     dealerScore: calculateScore(state.dealerHand),
@@ -362,6 +388,7 @@ export function useBlackjackGame() {
     usePickpocket,
     useCounter,
     continueRound,
+    startGame,
     resetGame,
   }
 }

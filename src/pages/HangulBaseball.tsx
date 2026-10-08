@@ -15,6 +15,7 @@ import { useBaseballGame } from '../hooks/useBaseballGame'
 import { GuessHistory } from '../components/GuessHistory'
 import { GameStatusBanner } from '../components/GameStatusBanner'
 import { RulesBox } from '../components/RulesBox'
+import { SoloIntro } from '../components/SoloIntro'
 
 
 
@@ -193,6 +194,8 @@ const isCheckInDictionary = async (guess: string[]): Promise<boolean> => {
     // 물리 키보드 입력 (두벌식). 핸들러가 최신 상태를 참조하도록 매 렌더마다 다시 등록
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.ctrlKey || event.metaKey || event.altKey || event.repeat) return
+      // 시작 화면에서는 Enter를 포커스된 시작하기 버튼에 맡기고, 자판 입력도 받지 않는다
+      if (!game.started) return
       if (event.key === 'Enter') {
         if (game.status === 'playing') handleSubmit()
         else handleReset()
@@ -214,113 +217,123 @@ const isCheckInDictionary = async (guess: string[]): Promise<boolean> => {
   return (
     <section className="game-page game-page-fill">
       <h1 className="page-title">🇰🇷 한글야구</h1>
-      <div className="legend">
-        <span className="legend-item">
-          <span className="tile tile-strike legend-tile">ㄱ</span>자/모음과 자리 모두 맞음
-        </span>
-        <span className="legend-item">
-          <span className="tile tile-ball legend-tile">ㄱ</span>자/모음은 있지만 자리가 다름
-        </span>
-        <span className="legend-item">
-          <span className="tile tile-out legend-tile">ㄱ</span>없는 자/모음
-        </span>
-      </div>
-
-      <div className="game-status-info" style={{ marginBottom: '15px', textAlign: 'center' }}>
-        <p style={{ fontWeight: 'bold' }}>오늘 시도 횟수: {submitCount} / 3</p>
-      </div>
-      <GameStatusBanner
-        status={game.status}
-        answer={game.answer}
-        answerLabel={`${assembleJamo(game.answer)} (${game.answer.join(' ')})`}
-        attemptsLeft={game.attemptsLeft}
-        error={error}
-        onReset={handleReset}
-      />
-
-      {game.status === 'playing' && (
+      {!game.started ? (
+        <SoloIntro onStart={game.start}>
+          기본 자음·모음 <strong>5개</strong>로 이루어진 단어를 <strong>5번</strong> 안에 맞혀보세요!
+          <br />
+          오늘 <strong>{submitCount}번째</strong> 판이에요. (하루 3판)
+        </SoloIntro>
+      ) : (
         <>
-          <div className="preview" aria-live="polite">
-            {slots.length > 0 ? assembleJamo(slots) : ' '}
+          <div className="legend">
+            <span className="legend-item">
+              <span className="tile tile-strike legend-tile">ㄱ</span>자/모음과 자리 모두 맞음
+            </span>
+            <span className="legend-item">
+              <span className="tile tile-ball legend-tile">ㄱ</span>자/모음은 있지만 자리가 다름
+            </span>
+            <span className="legend-item">
+              <span className="tile tile-out legend-tile">ㄱ</span>없는 자/모음
+            </span>
           </div>
-          <div className="slots">
-            {Array.from({ length: HANGUL_LENGTH }, (_, i) => (
-              <span
-                key={i}
-                className={`slot ${i === slots.length ? 'slot-active' : ''} ${slots[i] ? 'slot-filled' : ''
-                  }`}
-              >
-                {slots[i] ?? ''}
-              </span>
-            ))}
+
+          <div className="game-status-info" style={{ marginBottom: '15px', textAlign: 'center' }}>
+            <p style={{ fontWeight: 'bold' }}>오늘 시도 횟수: {submitCount} / 3</p>
           </div>
-          {error && <p className="error">{error}</p>}
+          <GameStatusBanner
+            status={game.status}
+            answer={game.answer}
+            answerLabel={`${assembleJamo(game.answer)} (${game.answer.join(' ')})`}
+            attemptsLeft={game.attemptsLeft}
+            error={error}
+            onReset={handleReset}
+          />
 
-          <div className="keyboard">
-            <div className="key-row">
-              {KEYBOARD_ROW_1.map((jamo) => {
-                const status = jamoStatuses[jamo]; // 'strike', 'ball', 'out' 또는 undefined
-                const statusClass = status ? `key-${status}` : ''; // 예: key-strike, key-ball, key-out
-
-                return (
-                  <button
-                    key={jamo}
-                    type="button"
-                    className={`key ${statusClass}`}
-                    onClick={() => pressJamo(jamo)}
+          {game.status === 'playing' && (
+            <>
+              <div className="preview" aria-live="polite">
+                {slots.length > 0 ? assembleJamo(slots) : ' '}
+              </div>
+              <div className="slots">
+                {Array.from({ length: HANGUL_LENGTH }, (_, i) => (
+                  <span
+                    key={i}
+                    className={`slot ${i === slots.length ? 'slot-active' : ''} ${slots[i] ? 'slot-filled' : ''
+                      }`}
                   >
-                    {jamo}
-                  </button>
-                )
-              })}
-              <button type="button" className="key key-wide" onClick={pressBackspace}>
-                ⌫
-              </button>
-            </div>
-            <div className="key-row">
-              {KEYBOARD_ROW_2.map((jamo) => {
-                const status = jamoStatuses[jamo]; // 'strike', 'ball', 'out' 또는 undefined
-                const statusClass = status ? `key-${status}` : ''; // 예: key-strike, key-ball, key-out
+                    {slots[i] ?? ''}
+                  </span>
+                ))}
+              </div>
+              {error && <p className="error">{error}</p>}
 
-                return (
-                  <button
-                    key={jamo}
-                    type="button"
-                    className={`key ${statusClass}`}
-                    onClick={() => pressJamo(jamo)}
-                  >
-                    {jamo}
-                  </button>
-                )
-              })}
-            </div>
-            <div className="key-row">
-              {KEYBOARD_ROW_3.map((jamo) => {
-                const status = jamoStatuses[jamo]; // 'strike', 'ball', 'out' 또는 undefined
-                const statusClass = status ? `key-${status}` : ''; // 예: key-strike, key-ball, key-out
+              <div className="keyboard">
+                <div className="key-row">
+                  {KEYBOARD_ROW_1.map((jamo) => {
+                    const status = jamoStatuses[jamo]; // 'strike', 'ball', 'out' 또는 undefined
+                    const statusClass = status ? `key-${status}` : ''; // 예: key-strike, key-ball, key-out
 
-                return (
-                  <button
-                    key={jamo}
-                    type="button"
-                    className={`key ${statusClass}`}
-                    onClick={() => pressJamo(jamo)}
-                  >
-                    {jamo}
+                    return (
+                      <button
+                        key={jamo}
+                        type="button"
+                        className={`key ${statusClass}`}
+                        onClick={() => pressJamo(jamo)}
+                      >
+                        {jamo}
+                      </button>
+                    )
+                  })}
+                  <button type="button" className="key key-wide" onClick={pressBackspace}>
+                    ⌫
                   </button>
-                )
-              })}
-            </div>
-            <div className="key-row key-row-actions">
-              <button type="button" className="btn btn-primary" onClick={handleSubmit}>
-                던지기!
-              </button>
-            </div>
-          </div>
+                </div>
+                <div className="key-row">
+                  {KEYBOARD_ROW_2.map((jamo) => {
+                    const status = jamoStatuses[jamo]; // 'strike', 'ball', 'out' 또는 undefined
+                    const statusClass = status ? `key-${status}` : ''; // 예: key-strike, key-ball, key-out
+
+                    return (
+                      <button
+                        key={jamo}
+                        type="button"
+                        className={`key ${statusClass}`}
+                        onClick={() => pressJamo(jamo)}
+                      >
+                        {jamo}
+                      </button>
+                    )
+                  })}
+                </div>
+                <div className="key-row">
+                  {KEYBOARD_ROW_3.map((jamo) => {
+                    const status = jamoStatuses[jamo]; // 'strike', 'ball', 'out' 또는 undefined
+                    const statusClass = status ? `key-${status}` : ''; // 예: key-strike, key-ball, key-out
+
+                    return (
+                      <button
+                        key={jamo}
+                        type="button"
+                        className={`key ${statusClass}`}
+                        onClick={() => pressJamo(jamo)}
+                      >
+                        {jamo}
+                      </button>
+                    )
+                  })}
+                </div>
+                <div className="key-row key-row-actions">
+                  <button type="button" className="btn btn-primary" onClick={handleSubmit}>
+                    던지기!
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
+
+          <GuessHistory history={game.history} display="tiles" formatGuess={assembleJamo} />
         </>
       )}
-
-      <GuessHistory history={game.history} display="tiles" formatGuess={assembleJamo} />
 
       <RulesBox
         summary={

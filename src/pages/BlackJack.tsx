@@ -1,7 +1,8 @@
 import { ITEMS, STAGES, calculateScore, type Card, type ItemId } from '../lib/blackjack'
-import { MIN_BET, useBlackjackGame } from '../hooks/useBlackjackGame'
+import { MIN_BET, STARTING_MONEY, useBlackjackGame } from '../hooks/useBlackjackGame'
 import { BlackjackCard } from '../components/BlackjackCard'
 import { RulesBox } from '../components/RulesBox'
+import { SoloIntro } from '../components/SoloIntro'
 import stage1Img from '../assets/dealers/stage_1.png'
 import stage2Img from '../assets/dealers/stage_2.png'
 import stage3Img from '../assets/dealers/stage_3.png'
@@ -40,6 +41,9 @@ function ShopScreen({ game }: { game: Game }) {
           소지금 <strong>{state.money.toLocaleString()}만원</strong>
         </span>
       </div>
+      {game.bestMoney > 0 && (
+        <p className="bj-best bj-best-shop">🏆 최고기록 (5명 모두 격파 시 소지금) {game.bestMoney.toLocaleString()}만원</p>
+      )}
 
       <div className="bj-section">
         <h2 className="bj-section-title">👥 이번 스테이지의 적</h2>
@@ -260,6 +264,22 @@ function TableScreen({ game }: { game: Game }) {
   )
 }
 
+function IntroScreen({ game }: { game: Game }) {
+  return (
+    <SoloIntro onStart={game.startGame}>
+      시작 자금 <strong>{STARTING_MONEY.toLocaleString()}만원</strong>으로 <strong>딜러 {STAGES.length}명</strong>을 차례로
+      물리쳐보세요!
+      <br />
+      모두 이겼을 때 남은 돈이 기록돼요.
+      {game.bestMoney > 0 && (
+        <>
+          <br />내 최고기록은 <strong>{game.bestMoney.toLocaleString()}만원</strong>이에요.
+        </>
+      )}
+    </SoloIntro>
+  )
+}
+
 function GameOverScreen({ game }: { game: Game }) {
   return (
     <div className="banner banner-lost">
@@ -269,6 +289,7 @@ function GameOverScreen({ game }: { game: Game }) {
         <br />
         STAGE {game.state.stage}에서 파산했어요.
       </p>
+      {game.bestMoney > 0 && <p className="bj-best">🏆 최고기록 {game.bestMoney.toLocaleString()}만원</p>}
       <button type="button" className="btn btn-primary" onClick={game.resetGame}>
         다시 시작
       </button>
@@ -283,7 +304,10 @@ function VictoryScreen({ game }: { game: Game }) {
       <p className="banner-answer">
         5명의 딜러를 모두 물리쳤습니다!
         <br />
-        최종 소지금 {game.state.money.toLocaleString()}만원
+        최종 소지금 <strong>{game.state.money.toLocaleString()}만원</strong>
+      </p>
+      <p className="bj-best">
+        {game.isNewBest ? '🎉 최고기록 달성!' : `🏆 최고기록 ${game.bestMoney.toLocaleString()}만원`}
       </p>
       <button type="button" className="btn btn-primary" onClick={game.resetGame}>
         다시 시작
@@ -328,6 +352,7 @@ export function BlackJack() {
   return (
     <section className="game-page game-page-fill bj-page">
       <h1 className="page-title">🂡 블랙잭</h1>
+      {state.phase === 'intro' && <IntroScreen game={game} />}
       {state.phase === 'shop' && <ShopScreen game={game} />}
       {(state.phase === 'playing' || state.phase === 'roundEnd') && <TableScreen game={game} />}
       {state.phase === 'gameOver' && <GameOverScreen game={game} />}

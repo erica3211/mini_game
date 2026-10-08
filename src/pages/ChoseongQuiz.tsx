@@ -1,5 +1,6 @@
 import { RemainingTime } from '../components/party/RemainingTime'
 import { RulesBox } from '../components/RulesBox'
+import { SoloIntro } from '../components/SoloIntro'
 import { useChoseongQuiz } from '../hooks/useChoseongQuiz'
 import { WORD_CHAIN_ROUND_TIMEOUT_MS } from '../lib/partyProtocol'
 
@@ -25,19 +26,14 @@ export function ChoseongQuiz() {
       )}
 
       {phase === 'ready' && (
-        <div className="cq-intro">
-          <p className="cq-message">
-            초성 <strong>{quiz.total}문제</strong>에 도전해보세요!
-            {quiz.bestScore > 0 && (
-              <>
-                <br />내 최고기록은 <strong>{quiz.bestScore}점</strong>이에요.
-              </>
-            )}
-          </p>
-          <button type="button" className="btn btn-primary" onClick={quiz.start} autoFocus>
-            시작하기
-          </button>
-        </div>
+        <SoloIntro onStart={quiz.start}>
+          초성 <strong>{quiz.total}문제</strong>에 도전해보세요!
+          {quiz.bestScore > 0 && (
+            <>
+              <br />내 최고기록은 <strong>{quiz.bestScore}점</strong>이에요.
+            </>
+          )}
+        </SoloIntro>
       )}
 
       {(phase === 'playing' || phase === 'revealed') && current && (

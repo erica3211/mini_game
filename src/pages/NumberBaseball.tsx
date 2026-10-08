@@ -4,6 +4,7 @@ import { useBaseballGame } from '../hooks/useBaseballGame'
 import { GuessHistory } from '../components/GuessHistory'
 import { GameStatusBanner } from '../components/GameStatusBanner'
 import { RulesBox } from '../components/RulesBox'
+import { SoloIntro } from '../components/SoloIntro'
 
 function validate(value: string): string | null {
   if (!/^\d{3}$/.test(value)) return '숫자 3자리를 입력해주세요.'
@@ -37,37 +38,45 @@ export function NumberBaseball() {
   return (
     <section className="game-page game-page-fill">
       <h1 className="page-title">⚾ 숫자야구</h1>
-      <GameStatusBanner
-        status={game.status}
-        answer={game.answer}
-        attemptsLeft={game.attemptsLeft}
-        error={null}
-        onReset={handleReset}
-      />
-
-      {game.status === 'playing' && (
-        <form className="guess-form" onSubmit={handleSubmit}>
-          <input
-            className="guess-input"
-            type="text"
-            inputMode="numeric"
-            maxLength={3}
-            placeholder="예: 123"
-            value={input}
-            onChange={(event) => {
-              setInput(event.target.value.replace(/\D/g, ''))
-              setError(null)
-            }}
-            autoFocus
+      {!game.started ? (
+        <SoloIntro onStart={game.start}>
+          0~9 중 <strong>서로 다른 숫자 3개</strong>로 이루어진 세 자리 수를 <strong>5번</strong> 안에 맞혀보세요!
+        </SoloIntro>
+      ) : (
+        <>
+          <GameStatusBanner
+            status={game.status}
+            answer={game.answer}
+            attemptsLeft={game.attemptsLeft}
+            error={null}
+            onReset={handleReset}
           />
-          <button type="submit" className="btn btn-primary">
-            던지기!
-          </button>
-        </form>
-      )}
-      {error && <p className="error">{error}</p>}
 
-      <GuessHistory history={game.history} />
+          {game.status === 'playing' && (
+            <form className="guess-form" onSubmit={handleSubmit}>
+              <input
+                className="guess-input"
+                type="text"
+                inputMode="numeric"
+                maxLength={3}
+                placeholder="예: 123"
+                value={input}
+                onChange={(event) => {
+                  setInput(event.target.value.replace(/\D/g, ''))
+                  setError(null)
+                }}
+                autoFocus
+              />
+              <button type="submit" className="btn btn-primary">
+                던지기!
+              </button>
+            </form>
+          )}
+          {error && <p className="error">{error}</p>}
+
+          <GuessHistory history={game.history} />
+        </>
+      )}
 
       <RulesBox
         summary={

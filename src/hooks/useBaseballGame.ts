@@ -73,6 +73,9 @@ export function useBaseballGame(
     return 'playing';
   });
 
+  // 시작 화면을 지나 판이 시작됐는지. 이미 던진 기록이 있거나 끝난 판(새로고침으로 복원된 경우)은 바로 이어서 보여준다
+  const [started, setStarted] = useState(() => history.length > 0 || status !== 'playing')
+
   const submitGuess = useCallback(
     (guess: string[]) => {
       if (status !== 'playing') return
@@ -95,7 +98,10 @@ export function useBaseballGame(
     setAnswer(generateUniqueAnswer());
     setHistory([]);
     setStatus('playing');
+    setStarted(false);
   }, [generateUniqueAnswer, key]);
+
+  const start = useCallback(() => setStarted(true), []);
 
   return {
     answer,
@@ -103,6 +109,8 @@ export function useBaseballGame(
     status,
     submitGuess,
     reset,
+    started,
+    start,
     attemptsLeft: MAX_ATTEMPTS - history.length,
   }
 }

@@ -2,6 +2,7 @@ import { useRef, useState } from 'react'
 import { BRUSH_THIN, CatchmindToolbar } from '../components/CatchmindToolbar'
 import { RemainingTime } from '../components/party/RemainingTime'
 import { RulesBox } from '../components/RulesBox'
+import { SoloIntro } from '../components/SoloIntro'
 import { useAiCatchmind } from '../hooks/useAiCatchmind'
 import { useCanvasPointerDrawing } from '../hooks/useCanvasPointerDrawing'
 import { DOODLE_CLASSES } from '../lib/doodleLabels'
@@ -43,33 +44,24 @@ export function AiCatchmind() {
     <section className="game-page game-page-fill">
       <h1 className="page-title">🎨 AI 캐치마인드</h1>
 
-      {phase === 'intro' && (
-        <div className="aicm-intro">
-          {game.modelStatus === 'loading' && <p className="aicm-message">AI를 깨우는 중... 🤖</p>}
-          {game.modelStatus === 'error' && (
-            <div className="banner banner-lost">
-              <p className="banner-answer">AI 모델을 불러오지 못했어요. 네트워크를 확인하고 다시 시도해주세요.</p>
-              <button type="button" className="btn btn-primary" onClick={game.retryModel}>
-                다시 불러오기
-              </button>
-            </div>
-          )}
-          {game.modelStatus === 'ready' && (
+      {phase === 'intro' && game.modelStatus === 'loading' && <p className="aicm-message">AI를 깨우는 중... 🤖</p>}
+      {phase === 'intro' && game.modelStatus === 'error' && (
+        <div className="banner banner-lost">
+          <p className="banner-answer">AI 모델을 불러오지 못했어요. 네트워크를 확인하고 다시 시도해주세요.</p>
+          <button type="button" className="btn btn-primary" onClick={game.retryModel}>
+            다시 불러오기
+          </button>
+        </div>
+      )}
+      {phase === 'intro' && game.modelStatus === 'ready' && (
+        <SoloIntro onStart={game.start}>
+          제시어 <strong>{game.total}개</strong>를 그려서 AI에게 맞혀보게 하세요!
+          {game.bestScore > 0 && (
             <>
-              <p className="aicm-message">
-                제시어 <strong>{game.total}개</strong>를 그려서 AI에게 맞혀보게 하세요!
-                {game.bestScore > 0 && (
-                  <>
-                    <br />내 최고기록은 <strong>{game.bestScore}점</strong>이에요.
-                  </>
-                )}
-              </p>
-              <button type="button" className="btn btn-primary" onClick={game.start} autoFocus>
-                시작하기
-              </button>
+              <br />내 최고기록은 <strong>{game.bestScore}점</strong>이에요.
             </>
           )}
-        </div>
+        </SoloIntro>
       )}
 
       {isPlaying && (

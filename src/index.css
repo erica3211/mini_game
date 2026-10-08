@@ -3318,11 +3318,6 @@ button {
   color: var(--accent);
 }
 
-.cq-intro {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
 
 .cq-stage {
   display: flex;
@@ -3481,11 +3476,6 @@ button {
   color: var(--accent);
 }
 
-.aicm-intro {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
 
 .aicm-stage {
   display: flex;
@@ -3611,4 +3601,40 @@ button {
 
 .aicm-result-wrong .aicm-result-word {
   color: var(--text-danger);
+}
+
+/* 블랙잭 최고기록 (5명 모두 격파했을 때의 최종 소지금) */
+.bj-best {
+  margin: 0 0 1rem;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.bj-best-shop {
+  margin: -0.5rem 0 0;
+  text-align: right;
+  font-size: 0.8rem;
+}
+
+/* 공용 배너는 자모 정답용으로 자간을 벌려두는데, 금액은 붙여 써야 읽기 쉽다 */
+.bj-page .banner-answer strong {
+  letter-spacing: normal;
+}
+
+/* 혼자 하는 게임 공용 시작 화면 (SoloIntro) */
+.solo-intro {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.solo-intro-message {
+  text-align: center;
+  color: var(--text-muted);
+  margin: 1.5rem 0 1rem;
+}
+
+.solo-intro-message strong {
+  color: var(--accent);
 }
