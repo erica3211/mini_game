@@ -4,11 +4,9 @@ import {
   WORD_CHAIN_DEFINITION_REVEAL_MS,
   WORD_CHAIN_ROUND_TIMEOUT_MS,
 } from '../lib/partyProtocol'
+import { readBestScore, scoreForElapsed, writeBestScore } from '../lib/soloScore'
 
 export const CHOSEONG_QUIZ_QUESTION_COUNT = 10
-// 맞힌 문제의 최소 점수 — 제한시간 직전에 맞혀도 0점이 되지 않게 한다
-const MIN_CORRECT_SCORE = 10
-const MAX_SCORE_PER_QUESTION = 100
 const SHAKE_DURATION_MS = 300
 // 한글 IME에서 Enter 한 번이 keydown을 두 번 내보내는 브라우저가 있어, 정답 직후 '다음 문제'가 같이 눌리지 않게 막는 시간
 const NEXT_GUARD_MS = 500
@@ -34,27 +32,6 @@ type HintLevel = 0 | 1 | 2
 
 const normalize = (text: string) => text.replace(/\s+/g, '')
 
-/** 빨리 맞힐수록 높다: 바로 맞히면 100점, 제한시간 직전이면 10점 */
-const scoreFor = (elapsedMs: number) =>
-  Math.max(MIN_CORRECT_SCORE, Math.round(MAX_SCORE_PER_QUESTION * (1 - elapsedMs / WORD_CHAIN_ROUND_TIMEOUT_MS)))
-
-// 시크릿 창 등에서 localStorage 접근이 막혀도 게임은 그대로 돌아가야 한다
-function readBestScore(): number {
-  try {
-    return Number(localStorage.getItem(BEST_SCORE_KEY)) || 0
-  } catch {
-    return 0
-  }
-}
-
-function writeBestScore(score: number) {
-  try {
-    localStorage.setItem(BEST_SCORE_KEY, String(score))
-  } catch {
-    // 저장 실패는 무시한다 — 이번 판 기록은 화면에 그대로 보인다
-  }
-}
-
 /**
  * 혼자 하는 초성퀴즈 상태 훅. 문제 세트는 백엔드에서 한 번에 받아오고, 정답 판정·타이머·점수는 전부 클라이언트에서 처리한다.
  * 문제당 제한시간과 힌트 공개 시점은 파티 초성퀴즈(wordChain) 상수를 그대로 쓴다
@@ -69,7 +46,7 @@ export function useChoseongQuiz() {
   const [guess, setGuess] = useState('')
   const [isWrong, setIsWrong] = useState(false)
   const [startedAt, setStartedAt] = useState<number | null>(null)
-  const [bestScore, setBestScore] = useState(readBestScore)
+  const [bestScore, setBestScore] = useState(() => readBestScore(BEST_SCORE_KEY))
   const [isNewBest, setIsNewBest] = useState(false)
   const revealedAtRef = useRef(0)
   const shakeTimeoutRef = useRef<number | null>(null)
@@ -108,7 +85,7 @@ export function useChoseongQuiz() {
       setResults((prev) =>
         prev.length > index
           ? prev
-          : [...prev, { word: current.word, correct, elapsedMs, score: correct && elapsedMs !== null ? scoreFor(elapsedMs) : 0 }],
+          : [...prev, { word: current.word, correct, elapsedMs, score: correct && elapsedMs !== null ? scoreForElapsed(elapsedMs, WORD_CHAIN_ROUND_TIMEOUT_MS) : 0 }],
       )
       revealedAtRef.current = performance.now()
       setPhase('revealed')
@@ -174,7 +151,7 @@ export function useChoseongQuiz() {
     }
     const total = results.reduce((sum, r) => sum + r.score, 0)
     if (total > bestScore) {
-      writeBestScore(total)
+      writeBestScore(BEST_SCORE_KEY, total)
       setBestScore(total)
       setIsNewBest(true)
     }

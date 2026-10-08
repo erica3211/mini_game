@@ -4,6 +4,7 @@ import { NumberBaseball } from './pages/NumberBaseball'
 import { HangulBaseball } from './pages/HangulBaseball'
 import { BlackJack } from './pages/BlackJack'
 import { ChoseongQuiz } from './pages/ChoseongQuiz'
+import { AiCatchmind } from './pages/AiCatchmind'
 import { MouseHunterSpotsDebug } from './pages/MouseHunterSpotsDebug'
 import { PartyGame } from './pages/PartyGame'
 import { PartyRoom } from './pages/PartyRoom'
@@ -28,6 +29,7 @@ export function App() {
           <Route path="/hangul-baseball" element={<HangulBaseball />} />
           <Route path="/black-jack" element={<BlackJack />} />
           <Route path="/choseong-quiz" element={<ChoseongQuiz />} />
+          <Route path="/catchmind" element={<AiCatchmind />} />
           <Route path="/party" element={<PartyGame />} />
           <Route path="/party/:roomCode" element={<PartyRoom />} />
           <Route path="/dev/mouse-spots" element={<MouseHunterSpotsDebug />} />

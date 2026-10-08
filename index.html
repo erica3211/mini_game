@@ -5,9 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#fefaf2" />
     <title>미니게임 모음집</title>
+    <!-- CSS 번들이 뜨기 전 첫 화면 깜빡임 방지용 배경. 인라인 style로 넣으면 이후 테마를 바꿔도 남아서
+         라이트 배경 무늬를 덮어버리므로, data-theme 속성 선택자로만 지정해 테마 전환을 그대로 따라가게 한다 -->
     <style>
       html {
         background: #fefaf2;
+      }
+      html[data-theme='dark'] {
+        background: #0d1117;
       }
     </style>
     <script>
@@ -15,7 +20,6 @@
         var theme = localStorage.getItem('theme') === 'dark' ? 'dark' : 'light';
         document.documentElement.dataset.theme = theme;
         if (theme === 'dark') {
-          document.documentElement.style.background = '#0d1117';
           document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d1117');
         }
       })();

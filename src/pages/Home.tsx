@@ -25,6 +25,12 @@ const games = [
     title: '초성 퀴즈',
     description: '주어진 초성으로 이루어진 단어를 맞혀보세요.',
   },
+  {
+    path: '/catchmind',
+    emoji: '🎨',
+    title: 'AI 캐치마인드',
+    description: '내가 그린 그림을 AI가 맞혀요. 얼마나 빨리 알아볼까요?',
+  },
 ] as const
 
 export function Home() {
