@@ -1507,6 +1507,7 @@ button {
 
 .party-wordchain-hints strong {
   color: var(--text);
+  white-space: pre-line;
 }
 
 .party-wordchain-form {
@@ -1594,6 +1595,7 @@ button {
 }
 
 .party-wordchain-answer-definition {
+  white-space: pre-line;
   margin: 0.35rem 0 0;
   color: var(--text-muted);
   font-size: 0.9rem;
@@ -3375,6 +3377,7 @@ button {
 
 .cq-hints strong {
   color: var(--text);
+  white-space: pre-line;
 }
 
 .cq-form {
@@ -3415,6 +3418,7 @@ button {
 }
 
 .cq-definition {
+  white-space: pre-line;
   margin: -0.5rem 0 1rem;
   color: var(--text-muted);
   font-size: 0.9rem;
