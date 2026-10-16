@@ -1,6 +1,9 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { MIN_PLAYERS_TO_START, type GameId, type PlayerInfo } from '../../lib/partyProtocol'
+import { CategoryPicker } from '../CategoryPicker'
+import { Modal } from '../Modal'
+import { useWordChainCategories } from '../../hooks/useWordChainCategories'
+import { MIN_PLAYERS_TO_START, WORD_CHAIN_MIN_CANDIDATES, type GameId, type PlayerInfo } from '../../lib/partyProtocol'
 import type { GameSession } from '../../hooks/useGameSession'
 
 interface Props {
@@ -17,13 +20,31 @@ export function PartyLobby({ session }: Props) {
   const navigate = useNavigate()
   const state = session.roomState!
   const [copied, setCopied] = useState(false)
+  const [categoryModalOpen, setCategoryModalOpen] = useState(false)
   const inviteUrl = `${window.location.origin}/party/${state.code}`
 
   const connectedPlayers = state.players.filter((p) => p.connected)
   // 방장은 '게임 시작' 버튼을 누르는 행위 자체가 곧 준비 의사 표시라 준비완료 여부를 따로 검사하지 않는다
   const allReady = connectedPlayers.filter((p) => !p.isHost).every((p) => p.ready)
   const hasSelectedGame = state.config.selectedGames.length > 0
-  const canStart = connectedPlayers.length >= MIN_PLAYERS_TO_START && allReady && hasSelectedGame
+  // 초성 퀴즈 카테고리: null은 전체. 고른 카테고리의 문제가 너무 적으면 같은 문제가 반복되므로 시작할 수 없다 (서버도 같은 기준으로 막는다)
+  const wordChainSelected = state.config.selectedGames.includes('wordChain')
+  const wordChainCategories = useWordChainCategories(wordChainSelected)
+  const categoryNames = (wordChainCategories ?? []).map((c) => c.category)
+  const selectedCategories = state.config.wordChainCategories ?? categoryNames
+  const candidateCount = wordChainCategories
+    ? wordChainCategories.filter((c) => selectedCategories.includes(c.category)).reduce((sum, c) => sum + c.count, 0)
+    : null
+  const tooFewWords = wordChainSelected && candidateCount !== null && candidateCount < WORD_CHAIN_MIN_CANDIDATES
+  const categorySummary =
+    selectedCategories.length === categoryNames.length
+      ? '전체'
+      : selectedCategories.length === 0
+        ? '선택 없음'
+        : selectedCategories.length <= 2
+          ? selectedCategories.join(', ')
+          : `${selectedCategories[0]} 외 ${selectedCategories.length - 1}개`
+  const canStart = connectedPlayers.length >= MIN_PLAYERS_TO_START && allReady && hasSelectedGame && !tooFewWords
   // comingSoon 게임은 카드 자체가 선택 불가능하니 "전체 선택"의 대상에서도 제외한다
   const playableGames = state.gameCatalog.filter((g) => !g.comingSoon)
   const allGamesSelected = playableGames.length > 0 && playableGames.every((g) => state.config.selectedGames.includes(g.id))
@@ -48,6 +69,19 @@ export function PartyLobby({ session }: Props) {
     const selected = state.config.selectedGames
     const next = selected.includes(gameId) ? selected.filter((id) => id !== gameId) : [...selected, gameId]
     session.updateConfig({ selectedGames: next })
+  }
+
+  // 전부 고르면 null(전체)로 보내 방 상태가 커지지 않게 한다
+  const updateCategories = (next: string[]) => {
+    session.updateConfig({ wordChainCategories: next.length === categoryNames.length ? null : next })
+  }
+
+  const toggleCategory = (category: string) => {
+    updateCategories(
+      selectedCategories.includes(category)
+        ? selectedCategories.filter((name) => name !== category)
+        : categoryNames.filter((name) => name === category || selectedCategories.includes(name)),
+    )
   }
 
   const toggleAllGames = () => {
@@ -99,7 +133,9 @@ export function PartyLobby({ session }: Props) {
                 ? `최소 ${MIN_PLAYERS_TO_START}명이 필요해요.`
                 : !hasSelectedGame
                   ? '최소 1개 이상의 게임을 선택해주세요.'
-                  : '모든 참가자가 준비완료 상태여야 시작할 수 있어요.'}
+                  : tooFewWords
+                    ? `초성 퀴즈 문제 후보가 ${WORD_CHAIN_MIN_CANDIDATES}개 이상 되도록 카테고리를 골라주세요.`
+                    : '모든 참가자가 준비완료 상태여야 시작할 수 있어요.'}
             </p>
           )}
         </>
@@ -168,32 +204,71 @@ export function PartyLobby({ session }: Props) {
           {state.gameCatalog.map((game) => {
             const selected = state.config.selectedGames.includes(game.id)
             return (
-              <button
+              <div
                 key={game.id}
-                type="button"
-                className={`party-game-card${selected ? ' party-game-card-selected' : ''}`}
-                disabled={!session.isHost || game.comingSoon}
-                aria-pressed={selected}
-                onClick={() => toggleGame(game.id)}
+                className={`party-game-card${selected ? ' party-game-card-selected' : ''}${!session.isHost || game.comingSoon ? ' party-game-card-disabled' : ''}`}
               >
-                <span className="party-game-card-title">
-                  {game.emoji} {game.title}
-                  {game.comingSoon && <span className="party-coming-soon"> (준비중)</span>}
-                </span>
-                <span className="party-game-card-desc">"{game.description}"</span>
-                <span className="party-game-card-meta">
-                  <span>⏱️ {game.playTimeSeconds}초 소요</span>
-                  <span>
-                    {game.modeCategory.icon} {game.modeCategory.name}
+                <button
+                  type="button"
+                  className="party-game-card-main"
+                  disabled={!session.isHost || game.comingSoon}
+                  aria-pressed={selected}
+                  onClick={() => toggleGame(game.id)}
+                >
+                  <span className="party-game-card-title">
+                    {game.emoji} {game.title}
+                    {game.comingSoon && <span className="party-coming-soon"> (준비중)</span>}
                   </span>
-                  <span>
-                    {game.mechanismCategory.icon} {game.mechanismCategory.name}
+                  <span className="party-game-card-desc">"{game.description}"</span>
+                  <span className="party-game-card-meta">
+                    <span>⏱️ {game.playTimeSeconds}초 소요</span>
+                    <span>
+                      {game.modeCategory.icon} {game.modeCategory.name}
+                    </span>
+                    <span>
+                      {game.mechanismCategory.icon} {game.mechanismCategory.name}
+                    </span>
                   </span>
-                </span>
-              </button>
+                </button>
+                {game.id === 'wordChain' && selected && wordChainCategories && (
+                  <div className="party-game-extra">
+                    <span className={tooFewWords ? 'party-game-extra-warn' : undefined}>
+                      카테고리: <strong>{categorySummary}</strong><br/>문제 후보 {candidateCount}개
+                      {tooFewWords && ` (${WORD_CHAIN_MIN_CANDIDATES}개 이상 필요)`}
+                    </span>
+                    {session.isHost && (
+                      <button type="button" className="btn btn-secondary" onClick={() => setCategoryModalOpen(true)}>
+                        변경
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
             )
           })}
         </div>
+
+        <Modal
+          open={categoryModalOpen && session.isHost && wordChainSelected && wordChainCategories !== null}
+          title="초성 퀴즈 카테고리"
+          onClose={() => setCategoryModalOpen(false)}
+        >
+          <CategoryPicker
+            categories={categoryNames}
+            selected={selectedCategories}
+            onToggle={toggleCategory}
+            onSelectAll={() => updateCategories(categoryNames)}
+            onClear={() => updateCategories([])}
+          >
+            <p>
+              선택한 카테고리 <strong>{selectedCategories.length}개</strong> · 문제 후보 <strong>{candidateCount}개</strong>
+            </p>
+            {tooFewWords && (
+              <p className="category-picker-warn">문제 후보가 {WORD_CHAIN_MIN_CANDIDATES}개 이상 되어야 시작할 수 있어요.</p>
+            )}
+            {!tooFewWords && selectedCategories.length === 1 && <p>하나만 고르면 카테고리가 처음부터 보여요.</p>}
+          </CategoryPicker>
+        </Modal>
       </div>
     </section>
   )

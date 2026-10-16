@@ -4,9 +4,9 @@ const MAX_SCORE_PER_QUESTION = 100
 // 성공한 문제의 최소 점수 — 제한시간 직전에 성공해도 0점이 되지 않게 한다
 const MIN_SUCCESS_SCORE = 10
 
-/** 바로 성공하면 100점, 제한시간 직전이면 10점 */
-export const scoreForElapsed = (elapsedMs: number, timeoutMs: number) =>
-  Math.max(MIN_SUCCESS_SCORE, Math.round(MAX_SCORE_PER_QUESTION * (1 - elapsedMs / timeoutMs)))
+/** 바로 성공하면 maxScore점(기본 100점), 제한시간 직전이면 10점 */
+export const scoreForElapsed = (elapsedMs: number, timeoutMs: number, maxScore = MAX_SCORE_PER_QUESTION) =>
+  Math.max(MIN_SUCCESS_SCORE, Math.round(maxScore * (1 - elapsedMs / timeoutMs)))
 
 // 시크릿 창 등에서 localStorage 접근이 막혀도 게임은 그대로 돌아가야 한다
 export function readBestScore(storageKey: string): number {

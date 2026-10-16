@@ -1,7 +1,12 @@
+import { CategoryPicker } from '../components/CategoryPicker'
 import { RemainingTime } from '../components/party/RemainingTime'
 import { RulesBox } from '../components/RulesBox'
 import { SoloIntro } from '../components/SoloIntro'
-import { useChoseongQuiz } from '../hooks/useChoseongQuiz'
+import {
+  CHOSEONG_QUIZ_QUESTION_COUNT,
+  CHOSEONG_SINGLE_CATEGORY_MAX_SCORE,
+  useChoseongQuiz,
+} from '../hooks/useChoseongQuiz'
 import { WORD_CHAIN_ROUND_TIMEOUT_MS } from '../lib/partyProtocol'
 
 const formatSeconds = (ms: number) => `${(ms / 1000).toFixed(1)}초`
@@ -26,11 +31,34 @@ export function ChoseongQuiz() {
       )}
 
       {phase === 'ready' && (
-        <SoloIntro onStart={quiz.start}>
-          초성 <strong>{quiz.total}문제</strong>에 도전해보세요!
+        <SoloIntro
+          onStart={quiz.start}
+          startDisabled={!quiz.canStart}
+          options={
+            <CategoryPicker
+              categories={quiz.categories.map((c) => c.category)}
+              selected={quiz.selected}
+              onToggle={quiz.toggleCategory}
+              onSelectAll={quiz.selectAllCategories}
+              onClear={quiz.clearCategories}
+            >
+              <p>
+                선택한 카테고리 <strong>{quiz.selected.length}개</strong> · 문제 후보 <strong>{quiz.candidateCount}개</strong>
+              </p>
+              {!quiz.canStart && <p className="category-picker-warn">문제 후보가 {CHOSEONG_QUIZ_QUESTION_COUNT}개 이상 되게 골라주세요.</p>}
+              {quiz.canStart && quiz.selected.length === 1 && (
+                <p>
+                  하나만 고르면 카테고리가 처음부터 보이는 대신 점수가 <strong>최대 {CHOSEONG_SINGLE_CATEGORY_MAX_SCORE}점</strong>이에요.
+                </p>
+              )}
+              {quiz.canStart && !quiz.allSelected && <p>최고기록은 전체 카테고리로 할 때만 기록돼요.</p>}
+            </CategoryPicker>
+          }
+        >
+          초성 <strong>{CHOSEONG_QUIZ_QUESTION_COUNT}문제</strong>에 도전해보세요!
           {quiz.bestScore > 0 && (
             <>
-              <br />내 최고기록은 <strong>{quiz.bestScore}점</strong>이에요.
+              <br />내 최고기록(전체 카테고리)은 <strong>{quiz.bestScore}점</strong>이에요.
             </>
           )}
         </SoloIntro>
@@ -141,11 +169,14 @@ export function ChoseongQuiz() {
       <RulesBox
         summary={
           <>
-            초성을 보고 정답 단어를 맞혀보세요. 한 판은 <strong>{quiz.total || 10}문제</strong>, 문제당 제한시간은{' '}
+            초성을 보고 정답 단어를 맞혀보세요. 한 판은 <strong>{CHOSEONG_QUIZ_QUESTION_COUNT}문제</strong>, 문제당 제한시간은{' '}
             <strong>60초</strong>예요.
             <br />
             10초 뒤엔 <strong>카테고리</strong>, 20초 뒤엔 <strong>뜻</strong>이 힌트로 공개돼요. 빨리 맞힐수록 점수가 높고(최대
             100점), 틀려도 몇 번이든 다시 입력할 수 있어요. 모르겠으면 <strong>패스</strong>!
+            <br />
+            시작 전에 카테고리를 고를 수 있어요. 하나만 고르면 카테고리가 처음부터 보이는 대신 최대{' '}
+            {CHOSEONG_SINGLE_CATEGORY_MAX_SCORE}점이에요.
           </>
         }
       />

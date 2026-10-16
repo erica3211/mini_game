@@ -57,6 +57,8 @@ export interface SessionConfig {
   /** 체크한 순서를 그대로 유지 → randomOrder가 꺼지면 이 순서가 곧 라운드 진행 순서 */
   selectedGames: GameId[]
   randomOrder: boolean
+  /** 초성 퀴즈에서 출제할 카테고리. null이면 전체 (빈 배열은 "하나도 안 고름"이라 null과 다르다) */
+  wordChainCategories: string[] | null
 }
 
 export interface RoundRankingEntry {
@@ -291,6 +293,8 @@ export const HUMAN_TIMER_TARGET_MS = 10_000
 export const ONE_TO_FIFTY_ROUND_TIMEOUT_MS = 30_000
 export const ROUND_COUNTDOWN_MS = 3_000
 export const WORD_CHAIN_ROUND_TIMEOUT_MS = 60_000
+// 고른 카테고리의 문제 후보가 이보다 적으면 파티를 시작할 수 없다 (같은 문제 반복 방지, 서버와 같은 값)
+export const WORD_CHAIN_MIN_CANDIDATES = 20
 export const WORD_CHAIN_CATEGORY_REVEAL_MS = 10_000
 export const WORD_CHAIN_DEFINITION_REVEAL_MS = 20_000
 export const AUCTION_ITEM_IDS: AuctionItemId[] = ['A', 'B', 'C', 'D']

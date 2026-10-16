@@ -1,0 +1,42 @@
+import { useEffect, type ReactNode } from 'react'
+
+interface Props {
+  open: boolean
+  title: string
+  onClose: () => void
+  doneLabel?: string
+  children: ReactNode
+}
+
+/** 설정 같은 내용을 담는 팝업. 배경 클릭/Esc/닫기 버튼으로 닫는다 (확인용 ConfirmModal과 달리 안에 아무 내용이나 넣을 수 있다) */
+export function Modal({ open, title, onClose, doneLabel = '완료', children }: Props) {
+  useEffect(() => {
+    if (!open) return
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose()
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [open, onClose])
+
+  if (!open) return null
+
+  return (
+    <div className="modal-backdrop" onClick={onClose}>
+      <div className="modal-card modal-card-wide" role="dialog" aria-modal="true" aria-label={title} onClick={(e) => e.stopPropagation()}>
+        <div className="modal-header">
+          <h2 className="modal-title">{title}</h2>
+          <button type="button" className="modal-close" onClick={onClose} aria-label="닫기">
+            ✕
+          </button>
+        </div>
+        {children}
+        <div className="modal-footer">
+          <button type="button" className="btn btn-primary" onClick={onClose}>
+            {doneLabel}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
