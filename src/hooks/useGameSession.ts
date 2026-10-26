@@ -10,6 +10,8 @@ import type {
   SessionConfig,
   TelepathyStartSignal,
   MinorityStartSignal,
+  AcrosticWriteSignal,
+  AcrosticVoteSignal,
 } from '../lib/partyProtocol'
 import { useSocket } from './useSocket'
 import type {
@@ -129,6 +131,8 @@ export function useGameSession(roomCodeFromUrl?: string) {
   const [typeRaceStart, setTypeRaceStart] = useState<TypeRaceStartSignal | null>(null)
   const [telepathyStart, setTelepathyStart] = useState<TelepathyStartSignal | null>(null)
   const [minorityStart, setMinorityStart] = useState<MinorityStartSignal | null>(null)
+  const [acrosticWrite, setAcrosticWrite] = useState<AcrosticWriteSignal | null>(null)
+  const [acrosticVote, setAcrosticVote] = useState<AcrosticVoteSignal | null>(null)
   const [telestrationTask, setTelestrationTask] = useState<TelestrationTaskSignal | null>(null)
   const [telestrationReveal, setTelestrationReveal] = useState<TelestrationRevealSignal | null>(null)
   const [telestrationWordPrompt, setTelestrationWordPrompt] = useState<TelestrationWordPromptSignal | null>(null)
@@ -162,6 +166,8 @@ export function useGameSession(roomCodeFromUrl?: string) {
         setTypeRaceStart(null)
         setTelepathyStart(null)
         setMinorityStart(null)
+        setAcrosticWrite(null)
+        setAcrosticVote(null)
         setTelestrationTask(null)
         setTelestrationReveal(null)
         setTelestrationWordPrompt(null)
@@ -208,6 +214,8 @@ export function useGameSession(roomCodeFromUrl?: string) {
     const onTypeRaceStart = (data: TypeRaceStartSignal) => setTypeRaceStart(data)
     const onTelepathyStart = (data: TelepathyStartSignal) => setTelepathyStart(data)
     const onMinorityStart = (data: MinorityStartSignal) => setMinorityStart(data)
+    const onAcrosticWrite = (data: AcrosticWriteSignal) => setAcrosticWrite(data)
+    const onAcrosticVote = (data: AcrosticVoteSignal) => setAcrosticVote(data)
     const onTelestrationTask = (data: TelestrationTaskSignal) => setTelestrationTask(data)
     const onTelestrationReveal = (data: TelestrationRevealSignal) => setTelestrationReveal(data)
     const onTelestrationWordPrompt = (data: TelestrationWordPromptSignal) => setTelestrationWordPrompt(data)
@@ -232,6 +240,8 @@ export function useGameSession(roomCodeFromUrl?: string) {
     socket.on('typeRace:roundStart', onTypeRaceStart)
     socket.on('telepathy:roundStart', onTelepathyStart)
     socket.on('minority:roundStart', onMinorityStart)
+    socket.on('acrostic:writeStart', onAcrosticWrite)
+    socket.on('acrostic:voteStart', onAcrosticVote)
     socket.on('telestration:task', onTelestrationTask)
     socket.on('telestration:reveal', onTelestrationReveal)
     socket.on('telestration:wordPrompt', onTelestrationWordPrompt)
@@ -257,6 +267,8 @@ export function useGameSession(roomCodeFromUrl?: string) {
       socket.off('typeRace:roundStart', onTypeRaceStart)
       socket.off('telepathy:roundStart', onTelepathyStart)
       socket.off('minority:roundStart', onMinorityStart)
+      socket.off('acrostic:writeStart', onAcrosticWrite)
+      socket.off('acrostic:voteStart', onAcrosticVote)
       socket.off('telestration:task', onTelestrationTask)
       socket.off('telestration:reveal', onTelestrationReveal)
       socket.off('telestration:wordPrompt', onTelestrationWordPrompt)
@@ -381,6 +393,8 @@ export function useGameSession(roomCodeFromUrl?: string) {
     typeRaceStart,
     telepathyStart,
     minorityStart,
+    acrosticWrite,
+    acrosticVote,
     telestrationTask,
     telestrationReveal,
     telestrationWordPrompt,

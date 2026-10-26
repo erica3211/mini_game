@@ -1,5 +1,6 @@
 import type { GameSession } from '../../hooks/useGameSession'
 import { RulesBox } from '../RulesBox'
+import { AcrosticGame } from './AcrosticGame'
 import { AuctionGame } from './AuctionGame'
 import { BalloonPopGame } from './BalloonPopGame'
 import { CatchmindGame } from './CatchmindGame'
@@ -143,6 +144,15 @@ function renderGame(session: GameSession, roundKey: string) {
           startSignal={session.minorityStart}
           playerId={session.playerId}
           players={state.players}
+        />
+      )
+    case 'acrostic':
+      return (
+        <AcrosticGame
+          socket={session.socket}
+          roundKey={roundKey}
+          writeSignal={session.acrosticWrite}
+          voteSignal={session.acrosticVote}
         />
       )
     default:

@@ -11,6 +11,7 @@ import {
   type ColorMatchRoundMeta,
   type PixelCanvasRoundMeta,
   type ScavengerHuntRoundMeta,
+  type AcrosticRoundMeta,
   type MinorityRoundMeta,
   type TelepathyRoundMeta,
   type TelestrationRoundMeta,
@@ -48,6 +49,7 @@ export function PartyRoundResults({ session }: Props) {
   const scavengerHuntMeta =
     lastRound.gameId === 'scavengerHunt' ? (lastRound.meta as ScavengerHuntRoundMeta | undefined) : undefined
   const telepathyMeta = lastRound.gameId === 'telepathy' ? (lastRound.meta as TelepathyRoundMeta | undefined) : undefined
+  const acrosticMeta = lastRound.gameId === 'acrostic' ? (lastRound.meta as AcrosticRoundMeta | undefined) : undefined
   const minorityMeta = lastRound.gameId === 'minority' ? (lastRound.meta as MinorityRoundMeta | undefined) : undefined
   const catchmindMeta = lastRound.gameId === 'catchmind' ? (lastRound.meta as CatchmindRoundMeta | undefined) : undefined
   const typeRaceMeta = lastRound.gameId === 'typeRace' ? (lastRound.meta as TypeRaceRoundMeta | undefined) : undefined
@@ -93,6 +95,9 @@ export function PartyRoundResults({ session }: Props) {
     }
     if (lastRound.gameId === 'telepathy' && entry.value !== undefined) {
       return ` (${telepathyMeta?.subRounds.length ?? 3}라운드 합산 ${entry.value}점)`
+    }
+    if (lastRound.gameId === 'acrostic' && entry.value !== undefined) {
+      return ` (받은 표 ${entry.value}표)`
     }
     if (lastRound.gameId === 'minority' && entry.value !== undefined) {
       return ` (${minorityMeta?.subRounds.length ?? 5}라운드 합산 ${entry.value}점)`
@@ -313,6 +318,33 @@ export function PartyRoundResults({ session }: Props) {
               </div>
             ))}
           </PartySubRoundCarousel>
+        </div>
+      )}
+
+      {acrosticMeta && (
+        <div className="party-acrostic-reveal">
+          <p className="party-acrostic-reveal-word">
+            제시어 <strong>{acrosticMeta.word}</strong>
+          </p>
+          <ul className="party-acrostic-reveal-poems">
+            {acrosticMeta.poems.map((poem) => (
+              <li className="party-acrostic-reveal-poem" key={poem.playerId}>
+                <div className="party-acrostic-reveal-header">
+                  <span>{nicknameOf(poem.playerId)}</span>
+                  <span>👍 {poem.votes}표</span>
+                </div>
+                {poem.lines.map((line, i) => (
+                  <span className="party-acrostic-poem-line" key={i}>
+                    <strong>{[...line][0]}</strong>
+                    {[...line].slice(1).join('')}
+                  </span>
+                ))}
+                {poem.voterIds.length > 0 && (
+                  <span className="party-acrostic-reveal-voters">투표: {poem.voterIds.map(nicknameOf).join(', ')}</span>
+                )}
+              </li>
+            ))}
+          </ul>
         </div>
       )}
 
