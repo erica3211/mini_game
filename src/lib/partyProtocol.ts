@@ -16,6 +16,7 @@ export type GameId =
   | 'typeRace'
   | 'telestration'
   | 'telepathy'
+  | 'minority'
 
 export interface ModeCategory {
   id: 'INDIVIDUAL' | 'TEAM' | 'COOP'
@@ -42,6 +43,8 @@ export interface GameMeta {
   modeCategory: ModeCategory
   mechanismCategory: MechanismCategory
   comingSoon: boolean
+  /** 이 게임을 고르는 데 필요한 최소 연결 인원 (없으면 MIN_PLAYERS_TO_START) */
+  minPlayers?: number
 }
 
 export type RoomPhase = 'lobby' | 'round_countdown' | 'round_active' | 'round_results' | 'final_results'
@@ -281,6 +284,32 @@ export interface TelepathyStartSignal {
   elapsedMs: number
 }
 
+// 소수의견: 양자택일의 한쪽 — id는 제시어 데이터의 options 인덱스라 사람마다 표시 순서가 달라도 같은 쪽을 가리킨다
+export interface MinorityOption {
+  id: 0 | 1
+  label: string
+}
+
+// 소수의견: 서브라운드 하나가 끝났을 때 전원에게 공개하는 참가자별 선택과 점수 (games/minority.ts 참고)
+export interface MinoritySubRoundResult {
+  subRoundIndex: number
+  options: MinorityOption[]
+  picks: Record<PlayerId, { choice: 0 | 1 | null; score: number }>
+  /** 소수 쪽 (동수이거나 한쪽에 몰렸으면 null — 이 경우 모두 0점) */
+  minoritySide: 0 | 1 | null
+}
+
+export interface MinorityRoundMeta {
+  subRounds: MinoritySubRoundResult[]
+}
+
+export interface MinorityStartSignal {
+  subRoundIndex: number
+  options: MinorityOption[]
+  myChoice: 0 | 1 | null
+  elapsedMs: number
+}
+
 // 이어그리기: 결과 화면용 체인 기록 — 단계마다 받은 표 수가 붙는다 (games/telestration.ts 참고)
 export interface TelestrationChainMeta {
   initialWord: string
@@ -308,6 +337,10 @@ export const CATCHMIND_REVEAL_MS = 4_000
 export const CATCHMIND_MAX_GUESS_LENGTH = 40
 export const CATCHMIND_MIN_STROKE_WIDTH = 2
 export const CATCHMIND_MAX_STROKE_WIDTH = 32
+
+// 소수의견: 서브라운드 개수 / 서브라운드 하나의 제한 시간 (backend/types.ts와 값이 같아야 한다)
+export const MINORITY_SUB_ROUNDS = 5
+export const MINORITY_SUB_ROUND_MS = 10_000
 
 // 텔레파시: 서브라운드 개수 / 서브라운드 하나의 제한 시간 (backend/types.ts와 값이 같아야 한다)
 export const TELEPATHY_SUB_ROUNDS = 3
@@ -498,6 +531,8 @@ export interface ClientToServerEvents {
   'telestration:voteDone': () => void
   /** 카드 한 장 선택. cardId는 TelepathyCard.id (표시 위치가 아님) */
   'telepathy:submit': (data: { cardId: number }) => void
+  /** 양자택일 한쪽 선택. choice는 MinorityOption.id (표시 위치가 아님) */
+  'minority:submit': (data: { choice: 0 | 1 }) => void
 }
 
 /** Server -> Client */
@@ -650,4 +685,8 @@ export interface ServerToClientEvents {
   'telepathy:roundStart': (data: TelepathyStartSignal) => void
   /** 서브라운드가 끝났을 때 전원에게 방송하는 선택 공개 */
   'telepathy:subRoundResult': (data: TelepathySubRoundResult) => void
+  /** 소수의견 서브라운드 시작(재접속 시 재전송). options는 플레이어마다 순서가 섞여 있고, myChoice는 이미 골랐던 쪽(없으면 null) */
+  'minority:roundStart': (data: MinorityStartSignal) => void
+  /** 서브라운드가 끝났을 때 전원에게 방송하는 선택 공개 */
+  'minority:subRoundResult': (data: MinoritySubRoundResult) => void
 }

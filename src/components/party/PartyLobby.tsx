@@ -45,8 +45,11 @@ export function PartyLobby({ session }: Props) {
           ? selectedCategories.join(', ')
           : `${selectedCategories[0]} 외 ${selectedCategories.length - 1}개`
   const canStart = connectedPlayers.length >= MIN_PLAYERS_TO_START && allReady && hasSelectedGame && !tooFewWords
-  // comingSoon 게임은 카드 자체가 선택 불가능하니 "전체 선택"의 대상에서도 제외한다
-  const playableGames = state.gameCatalog.filter((g) => !g.comingSoon)
+  // 인원이 모자라 고를 수 없는 게임인지 (서버도 인원이 줄면 선택에서 빼 버린다)
+  const needsMorePlayers = (game: (typeof state.gameCatalog)[number]) =>
+    connectedPlayers.length < (game.minPlayers ?? MIN_PLAYERS_TO_START)
+  // comingSoon 게임과 인원이 모자란 게임은 카드 자체가 선택 불가능하니 "전체 선택"의 대상에서도 제외한다
+  const playableGames = state.gameCatalog.filter((g) => !g.comingSoon && !needsMorePlayers(g))
   const allGamesSelected = playableGames.length > 0 && playableGames.every((g) => state.config.selectedGames.includes(g.id))
   // 방장을 맨 위로, 그다음은 연결 끊긴 사람을 맨 뒤로
   const sortedPlayers = [...state.players].sort((a, b) => {
@@ -203,21 +206,25 @@ export function PartyLobby({ session }: Props) {
         <div className="party-game-list">
           {state.gameCatalog.map((game) => {
             const selected = state.config.selectedGames.includes(game.id)
+            const notEnoughPlayers = needsMorePlayers(game)
             return (
               <div
                 key={game.id}
-                className={`party-game-card${selected ? ' party-game-card-selected' : ''}${!session.isHost || game.comingSoon ? ' party-game-card-disabled' : ''}`}
+                className={`party-game-card${selected ? ' party-game-card-selected' : ''}${!session.isHost || game.comingSoon || notEnoughPlayers ? ' party-game-card-disabled' : ''}`}
               >
                 <button
                   type="button"
                   className="party-game-card-main"
-                  disabled={!session.isHost || game.comingSoon}
+                  disabled={!session.isHost || game.comingSoon || notEnoughPlayers}
                   aria-pressed={selected}
                   onClick={() => toggleGame(game.id)}
                 >
                   <span className="party-game-card-title">
                     {game.emoji} {game.title}
                     {game.comingSoon && <span className="party-coming-soon"> (준비중)</span>}
+                    {!game.comingSoon && notEnoughPlayers && (
+                      <span className="party-coming-soon"> ({game.minPlayers}명 이상 필요)</span>
+                    )}
                   </span>
                   <span className="party-game-card-desc">"{game.description}"</span>
                   <span className="party-game-card-meta">

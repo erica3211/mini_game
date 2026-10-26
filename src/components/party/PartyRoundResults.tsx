@@ -11,6 +11,7 @@ import {
   type ColorMatchRoundMeta,
   type PixelCanvasRoundMeta,
   type ScavengerHuntRoundMeta,
+  type MinorityRoundMeta,
   type TelepathyRoundMeta,
   type TelestrationRoundMeta,
   type TypeRaceRoundMeta,
@@ -47,6 +48,7 @@ export function PartyRoundResults({ session }: Props) {
   const scavengerHuntMeta =
     lastRound.gameId === 'scavengerHunt' ? (lastRound.meta as ScavengerHuntRoundMeta | undefined) : undefined
   const telepathyMeta = lastRound.gameId === 'telepathy' ? (lastRound.meta as TelepathyRoundMeta | undefined) : undefined
+  const minorityMeta = lastRound.gameId === 'minority' ? (lastRound.meta as MinorityRoundMeta | undefined) : undefined
   const catchmindMeta = lastRound.gameId === 'catchmind' ? (lastRound.meta as CatchmindRoundMeta | undefined) : undefined
   const typeRaceMeta = lastRound.gameId === 'typeRace' ? (lastRound.meta as TypeRaceRoundMeta | undefined) : undefined
   const telestrationMeta =
@@ -91,6 +93,9 @@ export function PartyRoundResults({ session }: Props) {
     }
     if (lastRound.gameId === 'telepathy' && entry.value !== undefined) {
       return ` (${telepathyMeta?.subRounds.length ?? 3}라운드 합산 ${entry.value}점)`
+    }
+    if (lastRound.gameId === 'minority' && entry.value !== undefined) {
+      return ` (${minorityMeta?.subRounds.length ?? 5}라운드 합산 ${entry.value}점)`
     }
     if (lastRound.gameId === 'catchmind' && entry.value !== undefined) {
       return ` (전체 턴 합산 ${entry.value}점)`
@@ -302,6 +307,34 @@ export function PartyRoundResults({ session }: Props) {
                         {pick.cardId === null
                           ? '미제출 · 0점'
                           : `${subRound.cards.find((card) => card.id === pick.cardId)?.label ?? '?'} · ${pick.score}점`}
+                      </li>
+                    ))}
+                </ul>
+              </div>
+            ))}
+          </PartySubRoundCarousel>
+        </div>
+      )}
+
+      {minorityMeta && (
+        <div className="party-telepathy-reveal">
+          <PartySubRoundPager current={subRoundPage} total={minorityMeta.subRounds.length} onChange={setSubRoundPage} />
+          <PartySubRoundCarousel current={subRoundPage} onChange={setSubRoundPage}>
+            {minorityMeta.subRounds.map((subRound) => (
+              <div className="party-telepathy-reveal-item" key={subRound.subRoundIndex}>
+                <div className="party-telepathy-reveal-header">
+                  <span>{subRound.subRoundIndex + 1}번 문제</span>
+                  <span>{subRound.options.map((option) => option.label).join(' vs ')}</span>
+                </div>
+                <ul className="party-telepathy-reveal-picks">
+                  {Object.entries(subRound.picks)
+                    .sort(([, a], [, b]) => b.score - a.score)
+                    .map(([playerId, pick]) => (
+                      <li key={playerId}>
+                        {nicknameOf(playerId)}:{' '}
+                        {pick.choice === null
+                          ? '미제출 · 0점'
+                          : `${subRound.options.find((option) => option.id === pick.choice)?.label ?? '?'} · ${pick.score}점`}
                       </li>
                     ))}
                 </ul>

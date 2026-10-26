@@ -5,6 +5,7 @@ import { BalloonPopGame } from './BalloonPopGame'
 import { CatchmindGame } from './CatchmindGame'
 import { ColorMatchGame } from './ColorMatchGame'
 import { HumanTimerGame } from './HumanTimerGame'
+import { MinorityGame } from './MinorityGame'
 import { MouseHunterGame } from './MouseHunterGame'
 import { OneToFiftyGame } from './OneToFiftyGame'
 import { PartyExitToLobbyButton } from './PartyExitToLobbyButton'
@@ -130,6 +131,16 @@ function renderGame(session: GameSession, roundKey: string) {
           socket={session.socket}
           roundKey={roundKey}
           startSignal={session.telepathyStart}
+          playerId={session.playerId}
+          players={state.players}
+        />
+      )
+    case 'minority':
+      return (
+        <MinorityGame
+          socket={session.socket}
+          roundKey={roundKey}
+          startSignal={session.minorityStart}
           playerId={session.playerId}
           players={state.players}
         />
