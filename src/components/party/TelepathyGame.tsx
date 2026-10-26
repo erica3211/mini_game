@@ -35,7 +35,8 @@ export function TelepathyGame({ socket, roundKey, startSignal, playerId, players
   // 공개 단계에서 카드별로 누가 골랐는지 모아서 보여준다
   const pickersOf = (cardId: number) =>
     reveal ? Object.entries(reveal.picks).filter(([, pick]) => pick.cardId === cardId).map(([id]) => id) : []
-  const maxPickers = reveal ? Math.max(0, ...reveal.cards.map((card) => pickersOf(card.id).length)) : 0
+  // 과반수(제출한 사람의 절반 초과) 판정의 기준 인원 — 서버 점수 계산과 같은 기준이다
+  const submittedCount = reveal ? Object.values(reveal.picks).filter((pick) => pick.cardId !== null).length : 0
 
   return (
     <div className="party-round-stage">
@@ -52,7 +53,8 @@ export function TelepathyGame({ socket, roundKey, startSignal, playerId, players
         {startSignal.cards.map((card) => {
           const pickers = pickersOf(card.id)
           const isMine = selectedCardId === card.id
-          const isTop = revealed && pickers.length > 0 && pickers.length === maxPickers
+          // 과반수가 고른 카드만 초록 — 점수가 나는 카드와 같은 기준이라, 의견이 갈리면 아무 카드도 초록이 아니다
+          const isTop = revealed && pickers.length * 2 > submittedCount
           return (
             <li key={card.id}>
               <button
