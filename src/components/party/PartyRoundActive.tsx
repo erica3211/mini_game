@@ -11,6 +11,7 @@ import { PartyExitToLobbyButton } from './PartyExitToLobbyButton'
 import { PixelCanvasGame } from './PixelCanvasGame'
 import { ScavengerHuntGame } from './ScavengerHuntGame'
 import { ShoutRaceGame } from './ShoutRaceGame'
+import { TelepathyGame } from './TelepathyGame'
 import { TelestrationGame } from './TelestrationGame'
 import { TypeRaceGame } from './TypeRaceGame'
 import { WordChainGame } from './WordChainGame'
@@ -119,6 +120,16 @@ function renderGame(session: GameSession, roundKey: string) {
           task={session.telestrationTask}
           reveal={session.telestrationReveal}
           wordPrompt={session.telestrationWordPrompt}
+          playerId={session.playerId}
+          players={state.players}
+        />
+      )
+    case 'telepathy':
+      return (
+        <TelepathyGame
+          socket={session.socket}
+          roundKey={roundKey}
+          startSignal={session.telepathyStart}
           playerId={session.playerId}
           players={state.players}
         />

@@ -1769,6 +1769,7 @@ button {
 
 .party-auction-reveal,
 .party-colormatch-reveal,
+.party-telepathy-reveal,
 .party-scavengerhunt-reveal {
   display: flex;
   flex-direction: column;
@@ -3318,6 +3319,128 @@ button {
   padding: 0;
   width: 100%;
   max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+/* 텔레파시 */
+.party-telepathy-round-label {
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.party-telepathy-prompt {
+  margin: 0;
+  font-size: 1.3rem;
+  font-weight: 700;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.party-telepathy-cards {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+  width: 100%;
+  max-width: 420px;
+}
+
+.party-telepathy-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  width: 100%;
+  min-height: 6rem;
+  padding: 0.75rem;
+  background: var(--surface);
+  color: var(--text);
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  font: inherit;
+  cursor: pointer;
+}
+
+/* 공개 단계에서는 오른쪽 하단 뱃지/닉네임 자리를 위해 아래 여백을 늘린다 (선택 중에는 글씨가 정중앙에 오도록 대칭 유지) */
+.party-telepathy-card-revealed {
+  padding-bottom: 1.5rem;
+}
+
+.party-telepathy-card:disabled {
+  cursor: default;
+}
+
+.party-telepathy-card-selected {
+  background: var(--tint-info);
+  border-color: var(--text-info);
+}
+
+/* 공개 단계에서 가장 많이 선택된 카드 */
+.party-telepathy-card-top {
+  background: var(--tint-strike);
+  border-color: var(--border-strike);
+}
+
+.party-telepathy-card-mine {
+  position: absolute;
+  right: 0.5rem;
+  bottom: 0.4rem;
+  padding: 0.05rem 0.4rem;
+  border-radius: 999px;
+  background: var(--info);
+  color: var(--text);
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.party-telepathy-card-label {
+  font-size: 1.1rem;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.party-telepathy-card-pickers {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+}
+
+.party-telepathy-result-score {
+  margin: 0;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.party-telepathy-reveal-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.75rem 1rem;
+}
+
+.party-telepathy-reveal-header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.25rem;
+  font-weight: 700;
+}
+
+.party-telepathy-reveal-picks {
+  list-style: none;
+  margin: 0;
+  padding: 0;
   display: flex;
   flex-direction: column;
   gap: 0.3rem;

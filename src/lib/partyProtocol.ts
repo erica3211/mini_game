@@ -15,6 +15,7 @@ export type GameId =
   | 'catchmind'
   | 'typeRace'
   | 'telestration'
+  | 'telepathy'
 
 export interface ModeCategory {
   id: 'INDIVIDUAL' | 'TEAM' | 'COOP'
@@ -254,6 +255,32 @@ export interface TelestrationChainReveal {
   steps: TelestrationStepRecord[]
 }
 
+// 텔레파시: 카드 한 장 — id는 제시어의 선택지 풀 안에서의 인덱스라 사람마다 카드 순서가 달라도 같은 카드를 가리킨다
+export interface TelepathyCard {
+  id: number
+  label: string
+}
+
+// 텔레파시: 서브라운드 하나가 끝났을 때 전원에게 공개하는 참가자별 선택과 점수 (games/telepathy.ts 참고)
+export interface TelepathySubRoundResult {
+  subRoundIndex: number
+  prompt: string
+  cards: TelepathyCard[]
+  picks: Record<PlayerId, { cardId: number | null; score: number }>
+}
+
+export interface TelepathyRoundMeta {
+  subRounds: TelepathySubRoundResult[]
+}
+
+export interface TelepathyStartSignal {
+  subRoundIndex: number
+  prompt: string
+  cards: TelepathyCard[]
+  myCardId: number | null
+  elapsedMs: number
+}
+
 // 이어그리기: 결과 화면용 체인 기록 — 단계마다 받은 표 수가 붙는다 (games/telestration.ts 참고)
 export interface TelestrationChainMeta {
   initialWord: string
@@ -281,6 +308,10 @@ export const CATCHMIND_REVEAL_MS = 4_000
 export const CATCHMIND_MAX_GUESS_LENGTH = 40
 export const CATCHMIND_MIN_STROKE_WIDTH = 2
 export const CATCHMIND_MAX_STROKE_WIDTH = 32
+
+// 텔레파시: 서브라운드 개수 / 서브라운드 하나의 제한 시간 (backend/types.ts와 값이 같아야 한다)
+export const TELEPATHY_SUB_ROUNDS = 5
+export const TELEPATHY_SUB_ROUND_MS = 10_000
 
 // 이어그리기: 그림 단계 / 글 단계 제한 시간 (전원이 제출하면 조기에 다음 단계로 넘어간다)
 export const TELESTRATION_DRAW_TIMEOUT_MS = 60_000
@@ -465,6 +496,8 @@ export interface ClientToServerEvents {
   'telestration:submitWord': (data: { text: string }) => void
   /** 투표를 마치고 결과를 기다리겠다는 신호. 최소 1표를 준 사람만 받아주며, 전원이 보내거나 제한 시간이 지나면 라운드가 끝난다 */
   'telestration:voteDone': () => void
+  /** 카드 한 장 선택. cardId는 TelepathyCard.id (표시 위치가 아님) */
+  'telepathy:submit': (data: { cardId: number }) => void
 }
 
 /** Server -> Client */
@@ -613,4 +646,8 @@ export interface ServerToClientEvents {
   }) => void
   /** 누군가 투표하거나 취소할 때마다 전체에게 방송하는 최신 표 수 — 투표 화면의 👍 숫자를 실시간으로 갱신한다 */
   'telestration:voteCounts': (data: { counts: number[][] }) => void
+  /** 서브라운드 시작(재접속 시 재전송). cards는 플레이어마다 순서가 섞여 있고, myCardId는 이미 골랐던 카드(없으면 null) */
+  'telepathy:roundStart': (data: TelepathyStartSignal) => void
+  /** 서브라운드가 끝났을 때 전원에게 방송하는 선택 공개 */
+  'telepathy:subRoundResult': (data: TelepathySubRoundResult) => void
 }

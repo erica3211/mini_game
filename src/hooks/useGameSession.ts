@@ -8,6 +8,7 @@ import type {
   RoomState,
   ScavengerHuntRoundTarget,
   SessionConfig,
+  TelepathyStartSignal,
 } from '../lib/partyProtocol'
 import { useSocket } from './useSocket'
 import type {
@@ -125,6 +126,7 @@ export function useGameSession(roomCodeFromUrl?: string) {
   } | null>(null)
   const [catchmindWord, setCatchmindWord] = useState<{ turnIndex: number; word: string } | null>(null)
   const [typeRaceStart, setTypeRaceStart] = useState<TypeRaceStartSignal | null>(null)
+  const [telepathyStart, setTelepathyStart] = useState<TelepathyStartSignal | null>(null)
   const [telestrationTask, setTelestrationTask] = useState<TelestrationTaskSignal | null>(null)
   const [telestrationReveal, setTelestrationReveal] = useState<TelestrationRevealSignal | null>(null)
   const [telestrationWordPrompt, setTelestrationWordPrompt] = useState<TelestrationWordPromptSignal | null>(null)
@@ -156,6 +158,7 @@ export function useGameSession(roomCodeFromUrl?: string) {
         setCatchmindTurnStart(null)
         setCatchmindWord(null)
         setTypeRaceStart(null)
+        setTelepathyStart(null)
         setTelestrationTask(null)
         setTelestrationReveal(null)
         setTelestrationWordPrompt(null)
@@ -200,6 +203,7 @@ export function useGameSession(roomCodeFromUrl?: string) {
     }) => setCatchmindTurnStart(data)
     const onCatchmindWord = (data: { turnIndex: number; word: string }) => setCatchmindWord(data)
     const onTypeRaceStart = (data: TypeRaceStartSignal) => setTypeRaceStart(data)
+    const onTelepathyStart = (data: TelepathyStartSignal) => setTelepathyStart(data)
     const onTelestrationTask = (data: TelestrationTaskSignal) => setTelestrationTask(data)
     const onTelestrationReveal = (data: TelestrationRevealSignal) => setTelestrationReveal(data)
     const onTelestrationWordPrompt = (data: TelestrationWordPromptSignal) => setTelestrationWordPrompt(data)
@@ -222,6 +226,7 @@ export function useGameSession(roomCodeFromUrl?: string) {
     socket.on('catchmind:turnStart', onCatchmindTurnStart)
     socket.on('catchmind:word', onCatchmindWord)
     socket.on('typeRace:roundStart', onTypeRaceStart)
+    socket.on('telepathy:roundStart', onTelepathyStart)
     socket.on('telestration:task', onTelestrationTask)
     socket.on('telestration:reveal', onTelestrationReveal)
     socket.on('telestration:wordPrompt', onTelestrationWordPrompt)
@@ -245,6 +250,7 @@ export function useGameSession(roomCodeFromUrl?: string) {
       socket.off('catchmind:turnStart', onCatchmindTurnStart)
       socket.off('catchmind:word', onCatchmindWord)
       socket.off('typeRace:roundStart', onTypeRaceStart)
+      socket.off('telepathy:roundStart', onTelepathyStart)
       socket.off('telestration:task', onTelestrationTask)
       socket.off('telestration:reveal', onTelestrationReveal)
       socket.off('telestration:wordPrompt', onTelestrationWordPrompt)
@@ -367,6 +373,7 @@ export function useGameSession(roomCodeFromUrl?: string) {
     catchmindTurnStart,
     catchmindWord,
     typeRaceStart,
+    telepathyStart,
     telestrationTask,
     telestrationReveal,
     telestrationWordPrompt,
