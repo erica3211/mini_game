@@ -230,6 +230,27 @@ export function PartyLobby({ session }: Props) {
                     </span>
                   </span>
                 </button>
+                {game.id === 'telestration' && selected && (
+                  <div className="party-game-extra">
+                    <span>
+                      제시어:{' '}
+                      <strong>{state.config.telestrationWordMode === 'custom' ? '직접 입력' : '랜덤'}</strong>
+                    </span>
+                    {session.isHost && (
+                      <button
+                        type="button"
+                        className="btn btn-secondary"
+                        onClick={() =>
+                          session.updateConfig({
+                            telestrationWordMode: state.config.telestrationWordMode === 'custom' ? 'random' : 'custom',
+                          })
+                        }
+                      >
+                        {state.config.telestrationWordMode === 'custom' ? '랜덤으로 변경' : '직접 입력으로 변경'}
+                      </button>
+                    )}
+                  </div>
+                )}
                 {game.id === 'wordChain' && selected && wordChainCategories && (
                   <div className="party-game-extra">
                     <span className={tooFewWords ? 'party-game-extra-warn' : undefined}>

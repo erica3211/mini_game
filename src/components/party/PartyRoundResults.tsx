@@ -11,6 +11,7 @@ import {
   type ColorMatchRoundMeta,
   type PixelCanvasRoundMeta,
   type ScavengerHuntRoundMeta,
+  type TelestrationRoundMeta,
   type TypeRaceRoundMeta,
   type WordChainRoundMeta,
 } from '../../lib/partyProtocol'
@@ -20,6 +21,7 @@ import { PartyScoreList } from './PartyScoreList'
 import { PartySubRoundCarousel } from './PartySubRoundCarousel'
 import { PartySubRoundPager } from './PartySubRoundPager'
 import { PixelCanvasSnapshot } from './PixelCanvasSnapshot'
+import { TelestrationStepCard } from './TelestrationStepCard'
 
 interface Props {
   session: GameSession
@@ -45,6 +47,8 @@ export function PartyRoundResults({ session }: Props) {
     lastRound.gameId === 'scavengerHunt' ? (lastRound.meta as ScavengerHuntRoundMeta | undefined) : undefined
   const catchmindMeta = lastRound.gameId === 'catchmind' ? (lastRound.meta as CatchmindRoundMeta | undefined) : undefined
   const typeRaceMeta = lastRound.gameId === 'typeRace' ? (lastRound.meta as TypeRaceRoundMeta | undefined) : undefined
+  const telestrationMeta =
+    lastRound.gameId === 'telestration' ? (lastRound.meta as TelestrationRoundMeta | undefined) : undefined
 
   const detailOf = (entry: (typeof lastRound.ranking)[number]) => {
     if (entry.disconnected) return ' (연결 끊김)'
@@ -85,6 +89,9 @@ export function PartyRoundResults({ session }: Props) {
     }
     if (lastRound.gameId === 'catchmind' && entry.value !== undefined) {
       return ` (전체 턴 합산 ${entry.value}점)`
+    }
+    if (lastRound.gameId === 'telestration' && entry.value !== undefined) {
+      return ` (받은 표 ${entry.value}표)`
     }
     return ''
   }
@@ -298,6 +305,27 @@ export function PartyRoundResults({ session }: Props) {
                     ))
                   )}
                 </ul>
+              </div>
+            ))}
+          </PartySubRoundCarousel>
+        </div>
+      )}
+
+      {telestrationMeta && (
+        <div className="party-catchmind-reveal">
+          <PartySubRoundPager current={subRoundPage} total={telestrationMeta.chains.length} onChange={setSubRoundPage} />
+          <PartySubRoundCarousel current={subRoundPage} onChange={setSubRoundPage}>
+            {telestrationMeta.chains.map((chain) => (
+              <div className="party-catchmind-reveal-item party-telestration-box" key={chain.initialWord}>
+                <div className="party-catchmind-reveal-header">
+                  <span>처음 제시어</span>
+                  <strong>{chain.initialWord}</strong>
+                </div>
+                {chain.steps.map((step, s) => (
+                  <TelestrationStepCard key={s} record={step} nickname={nicknameOf(step.playerId)} order={s + 1}>
+                    <p className="party-round-hint">👍 {step.votes}표</p>
+                  </TelestrationStepCard>
+                ))}
               </div>
             ))}
           </PartySubRoundCarousel>

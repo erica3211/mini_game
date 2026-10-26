@@ -14,6 +14,7 @@ export type GameId =
   | 'pixelCanvas'
   | 'catchmind'
   | 'typeRace'
+  | 'telestration'
 
 export interface ModeCategory {
   id: 'INDIVIDUAL' | 'TEAM' | 'COOP'
@@ -59,6 +60,8 @@ export interface SessionConfig {
   randomOrder: boolean
   /** 초성 퀴즈에서 출제할 카테고리. null이면 전체 (빈 배열은 "하나도 안 고름"이라 null과 다르다) */
   wordChainCategories: string[] | null
+  /** 이어그리기 제시어 방식 — random: 서버가 단어 은행에서 뽑는다, custom: 라운드 시작 전 참가자가 각자 하나씩 적는다 */
+  telestrationWordMode: TelestrationWordMode
 }
 
 export interface RoundRankingEntry {
@@ -231,6 +234,42 @@ export interface CatchmindRoundMeta {
   turns: CatchmindTurnMeta[]
 }
 
+// 이어그리기: 첫 제시어를 정하는 방식 (방장이 대기실에서 고른다)
+export type TelestrationWordMode = 'random' | 'custom'
+
+// 이어그리기: 한 단계의 종류 — 그림을 그리거나(draw), 앞사람의 그림을 글로 설명한다(write)
+export type TelestrationStepKind = 'draw' | 'write'
+
+// 이어그리기: 단계 하나의 결과물 (kind가 draw면 strokes, write면 text가 채워진다)
+export interface TelestrationStepRecord {
+  playerId: PlayerId
+  kind: TelestrationStepKind
+  text?: string
+  strokes?: CatchmindStroke[]
+}
+
+// 이어그리기: 투표 화면에 공개하는 체인 하나 — 첫 제시어부터 마지막 단계까지의 전달 과정
+export interface TelestrationChainReveal {
+  initialWord: string
+  steps: TelestrationStepRecord[]
+}
+
+// 이어그리기: 결과 화면용 체인 기록 — 단계마다 받은 표 수가 붙는다 (games/telestration.ts 참고)
+export interface TelestrationChainMeta {
+  initialWord: string
+  steps: (TelestrationStepRecord & { votes: number })[]
+}
+
+export interface TelestrationRoundMeta {
+  chains: TelestrationChainMeta[]
+}
+
+// 이어그리기: 한 단계에서 본인에게 주어지는 입력물 — 첫 단계는 제시어, 이후는 앞사람의 글 또는 그림
+export type TelestrationPrompt =
+  | { type: 'word'; word: string }
+  | { type: 'text'; text: string }
+  | { type: 'drawing'; strokes: CatchmindStroke[] }
+
 // 타자 질주: 라운드 종료 후 결과 화면에 전원 공개하는 참가자별 평균 타자 속도(분당 실제 키보드 입력 횟수, 한컴타자연습식)
 export interface TypeRaceRoundMeta {
   avgCpm: Record<PlayerId, number>
@@ -242,6 +281,25 @@ export const CATCHMIND_REVEAL_MS = 4_000
 export const CATCHMIND_MAX_GUESS_LENGTH = 40
 export const CATCHMIND_MIN_STROKE_WIDTH = 2
 export const CATCHMIND_MAX_STROKE_WIDTH = 32
+
+// 이어그리기: 그림 단계 / 글 단계 제한 시간 (전원이 제출하면 조기에 다음 단계로 넘어간다)
+export const TELESTRATION_DRAW_TIMEOUT_MS = 60_000
+export const TELESTRATION_WRITE_TIMEOUT_MS = 30_000
+// 이어그리기: 직접 입력 방식에서 제시어를 적는 제한 시간 / 제시어 최대 길이
+export const TELESTRATION_WORD_TIMEOUT_MS = 30_000
+export const TELESTRATION_MAX_WORD_LENGTH = 20
+// 이어그리기: 클라이언트가 제한 시간 끝에 자동 제출하는 것을 기다려주는 서버 유예 시간
+export const TELESTRATION_SUBMIT_GRACE_MS = 2_000
+// 이어그리기: 모든 단계가 끝난 뒤 체인을 돌려보며 투표하는 제한 시간
+export const TELESTRATION_VOTE_TIMEOUT_MS = 240_000
+// 이어그리기: 글 단계 입력 최대 길이
+export const TELESTRATION_MAX_TEXT_LENGTH = 60
+// 이어그리기: 시간 안에 글을 못 쓴 단계에 대신 채워 넣는 문구
+export const TELESTRATION_EMPTY_TEXT = '(시간 초과)'
+// 이어그리기: 제출 한 번에 담을 수 있는 획 개수 / 획당 좌표 개수 / 전체 좌표 개수 상한 — 변조 등 비정상 요청 방어용
+export const TELESTRATION_MAX_STROKES = 300
+export const TELESTRATION_MAX_POINTS_PER_STROKE = 2_000
+export const TELESTRATION_MAX_TOTAL_POINTS = 12_000
 
 // 흰색은 도화지 배경색과 같아서 지우개 역할을 겸한다
 export const CATCHMIND_COLORS = [
@@ -399,6 +457,14 @@ export interface ClientToServerEvents {
   }) => void
   /** 문장 시퀀스 전체를 다 쳤을 때, 레이스 시작 시각 기준 경과 시간과 실제 키보드 입력 누적 횟수(keystrokes)와 함께 전송 */
   'typeRace:finish': (data: { elapsedMs: number; keystrokes: number }) => void
+  /** 현재 단계 결과 제출. draw 단계면 strokes, write 단계면 text. stepIndex가 현재 단계와 다르거나 이미 제출했으면 서버가 무시한다 */
+  'telestration:submit': (data: { stepIndex: number; strokes?: CatchmindStroke[]; text?: string }) => void
+  /** 체인의 한 단계에 투표하거나(voted: true) 취소한다(false) — 전체에서 개수 제한 없이 고를 수 있고, 그림 단계에만, 본인이 그린 것이 아닌 장면에만 할 수 있다 */
+  'telestration:vote': (data: { chainIndex: number; stepIndex: number; voted: boolean }) => void
+  /** 직접 입력 방식에서 라운드 시작 전 내가 낼 제시어 하나를 제출. 이미 냈거나 단계가 지났으면 서버가 무시한다 */
+  'telestration:submitWord': (data: { text: string }) => void
+  /** 투표를 마치고 결과를 기다리겠다는 신호. 최소 1표를 준 사람만 받아주며, 전원이 보내거나 제한 시간이 지나면 라운드가 끝난다 */
+  'telestration:voteDone': () => void
 }
 
 /** Server -> Client */
@@ -522,4 +588,29 @@ export interface ServerToClientEvents {
     progress: Record<PlayerId, number>
     live: Record<PlayerId, { sentenceIndex: number; typed: string }>
   }) => void
+  /** 직접 입력 방식에서 제시어 작성 단계 시작(재접속 시에도 다시 전송). 제출 현황은 telestration:progress의 stepIndex -1로 온다 */
+  'telestration:wordPrompt': (data: { submitted: boolean; elapsedMs: number }) => void
+  /** 이어그리기 단계 시작 — 사람마다 다른 체인을 받으므로 emitToPlayer로 본인에게만 전송(재접속 시에도 다시 전송).
+   *  submitted: 재접속한 사람이 이미 이번 단계를 제출한 상태인지. elapsedMs: 새 단계면 0, 재접속 시엔 이미 지난 시간 */
+  'telestration:task': (data: {
+    stepIndex: number
+    totalSteps: number
+    kind: TelestrationStepKind
+    prompt: TelestrationPrompt
+    submitted: boolean
+    elapsedMs: number
+  }) => void
+  /** 현재 단계를 제출한 사람 수 — 기다리는 화면의 진행 표시용 */
+  'telestration:progress': (data: { stepIndex: number; submitted: number; total: number }) => void
+  /** 모든 단계가 끝나 체인 전체를 공개하고 투표를 받기 시작. myVotes: 내가 지금까지 투표한 장면들(재접속 복원용) */
+  'telestration:reveal': (data: {
+    chains: TelestrationChainReveal[]
+    myVotes: { chainIndex: number; stepIndex: number }[]
+    /** 체인별 단계별로 지금까지 받은 표 수 (counts[chainIndex][stepIndex]) */
+    counts: number[][]
+    voteDone: boolean
+    elapsedMs: number
+  }) => void
+  /** 누군가 투표하거나 취소할 때마다 전체에게 방송하는 최신 표 수 — 투표 화면의 👍 숫자를 실시간으로 갱신한다 */
+  'telestration:voteCounts': (data: { counts: number[][] }) => void
 }

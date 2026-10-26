@@ -10,6 +10,11 @@ import type {
   SessionConfig,
 } from '../lib/partyProtocol'
 import { useSocket } from './useSocket'
+import type {
+  TelestrationRevealSignal,
+  TelestrationTaskSignal,
+  TelestrationWordPromptSignal,
+} from './useTelestrationDrawing'
 import type { TypeRaceStartSignal } from './useTypeRaceRound'
 
 const REJOIN_TTL_MS = 60 * 60 * 1000 // 마지막 접속 후 1시간이 지나면 재접속 정보를 만료시킨다
@@ -120,6 +125,9 @@ export function useGameSession(roomCodeFromUrl?: string) {
   } | null>(null)
   const [catchmindWord, setCatchmindWord] = useState<{ turnIndex: number; word: string } | null>(null)
   const [typeRaceStart, setTypeRaceStart] = useState<TypeRaceStartSignal | null>(null)
+  const [telestrationTask, setTelestrationTask] = useState<TelestrationTaskSignal | null>(null)
+  const [telestrationReveal, setTelestrationReveal] = useState<TelestrationRevealSignal | null>(null)
+  const [telestrationWordPrompt, setTelestrationWordPrompt] = useState<TelestrationWordPromptSignal | null>(null)
 
   useEffect(() => {
     sweepExpiredSessions()
@@ -148,6 +156,9 @@ export function useGameSession(roomCodeFromUrl?: string) {
         setCatchmindTurnStart(null)
         setCatchmindWord(null)
         setTypeRaceStart(null)
+        setTelestrationTask(null)
+        setTelestrationReveal(null)
+        setTelestrationWordPrompt(null)
       }
     }
     const onError = (message: string) => setError(message)
@@ -189,6 +200,9 @@ export function useGameSession(roomCodeFromUrl?: string) {
     }) => setCatchmindTurnStart(data)
     const onCatchmindWord = (data: { turnIndex: number; word: string }) => setCatchmindWord(data)
     const onTypeRaceStart = (data: TypeRaceStartSignal) => setTypeRaceStart(data)
+    const onTelestrationTask = (data: TelestrationTaskSignal) => setTelestrationTask(data)
+    const onTelestrationReveal = (data: TelestrationRevealSignal) => setTelestrationReveal(data)
+    const onTelestrationWordPrompt = (data: TelestrationWordPromptSignal) => setTelestrationWordPrompt(data)
     socket.on('room:state', onState)
     socket.on('room:error', onError)
     socket.on('humanTimer:roundStart', onHumanTimerStart)
@@ -208,6 +222,9 @@ export function useGameSession(roomCodeFromUrl?: string) {
     socket.on('catchmind:turnStart', onCatchmindTurnStart)
     socket.on('catchmind:word', onCatchmindWord)
     socket.on('typeRace:roundStart', onTypeRaceStart)
+    socket.on('telestration:task', onTelestrationTask)
+    socket.on('telestration:reveal', onTelestrationReveal)
+    socket.on('telestration:wordPrompt', onTelestrationWordPrompt)
     return () => {
       socket.off('room:state', onState)
       socket.off('room:error', onError)
@@ -228,6 +245,9 @@ export function useGameSession(roomCodeFromUrl?: string) {
       socket.off('catchmind:turnStart', onCatchmindTurnStart)
       socket.off('catchmind:word', onCatchmindWord)
       socket.off('typeRace:roundStart', onTypeRaceStart)
+      socket.off('telestration:task', onTelestrationTask)
+      socket.off('telestration:reveal', onTelestrationReveal)
+      socket.off('telestration:wordPrompt', onTelestrationWordPrompt)
     }
   }, [socket])
 
@@ -347,6 +367,9 @@ export function useGameSession(roomCodeFromUrl?: string) {
     catchmindTurnStart,
     catchmindWord,
     typeRaceStart,
+    telestrationTask,
+    telestrationReveal,
+    telestrationWordPrompt,
     createRoom,
     joinRoom,
     setReady,
