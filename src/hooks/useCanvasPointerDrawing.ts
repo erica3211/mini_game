@@ -40,6 +40,20 @@ export function useCanvasPointerDrawing(canvasRef: RefObject<HTMLCanvasElement |
   // 핸들러가 매 렌더 새로 만들어져도 포인터 콜백은 항상 최신 것을 부르도록 ref로 들고 있는다
   const handlersRef = useRef(handlers)
   handlersRef.current = handlers
+  const enabledRef = useRef(enabled)
+  enabledRef.current = enabled
+
+  // 획을 긋는 도중에 입력이 막히면(예: AI가 정답을 맞혀 라운드가 끝남) 그 획을 거기서 끝낸다.
+  // 안 그러면 손가락이 아직 눌려 있는 동안 pointer capture가 이어져서, 화면이 바뀐 뒤에도 선이 계속 그어진다
+  useEffect(() => {
+    if (enabled || !isDraggingRef.current) return
+    isDraggingRef.current = false
+    if (scrollLockedRef.current) {
+      unlockPageScroll()
+      scrollLockedRef.current = false
+    }
+    handlersRef.current.onEnd()
+  }, [enabled])
 
   useEffect(() => unlockPageScroll, [])
 
@@ -83,7 +97,7 @@ export function useCanvasPointerDrawing(canvasRef: RefObject<HTMLCanvasElement |
   )
 
   const onPointerMove = useCallback((e: PointerEvent<HTMLCanvasElement>) => {
-    if (!isDraggingRef.current) return
+    if (!isDraggingRef.current || !enabledRef.current) return
     e.preventDefault()
     handlersRef.current.onMove(toPoint(e))
   }, [])

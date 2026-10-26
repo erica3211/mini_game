@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useCallback, useLayoutEffect, useRef, useState } from 'react'
 import { BRUSH_THIN, CatchmindToolbar } from '../components/CatchmindToolbar'
 import { RemainingTime } from '../components/party/RemainingTime'
 import { RulesBox } from '../components/RulesBox'
@@ -40,6 +40,25 @@ export function AiCatchmind() {
 
   const isPlaying = (phase === 'drawing' || phase === 'revealed') && prompt !== undefined
 
+  // 정답 판정 뒤에는 위의 남은 시간 바가 사라지고 아래의 AI 말풍선·도구 모음이 짧은 배너로 바뀌어서,
+  // 그림판이 위로 밀리거나 페이지가 짧아진다. 그리는 동안의 높이를 기억해 두었다가 판정 뒤에도 같은 자리를 남겨
+  // 그림판 위치를 고정한다
+  const timerSlotRef = useRef<HTMLDivElement>(null)
+  const controlsRef = useRef<HTMLDivElement>(null)
+  const drawingHeightsRef = useRef({ timer: 0, controls: 0 })
+  useLayoutEffect(() => {
+    if (phase !== 'drawing') return
+    drawingHeightsRef.current = {
+      timer: timerSlotRef.current?.offsetHeight ?? 0,
+      controls: controlsRef.current?.offsetHeight ?? 0,
+    }
+  })
+  // Enter로 바로 다음 문제로 넘어가게 버튼에 포커스를 주되, autoFocus는 버튼이 화면 밖이면 페이지를 스크롤해서
+  // 그림판이 밀리므로(손가락이 아직 눌려 있으면 선이 엉뚱한 곳에 그어진다) 스크롤 없이 포커스만 준다
+  const focusWithoutScroll = useCallback((el: HTMLButtonElement | null) => el?.focus({ preventScroll: true }), [])
+  const keepHeight = (key: 'timer' | 'controls') =>
+    phase === 'revealed' ? { minHeight: drawingHeightsRef.current[key] } : undefined
+
   return (
     <section className="game-page game-page-fill">
       <h1 className="page-title">🎨 AI 캐치마인드</h1>
@@ -75,61 +94,69 @@ export function AiCatchmind() {
             </span>
           </div>
 
-          {phase === 'drawing' && game.startedAt !== null && (
-            <RemainingTime key={game.index} startedAt={game.startedAt} timeoutMs={CATCHMIND_TURN_TIMEOUT_MS} />
-          )}
+          <div ref={timerSlotRef} className="aicm-timer-slot" style={keepHeight('timer')}>
+            {phase === 'drawing' && game.startedAt !== null && (
+              <RemainingTime key={game.index} startedAt={game.startedAt} timeoutMs={CATCHMIND_TURN_TIMEOUT_MS} />
+            )}
+          </div>
 
           <p className="party-catchmind-word">제시어: {nameOf(prompt)}</p>
 
           <canvas ref={canvasRef} className="party-catchmind-board party-catchmind-board-drawable" {...drawingProps} />
 
-          {phase === 'drawing' && (
-            <>
-              <div className="aicm-ai" aria-live="polite">
-                <span className="aicm-ai-avatar" aria-hidden="true">
-                  🤖
-                </span>
-                <div className="aicm-ai-bubble">
-                  <p className="aicm-ai-line">{aiLine(game.guesses)}</p>
-                  {game.guesses.length > 0 && (
-                    <ol className="aicm-guesses">
-                      {game.guesses.map((g) => (
-                        <li key={g.index}>
-                          {nameOf(g.index)} <span className="aicm-guess-percent">{percent(g.probability)}</span>
-                        </li>
-                      ))}
-                    </ol>
-                  )}
+          <div
+            ref={controlsRef}
+            className="aicm-controls"
+            style={keepHeight('controls')}
+          >
+            {phase === 'drawing' && (
+              <>
+                <div className="aicm-ai" aria-live="polite">
+                  <span className="aicm-ai-avatar" aria-hidden="true">
+                    🤖
+                  </span>
+                  <div className="aicm-ai-bubble">
+                    <p className="aicm-ai-line">{aiLine(game.guesses)}</p>
+                    {game.guesses.length > 0 && (
+                      <ol className="aicm-guesses">
+                        {game.guesses.map((g) => (
+                          <li key={g.index}>
+                            {nameOf(g.index)} <span className="aicm-guess-percent">{percent(g.probability)}</span>
+                          </li>
+                        ))}
+                      </ol>
+                    )}
+                  </div>
                 </div>
+
+                <CatchmindToolbar
+                  color={color}
+                  width={width}
+                  onColorChange={setColor}
+                  onWidthChange={setWidth}
+                  onUndo={game.undoStroke}
+                  onClear={game.clearBoard}
+                />
+                <button type="button" className="btn btn-secondary aicm-giveup" onClick={game.giveUp}>
+                  포기하기
+                </button>
+              </>
+            )}
+
+            {phase === 'revealed' && lastResult && (
+              <div className={`banner ${lastResult.correct ? 'banner-won' : 'banner-lost'} aicm-reveal`}>
+                <p className="banner-title">
+                  {lastResult.correct ? `🤖 "${nameOf(prompt)}!" AI가 맞혔어요! +${lastResult.score}점 🎉` : 'AI가 못 맞혔어요 😢'}
+                </p>
+                {!lastResult.correct && game.guesses[0] && (
+                  <p className="banner-answer">AI는 마지막에 {nameOf(game.guesses[0].index)}(이)라고 생각했어요.</p>
+                )}
+                <button type="button" className="btn btn-primary" onClick={game.next} ref={focusWithoutScroll}>
+                  {game.index + 1 < game.total ? '다음 문제' : '결과 보기'}
+                </button>
               </div>
-
-              <CatchmindToolbar
-                color={color}
-                width={width}
-                onColorChange={setColor}
-                onWidthChange={setWidth}
-                onUndo={game.undoStroke}
-                onClear={game.clearBoard}
-              />
-              <button type="button" className="btn btn-secondary aicm-giveup" onClick={game.giveUp}>
-                포기하기
-              </button>
-            </>
-          )}
-
-          {phase === 'revealed' && lastResult && (
-            <div className={`banner ${lastResult.correct ? 'banner-won' : 'banner-lost'} aicm-reveal`}>
-              <p className="banner-title">
-                {lastResult.correct ? `🤖 "${nameOf(prompt)}!" AI가 맞혔어요! +${lastResult.score}점 🎉` : 'AI가 못 맞혔어요 😢'}
-              </p>
-              {!lastResult.correct && game.guesses[0] && (
-                <p className="banner-answer">AI는 마지막에 {nameOf(game.guesses[0].index)}(이)라고 생각했어요.</p>
-              )}
-              <button type="button" className="btn btn-primary" onClick={game.next} autoFocus>
-                {game.index + 1 < game.total ? '다음 문제' : '결과 보기'}
-              </button>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       )}
 

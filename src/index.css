@@ -3563,6 +3563,22 @@ button {
   color: var(--text-info);
 }
 
+/* 남은 시간 바 자리 — 판정 뒤 바가 사라져도 그림판이 올라오지 않게 높이를 유지한다 */
+.aicm-timer-slot {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+/* 그리는 동안엔 AI 말풍선·도구 모음, 판정 뒤엔 결과 배너가 들어가는 영역 */
+.aicm-controls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+}
+
 .aicm-giveup {
   font-size: 0.85rem;
   padding: 0.4rem 1rem;
