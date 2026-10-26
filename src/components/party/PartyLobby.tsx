@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { CategoryPicker } from '../CategoryPicker'
+import { ConfirmModal } from '../ConfirmModal'
 import { Modal } from '../Modal'
 import { useWordChainCategories } from '../../hooks/useWordChainCategories'
 import { MIN_PLAYERS_TO_START, WORD_CHAIN_MIN_CANDIDATES, type GameId, type PlayerInfo } from '../../lib/partyProtocol'
@@ -21,6 +22,8 @@ export function PartyLobby({ session }: Props) {
   const state = session.roomState!
   const [copied, setCopied] = useState(false)
   const [categoryModalOpen, setCategoryModalOpen] = useState(false)
+  // 방장 권한을 넘길지 확인 중인 참가자 (null이면 확인창이 닫혀 있다)
+  const [transferTarget, setTransferTarget] = useState<PlayerInfo | null>(null)
   const inviteUrl = `${window.location.origin}/party/${state.code}`
 
   const connectedPlayers = state.players.filter((p) => p.connected)
@@ -104,11 +107,33 @@ export function PartyLobby({ session }: Props) {
       </div>
 
       <h2 className="party-section-title">참가자 ({connectedPlayers.length}명)</h2>
+      {session.isHost && connectedPlayers.length > 1 && (
+        <p className="party-player-hint">참가자를 누르면 방장 권한을 넘길 수 있어요.</p>
+      )}
       <ul className="party-player-list">
         {sortedPlayers.map((p) => {
           const badge = readyBadge(p)
+          // 방장은 연결되어 있는 다른 참가자를 눌러 방장 권한을 넘길 수 있다
+          const canTransfer = session.isHost && p.id !== session.playerId && p.connected
           return (
-            <li key={p.id} className="party-player-row">
+            <li
+              key={p.id}
+              className={`party-player-row${canTransfer ? ' party-player-row-clickable' : ''}`}
+              {...(canTransfer
+                ? {
+                    role: 'button',
+                    tabIndex: 0,
+                    title: '눌러서 방장 권한 넘기기',
+                    onClick: () => setTransferTarget(p),
+                    onKeyDown: (e: React.KeyboardEvent) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault()
+                        setTransferTarget(p)
+                      }
+                    },
+                  }
+                : {})}
+            >
               <span>
                 {p.isHost && '👑 '}
                 {p.nickname}
@@ -298,6 +323,16 @@ export function PartyLobby({ session }: Props) {
           </CategoryPicker>
         </Modal>
       </div>
+
+      <ConfirmModal
+        open={transferTarget !== null && session.isHost}
+        message={`방장 권한을 '${transferTarget?.nickname ?? ''}'님께 넘겨드릴까요?`}
+        onConfirm={() => {
+          if (transferTarget) session.transferHost(transferTarget.id)
+          setTransferTarget(null)
+        }}
+        onCancel={() => setTransferTarget(null)}
+      />
     </section>
   )
 }

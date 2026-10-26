@@ -502,6 +502,8 @@ export interface ClientToServerEvents {
   /** 방에서 완전히 나감. 나간 사람이 방장이었다면 가장 먼저 들어온 남은 사람이 새 방장이 됨 */
   'player:leave': () => void
   'host:updateConfig': (config: Partial<SessionConfig>) => void
+  /** 대기실에서 방장이 연결되어 있는 다른 참가자에게 방장 권한을 넘긴다 */
+  'host:transferHost': (targetPlayerId: string) => void
   'host:start': () => void
   'host:nextRound': () => void
   /** 게임 도중(카운트다운/라운드 진행/결과 공개 중) 방장이 눌러서 즉시 중단하고 대기실로 돌아간다.

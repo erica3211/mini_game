@@ -350,6 +350,7 @@ export function useGameSession(roomCodeFromUrl?: string) {
 
   const setReady = useCallback((ready: boolean) => socket.emit('player:ready', ready), [socket])
   const updateConfig = useCallback((patch: Partial<SessionConfig>) => socket.emit('host:updateConfig', patch), [socket])
+  const transferHost = useCallback((targetPlayerId: string) => socket.emit('host:transferHost', targetPlayerId), [socket])
   const start = useCallback(() => socket.emit('host:start'), [socket])
   const nextRound = useCallback(() => socket.emit('host:nextRound'), [socket])
   const returnToLobby = useCallback(() => socket.emit('host:returnToLobby'), [socket])
@@ -402,6 +403,7 @@ export function useGameSession(roomCodeFromUrl?: string) {
     joinRoom,
     setReady,
     updateConfig,
+    transferHost,
     start,
     nextRound,
     returnToLobby,

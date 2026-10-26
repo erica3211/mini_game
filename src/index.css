@@ -1201,6 +1201,23 @@ button {
   padding: 0.6rem 0.9rem;
 }
 
+/* 방장이 눌러서 방장 권한을 넘길 수 있는 참가자 줄 */
+.party-player-row-clickable {
+  cursor: pointer;
+}
+
+.party-player-row-clickable:hover,
+.party-player-row-clickable:focus-visible {
+  border-color: var(--border-strong);
+  outline: none;
+}
+
+.party-player-hint {
+  margin: -0.25rem 0 0.5rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
 .party-config {
   margin-top: 1.5rem;
   border-top: 1px solid var(--border);
