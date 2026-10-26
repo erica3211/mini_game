@@ -3465,6 +3465,11 @@ button {
   max-width: 420px;
 }
 
+/* 두 카드의 높이가 항상 같도록, 칸(li)을 늘리고 버튼이 그 칸을 가득 채운다 */
+.party-minority-options li {
+  display: flex;
+}
+
 .party-minority-option {
   position: relative;
   display: flex;
