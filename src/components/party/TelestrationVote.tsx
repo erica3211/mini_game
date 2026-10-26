@@ -144,13 +144,13 @@ export function TelestrationVote({ socket, reveal, playerId, players }: Props) {
                     nickname={nicknameOf(step.playerId)}
                     order={s + 1}
                   >
-                    {step.kind === 'draw' && (
+                    {/* 내가 그린 그림에는 투표할 수 없으므로 👍 버튼 자체를 보여주지 않는다 */}
+                    {step.kind === 'draw' && !mine && (
                       <button
                         type="button"
                         className={`party-telestration-vote${voted ? ' party-telestration-vote-active' : ''}`}
                         onClick={() => toggleVote(c, s)}
-                        disabled={mine}
-                        title={mine ? '내가 그린 그림에는 투표할 수 없어요' : voted ? '투표 취소' : '이 그림에 투표'}
+                        title={voted ? '투표 취소' : '이 그림에 투표'}
                       >
                         <span aria-hidden>👍</span>
                         {(counts[c]?.[s] ?? 0) > 0 && <span>{counts[c][s]}</span>}

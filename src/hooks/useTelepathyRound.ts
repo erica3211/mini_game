@@ -12,7 +12,7 @@ import { useMonotonicStartedAt } from './useMonotonicStartedAt'
 type PartySocket = Socket<ServerToClientEvents, ClientToServerEvents>
 type LocalStatus = 'waiting' | 'running' | 'submitted'
 
-// 화면에 보이는 10초가 다 되기 살짝 전에 자동 제출을 보낸다 (scavengerHunt와 같은 이유) —
+// 화면에 보이는 15초가 다 되기 살짝 전에 자동 제출을 보낸다 (scavengerHunt와 같은 이유) —
 // 서버도 TELEPATHY_SUBMIT_GRACE_MS만큼 마감을 늦춰주지만, 클라이언트도 여유를 둬서 느린 네트워크에서 미제출(0점) 처리되는 일을 줄인다
 const AUTO_SUBMIT_MARGIN_MS = 500
 

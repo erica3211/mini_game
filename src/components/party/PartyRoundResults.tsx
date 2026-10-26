@@ -90,7 +90,7 @@ export function PartyRoundResults({ session }: Props) {
       return ` (3라운드 합산 ${entry.value}점)`
     }
     if (lastRound.gameId === 'telepathy' && entry.value !== undefined) {
-      return ` (5라운드 합산 ${entry.value}점)`
+      return ` (${telepathyMeta?.subRounds.length ?? 3}라운드 합산 ${entry.value}점)`
     }
     if (lastRound.gameId === 'catchmind' && entry.value !== undefined) {
       return ` (전체 턴 합산 ${entry.value}점)`

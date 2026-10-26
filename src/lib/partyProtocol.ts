@@ -310,8 +310,8 @@ export const CATCHMIND_MIN_STROKE_WIDTH = 2
 export const CATCHMIND_MAX_STROKE_WIDTH = 32
 
 // 텔레파시: 서브라운드 개수 / 서브라운드 하나의 제한 시간 (backend/types.ts와 값이 같아야 한다)
-export const TELEPATHY_SUB_ROUNDS = 5
-export const TELEPATHY_SUB_ROUND_MS = 10_000
+export const TELEPATHY_SUB_ROUNDS = 3
+export const TELEPATHY_SUB_ROUND_MS = 15_000
 
 // 이어그리기: 그림 단계 / 글 단계 제한 시간 (전원이 제출하면 조기에 다음 단계로 넘어간다)
 export const TELESTRATION_DRAW_TIMEOUT_MS = 60_000
