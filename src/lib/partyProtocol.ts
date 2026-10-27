@@ -19,6 +19,7 @@ export type GameId =
   | 'minority'
   | 'acrostic'
   | 'liarQuiz'
+  | 'simon'
 
 export interface ModeCategory {
   id: 'INDIVIDUAL' | 'TEAM' | 'COOP'
@@ -300,6 +301,52 @@ export interface TelepathyStartSignal {
   reveal?: TelepathySubRoundResult | null
 }
 
+// 기억력 시퀀스 (games/simon.ts 참고): 단계마다 랜덤으로 뽑히는 입력 방식
+export const SIMON_INPUT_TYPE_IDS = ['color', 'arrow', 'emoji', 'grid', 'piano'] as const
+export type SimonInputTypeId = (typeof SIMON_INPUT_TYPE_IDS)[number]
+
+export interface SimonTiming {
+  introMs: number
+  flashMs: number
+  gapMs: number
+  inputMs: number
+}
+
+export interface SimonPlayerStageResult {
+  answer: string[] | null
+  correct: number
+  wrong: number
+  accuracyScore: number
+  speedBonus: number
+  score: number
+  elapsedMs: number | null
+}
+
+export interface SimonStageResult {
+  stageIndex: number
+  inputType: SimonInputTypeId
+  groupLabel: string | null
+  alphabet: string[]
+  sequence: string[]
+  players: Record<PlayerId, SimonPlayerStageResult>
+}
+
+export interface SimonRoundMeta {
+  stages: SimonStageResult[]
+}
+
+export interface SimonStartSignal {
+  stageIndex: number
+  inputType: SimonInputTypeId
+  groupLabel: string | null
+  alphabet: string[]
+  sequence: string[]
+  timing: SimonTiming
+  elapsedMs: number
+  myAnswer: string[] | null
+  reveal: SimonStageResult | null
+}
+
 // 막장 행시: 투표 화면에 보이는 작품 한 편 — 작성자는 숨기고, id는 이번 투표에서만 쓰는 번호다
 export interface AcrosticPoem {
   id: number
@@ -507,6 +554,9 @@ export const LIARQUIZ_FAKE_MAX_COUNT = 5
 export const MINORITY_SUB_ROUNDS = 5
 export const MINORITY_SUB_ROUND_MS = 10_000
 
+// 기억력 시퀀스: 한 라운드 안의 단계 수 (backend/types.ts와 값이 같아야 한다). 시간표는 단계 시작 신호(timing)로 받는다
+export const SIMON_STAGES = 3
+
 // 텔레파시: 서브라운드 개수 / 서브라운드 하나의 제한 시간 (backend/types.ts와 값이 같아야 한다)
 export const TELEPATHY_SUB_ROUNDS = 3
 export const TELEPATHY_SUB_ROUND_MS = 15_000
@@ -711,6 +761,8 @@ export interface ClientToServerEvents {
   'liarQuiz:submitQuestion': (data: LiarQuizQuestionDraft) => void
   /** 맞히는 사람의 보기 선택. confirm=false면 임시 선택(바꿀 수 있고 구경하는 사람에게 실시간 중계), true면 이 보기로 확정 */
   'liarQuiz:pick': (data: { turnIndex: number; choiceId: number; confirm: boolean }) => void
+  /** 기억력 시퀀스 답 제출. answer는 alphabet의 심볼을 입력 순서대로 담은 배열 */
+  'simon:submit': (data: { stageIndex: number; answer: string[] }) => void
 }
 
 /** Server -> Client */
@@ -875,6 +927,10 @@ export interface ServerToClientEvents {
   'telepathy:roundStart': (data: TelepathyStartSignal) => void
   /** 서브라운드가 끝났을 때 전원에게 방송하는 선택 공개 */
   'telepathy:subRoundResult': (data: TelepathySubRoundResult) => void
+  /** 기억력 시퀀스 단계 시작(재접속 시 재전송). 시퀀스는 전원 동일 */
+  'simon:stageStart': (data: SimonStartSignal) => void
+  /** 단계가 끝났을 때 전원에게 방송하는 정답과 참가자별 채점 결과 */
+  'simon:stageResult': (data: SimonStageResult) => void
   /** 소수의견 서브라운드 시작(재접속 시 재전송). options는 플레이어마다 순서가 섞여 있고, myChoice는 이미 골랐던 쪽(없으면 null) */
   'minority:roundStart': (data: MinorityStartSignal) => void
   /** 서브라운드가 끝났을 때 전원에게 방송하는 선택 공개 */

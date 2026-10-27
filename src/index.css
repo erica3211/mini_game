@@ -4580,3 +4580,274 @@ button {
   cursor: default;
   opacity: 0.7;
 }
+
+/* 기억력 시퀀스 */
+/* 색 심볼 팔레트 — 키와 칩이 같이 쓴다. 라이트는 파스텔, 다크는 어두운 배경에서도 구분되는 채도 높은 색 */
+:root,
+:root[data-theme='light'] {
+  --simon-red: #ffb3c1;
+  --simon-blue: #a9d4ff;
+  --simon-green: #a8ecce;
+  --simon-yellow: #ffe58f;
+}
+
+:root[data-theme='dark'] {
+  --simon-red: #c2415f;
+  --simon-blue: #3b7dd8;
+  --simon-green: #2e9a6b;
+  --simon-yellow: #c2a21f;
+}
+
+.party-simon-stage-label {
+  margin: 0;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+/* 남은 시간이 나타나기 전에도 같은 높이를 차지해서, 입력이 열릴 때 화면이 밀리지 않게 한다 */
+.party-simon-timer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2rem;
+}
+
+.party-simon-pad {
+  display: grid;
+  gap: 0.6rem;
+  width: 100%;
+  max-width: 320px;
+}
+
+.party-simon-key {
+  min-height: 4.2rem;
+  padding: 0.5rem;
+  background: var(--surface);
+  color: var(--text);
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  font: inherit;
+  font-size: 1.6rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.12s, box-shadow 0.12s, background 0.12s;
+}
+
+.party-simon-key-locked {
+  cursor: default;
+}
+
+.party-simon-key:not(.party-simon-key-locked):active {
+  transform: scale(0.96);
+}
+
+/* 점멸 — 색 키는 밝기와 테두리 링으로, 나머지는 하이라이트 배경으로 강조한다 */
+.party-simon-key-lit {
+  transform: scale(1.08);
+  background: var(--tint-info);
+  border-color: var(--text-info);
+  box-shadow: 0 0 0 4px var(--text-info);
+}
+
+.party-simon-pad-blank {
+  min-height: 4.2rem;
+}
+
+.party-simon-pad-grid .party-simon-key {
+  min-height: 5rem;
+}
+
+/* 건반: 흰 건반 7개를 틈 없이 붙이고, 그 위에 검은 건반을 얹어 실제 피아노처럼 보이게 한다.
+   흰 건반은 테마와 상관없이 흰색으로 둔다 (어두운 배경에서도 건반으로 보이도록) */
+.party-simon-pad-piano {
+  position: relative;
+  gap: 0;
+  max-width: 340px;
+}
+
+.party-simon-pad-piano .party-simon-key {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  min-height: 11rem;
+  padding: 0 0 0.6rem;
+  background: #fff;
+  color: #3a3a3a;
+  border: 1px solid #2b2b2b;
+  border-radius: 0 0 0.4rem 0.4rem;
+  font-size: 1rem;
+}
+
+/* 점멸·눌림은 건반 안쪽 테두리로 표시한다 (바깥으로 번지면 이웃 건반과 검은 건반을 덮는다) */
+.party-simon-pad-piano .party-simon-key-lit {
+  transform: none;
+  background: #bfe0ff;
+  border-color: #2b2b2b;
+  box-shadow: inset 0 0 0 3px var(--text-info);
+}
+
+.party-simon-pad-piano .party-simon-key:not(.party-simon-key-locked):active {
+  transform: none;
+  background: #e3f1ff;
+}
+
+.party-simon-piano-black {
+  position: absolute;
+  top: 0;
+  height: 62%;
+  transform: translateX(-50%);
+  background: linear-gradient(180deg, #111 0%, #2a2a2a 100%);
+  border-radius: 0 0 0.3rem 0.3rem;
+  box-shadow: 0 0 0 1px #000, 0 2px 3px rgba(0, 0, 0, 0.35);
+  /* 눌러도 아래의 흰 건반이 눌린다 */
+  pointer-events: none;
+  z-index: 1;
+}
+
+.party-simon-slots,
+.party-simon-chips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.35rem;
+  max-width: 360px;
+}
+
+.party-simon-slot,
+.party-simon-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.1rem;
+  height: 2.1rem;
+  border-radius: 0.6rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.party-simon-slot {
+  border: 2px dashed var(--border);
+}
+
+.party-simon-chip {
+  background: var(--tint-info);
+  border: 2px solid var(--text-info);
+  color: var(--text);
+}
+
+/* 색 심볼 (키와 칩 공용) — 기본 배경 규칙들보다 뒤에 두어야 덮어쓴다 */
+.party-simon-sym-red {
+  background: var(--simon-red);
+}
+.party-simon-sym-blue {
+  background: var(--simon-blue);
+}
+.party-simon-sym-green {
+  background: var(--simon-green);
+}
+.party-simon-sym-yellow {
+  background: var(--simon-yellow);
+}
+
+.party-simon-chip.party-simon-sym-red,
+.party-simon-chip.party-simon-sym-blue,
+.party-simon-chip.party-simon-sym-green,
+.party-simon-chip.party-simon-sym-yellow {
+  border-color: var(--border-strong);
+}
+
+.party-simon-key.party-simon-sym-red,
+.party-simon-key.party-simon-sym-blue,
+.party-simon-key.party-simon-sym-green,
+.party-simon-key.party-simon-sym-yellow {
+  min-height: 5.5rem;
+}
+
+.party-simon-key-lit.party-simon-sym-red,
+.party-simon-key-lit.party-simon-sym-blue,
+.party-simon-key-lit.party-simon-sym-green,
+.party-simon-key-lit.party-simon-sym-yellow {
+  filter: brightness(1.12) saturate(1.3);
+  border-color: var(--text);
+  box-shadow: 0 0 0 4px var(--text);
+}
+
+/* 틀린 칸 — 색 칩의 배경/테두리(위 규칙)를 이기도록 한 단계 높은 선택자를 쓰고, 색을 못 보는 사람도 알도록 ✕ 표시를 얹는다 */
+.party-simon-chip.party-simon-chip-wrong {
+  position: relative;
+  border-color: var(--border-danger);
+  box-shadow: 0 0 0 2px var(--border-danger);
+}
+
+.party-simon-chip.party-simon-chip-wrong::after {
+  content: '✕';
+  position: absolute;
+  top: -0.45rem;
+  right: -0.35rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1rem;
+  height: 1rem;
+  border-radius: 50%;
+  background: var(--text-danger);
+  color: #fff;
+  font-size: 0.6rem;
+}
+
+.party-simon-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.party-simon-result-score {
+  margin: 0;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.party-simon-reveal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  width: 100%;
+}
+
+.party-simon-reveal-header {
+  font-weight: 700;
+}
+
+.party-simon-reveal-label {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.party-simon-reveal-players {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  width: 100%;
+  font-size: 0.9rem;
+}
+
+.party-simon-reveal-player-head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.25rem;
+  margin-bottom: 0.25rem;
+  color: var(--text-muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .party-simon-key,
+  .party-simon-key-lit {
+    transition: none;
+    transform: none;
+  }
+}

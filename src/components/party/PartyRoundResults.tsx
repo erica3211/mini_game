@@ -5,6 +5,7 @@ import { pickAuctionFlavors } from '../../lib/auctionItems'
 import { colorMatchGradeOf, rgbToCss } from '../../lib/colorMath'
 import {
   auctionItemNumber,
+  SIMON_STAGES,
   type AuctionRoundMeta,
   type BalloonPopRoundMeta,
   type CatchmindRoundMeta,
@@ -14,6 +15,7 @@ import {
   type AcrosticRoundMeta,
   type LiarQuizRoundMeta,
   type MinorityRoundMeta,
+  type SimonRoundMeta,
   type TelepathyRoundMeta,
   type TelestrationRoundMeta,
   type TypeRaceRoundMeta,
@@ -26,6 +28,7 @@ import { PartyScoreList } from './PartyScoreList'
 import { PartySubRoundCarousel } from './PartySubRoundCarousel'
 import { PartySubRoundPager } from './PartySubRoundPager'
 import { PixelCanvasSnapshot } from './PixelCanvasSnapshot'
+import { SimonStageReveal } from './SimonStageReveal'
 import { TelestrationStepCard } from './TelestrationStepCard'
 
 interface Props {
@@ -54,6 +57,7 @@ export function PartyRoundResults({ session }: Props) {
   const acrosticMeta = lastRound.gameId === 'acrostic' ? (lastRound.meta as AcrosticRoundMeta | undefined) : undefined
   const liarQuizMeta = lastRound.gameId === 'liarQuiz' ? (lastRound.meta as LiarQuizRoundMeta | undefined) : undefined
   const minorityMeta = lastRound.gameId === 'minority' ? (lastRound.meta as MinorityRoundMeta | undefined) : undefined
+  const simonMeta = lastRound.gameId === 'simon' ? (lastRound.meta as SimonRoundMeta | undefined) : undefined
   const catchmindMeta = lastRound.gameId === 'catchmind' ? (lastRound.meta as CatchmindRoundMeta | undefined) : undefined
   const typeRaceMeta = lastRound.gameId === 'typeRace' ? (lastRound.meta as TypeRaceRoundMeta | undefined) : undefined
   const telestrationMeta =
@@ -107,6 +111,9 @@ export function PartyRoundResults({ session }: Props) {
     }
     if (lastRound.gameId === 'minority' && entry.value !== undefined) {
       return ` (${minorityMeta?.subRounds.length ?? 5}라운드 합산 ${entry.value}점)`
+    }
+    if (lastRound.gameId === 'simon' && entry.value !== undefined) {
+      return ` (${simonMeta?.stages.length ?? SIMON_STAGES}단계 합산 ${entry.value}점)`
     }
     if (lastRound.gameId === 'catchmind' && entry.value !== undefined) {
       return ` (전체 턴 합산 ${entry.value}점)`
@@ -389,6 +396,19 @@ export function PartyRoundResults({ session }: Props) {
                       </li>
                     ))}
                 </ul>
+              </div>
+            ))}
+          </PartySubRoundCarousel>
+        </div>
+      )}
+
+      {simonMeta && simonMeta.stages.length > 0 && (
+        <div className="party-telepathy-reveal">
+          <PartySubRoundPager current={subRoundPage} total={simonMeta.stages.length} onChange={setSubRoundPage} unit="단계" />
+          <PartySubRoundCarousel current={subRoundPage} onChange={setSubRoundPage}>
+            {simonMeta.stages.map((stage) => (
+              <div className="party-telepathy-reveal-item" key={stage.stageIndex}>
+                <SimonStageReveal result={stage} nicknameOf={nicknameOf} />
               </div>
             ))}
           </PartySubRoundCarousel>

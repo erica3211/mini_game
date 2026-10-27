@@ -14,6 +14,7 @@ import { PartyExitToLobbyButton } from './PartyExitToLobbyButton'
 import { PixelCanvasGame } from './PixelCanvasGame'
 import { ScavengerHuntGame } from './ScavengerHuntGame'
 import { ShoutRaceGame } from './ShoutRaceGame'
+import { SimonGame } from './SimonGame'
 import { TelepathyGame } from './TelepathyGame'
 import { TelestrationGame } from './TelestrationGame'
 import { TypeRaceGame } from './TypeRaceGame'
@@ -166,6 +167,16 @@ function renderGame(session: GameSession, roundKey: string) {
           composeSignal={session.liarQuizCompose}
           writeSignal={session.liarQuizWrite}
           guessSignal={session.liarQuizGuess}
+          playerId={session.playerId}
+          players={state.players}
+        />
+      )
+    case 'simon':
+      return (
+        <SimonGame
+          socket={session.socket}
+          roundKey={roundKey}
+          startSignal={session.simonStart}
           playerId={session.playerId}
           players={state.players}
         />

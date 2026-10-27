@@ -16,6 +16,7 @@ import type {
   LiarQuizWriteSignal,
   LiarQuizGuessSignal,
   LiarQuizComposeSignal,
+  SimonStartSignal,
 } from '../lib/partyProtocol'
 import { clearAllDrafts } from '../lib/sessionDraft'
 import { useSocket } from './useSocket'
@@ -145,6 +146,7 @@ export function useGameSession(roomCodeFromUrl?: string) {
   const [liarQuizCompose, setLiarQuizCompose] = useState<LiarQuizComposeSignal | null>(null)
   const [liarQuizWrite, setLiarQuizWrite] = useState<LiarQuizWriteSignal | null>(null)
   const [liarQuizGuess, setLiarQuizGuess] = useState<LiarQuizGuessSignal | null>(null)
+  const [simonStart, setSimonStart] = useState<SimonStartSignal | null>(null)
   const [telestrationTask, setTelestrationTask] = useState<TelestrationTaskSignal | null>(null)
   const [telestrationReveal, setTelestrationReveal] = useState<TelestrationRevealSignal | null>(null)
   const [telestrationWordPrompt, setTelestrationWordPrompt] = useState<TelestrationWordPromptSignal | null>(null)
@@ -186,6 +188,7 @@ export function useGameSession(roomCodeFromUrl?: string) {
         setLiarQuizCompose(null)
         setLiarQuizWrite(null)
         setLiarQuizGuess(null)
+        setSimonStart(null)
         setTelestrationTask(null)
         setTelestrationReveal(null)
         setTelestrationWordPrompt(null)
@@ -258,6 +261,7 @@ export function useGameSession(roomCodeFromUrl?: string) {
       setLiarQuizGuess((prev) => (prev && prev.turnIndex === data.turnIndex ? { ...prev, pickedId: data.choiceId } : prev))
     const onLiarQuizTurnResult = (data: ServerSignal<'liarQuiz:turnResult'>) =>
       setLiarQuizGuess((prev) => (prev && prev.turnIndex === data.turnIndex ? { ...prev, reveal: data } : prev))
+    const onSimonStart = (data: SimonStartSignal) => setSimonStart(data)
     const onTelestrationTask = (data: TelestrationTaskSignal) => setTelestrationTask(data)
     const onTelestrationReveal = (data: TelestrationRevealSignal) => setTelestrationReveal(data)
     const onTelestrationWordPrompt = (data: TelestrationWordPromptSignal) => setTelestrationWordPrompt(data)
@@ -292,6 +296,7 @@ export function useGameSession(roomCodeFromUrl?: string) {
     socket.on('liarQuiz:progress', onLiarQuizProgress)
     socket.on('liarQuiz:picked', onLiarQuizPicked)
     socket.on('liarQuiz:turnResult', onLiarQuizTurnResult)
+    socket.on('simon:stageStart', onSimonStart)
     socket.on('telestration:task', onTelestrationTask)
     socket.on('telestration:reveal', onTelestrationReveal)
     socket.on('telestration:wordPrompt', onTelestrationWordPrompt)
@@ -327,6 +332,7 @@ export function useGameSession(roomCodeFromUrl?: string) {
       socket.off('liarQuiz:progress', onLiarQuizProgress)
       socket.off('liarQuiz:picked', onLiarQuizPicked)
       socket.off('liarQuiz:turnResult', onLiarQuizTurnResult)
+      socket.off('simon:stageStart', onSimonStart)
       socket.off('telestration:task', onTelestrationTask)
       socket.off('telestration:reveal', onTelestrationReveal)
       socket.off('telestration:wordPrompt', onTelestrationWordPrompt)
@@ -362,7 +368,11 @@ export function useGameSession(roomCodeFromUrl?: string) {
           saveSession(roomCodeFromUrl, savedPlayerId)
           setPlayerId(savedPlayerId)
         } else {
+          // 방에서 나간 사람(나가기를 눌렀거나 오래 끊겨 있던 사람)이거나 방이 사라진 경우 — 앱을 안 닫고 있다가 돌아온 화면에 예전 방 상태가
+          // 남아 있지 않도록 비워서, 닉네임 입력부터 다시 시작하게 한다
           localStorage.removeItem(storageKey(roomCodeFromUrl))
+          setPlayerId(null)
+          setRoomState(null)
         }
       })
     }
@@ -458,6 +468,7 @@ export function useGameSession(roomCodeFromUrl?: string) {
     liarQuizCompose,
     liarQuizWrite,
     liarQuizGuess,
+    simonStart,
     telestrationTask,
     telestrationReveal,
     telestrationWordPrompt,
