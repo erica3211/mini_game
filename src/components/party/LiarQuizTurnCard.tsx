@@ -39,12 +39,13 @@ export function LiarQuizTurnCard({ result, nicknameOf }: Props) {
   else if (picked?.kind === 'lie') {
     const names = picked.authorIds.map(nicknameOf).join(', ')
     summary = `😈 ${guesser}님이 ${names}님의 거짓말에 속았어요!\n${names}님 +${result.authorPoints[picked.authorIds[0]] ?? 0}점`
-  } else if (picked) summary = `🎲 ${guesser}님이 랜덤 보기를 골랐어요.\n아무도 점수를 못 받았어요`
+  } else if (picked) summary = `🎲 ${guesser}님이 가짜 보기를 골랐어요.\n아무도 점수를 못 받았어요`
 
   return (
     <div className="party-liar-turn-card">
       <p className="party-liar-turn-label">
         {result.turnIndex + 1}번째 · {guesser}님이 맞히는 차례
+        {result.questionAuthorId !== null && ` · ${nicknameOf(result.questionAuthorId)}님이 낸 문제`}
       </p>
       <LiarQuizQuestion question={result.question} fill={result.answer} />
       <ul className="party-liar-choices">
@@ -56,7 +57,7 @@ export function LiarQuizTurnCard({ result, nicknameOf }: Props) {
             choice.kind === 'truth' ? 'party-liar-choice-truth' : '',
             isPicked && choice.kind !== 'truth' ? 'party-liar-choice-fooled' : '',
           ]
-          let who = '🎲 랜덤 보기'
+          let who = '🎲 가짜 보기'
           if (choice.kind === 'truth') who = '✅ 진짜 정답'
           else if (choice.kind === 'lie') who = `✍️ ${choice.authorIds.map(nicknameOf).join(', ')}`
           return (
@@ -64,7 +65,6 @@ export function LiarQuizTurnCard({ result, nicknameOf }: Props) {
               <div className={classes.join(' ')}>
                 <span className="party-liar-choice-text">{choice.text}</span>
                 <span className="party-liar-author">{who}</span>
-                {isPicked && <span className="party-liar-picked-badge">👈 {guesser}님의 선택</span>}
               </div>
             </li>
           )

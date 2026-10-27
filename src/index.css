@@ -3823,6 +3823,27 @@ button {
   border-color: var(--border-strong);
 }
 
+/* 직접 문제 만들기 입력 화면 */
+.party-liar-compose {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  width: 100%;
+  max-width: 420px;
+}
+
+.party-liar-textarea {
+  resize: vertical;
+  min-height: 4.5rem;
+}
+
+.party-liar-compose-label {
+  margin: 0.4rem 0 0;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
 .party-liar-choices {
   list-style: none;
   margin: 0;
@@ -3897,8 +3918,7 @@ button {
   overflow-wrap: anywhere;
 }
 
-.party-liar-author,
-.party-liar-picked-badge {
+.party-liar-author {
   padding: 0.05rem 0.5rem;
   border-radius: 999px;
   background: var(--info);
@@ -3909,11 +3929,6 @@ button {
 
 .party-liar-author-mine {
   background: var(--lavender);
-}
-
-.party-liar-picked-badge {
-  background: var(--tint-danger);
-  color: var(--text-danger);
 }
 
 .party-liar-turn-card {

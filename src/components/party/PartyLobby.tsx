@@ -284,6 +284,26 @@ export function PartyLobby({ session }: Props) {
                     )}
                   </div>
                 )}
+                {game.id === 'liarQuiz' && selected && (
+                  <div className="party-game-extra">
+                    <span>
+                      문제: <strong>{state.config.liarQuizQuestionMode === 'custom' ? '직접 입력' : '랜덤'}</strong>
+                    </span>
+                    {session.isHost && (
+                      <button
+                        type="button"
+                        className="btn btn-secondary"
+                        onClick={() =>
+                          session.updateConfig({
+                            liarQuizQuestionMode: state.config.liarQuizQuestionMode === 'custom' ? 'random' : 'custom',
+                          })
+                        }
+                      >
+                        {state.config.liarQuizQuestionMode === 'custom' ? '랜덤으로 변경' : '직접 입력으로 변경'}
+                      </button>
+                    )}
+                  </div>
+                )}
                 {game.id === 'wordChain' && selected && wordChainCategories && (
                   <div className="party-game-extra">
                     <span className={tooFewWords ? 'party-game-extra-warn' : undefined}>

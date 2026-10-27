@@ -68,6 +68,8 @@ export interface SessionConfig {
   wordChainCategories: string[] | null
   /** 이어그리기 제시어 방식 — random: 서버가 단어 은행에서 뽑는다, custom: 라운드 시작 전 참가자가 각자 하나씩 적는다 */
   telestrationWordMode: TelestrationWordMode
+  /** 거짓말쟁이 퀴즈 문제 방식 — random: 서버가 문항 은행에서 뽑는다, custom: 라운드 시작 직후 참가자가 각자 문제를 하나씩 만든다 */
+  liarQuizQuestionMode: LiarQuizQuestionMode
 }
 
 export interface RoundRankingEntry {
@@ -250,6 +252,9 @@ export interface CatchmindRoundMeta {
 // 이어그리기: 첫 제시어를 정하는 방식 (방장이 대기실에서 고른다)
 export type TelestrationWordMode = 'random' | 'custom'
 
+// 거짓말쟁이 퀴즈 문제 방식 — random: 서버가 문항 은행에서 뽑는다, custom: 라운드가 시작되면 참가자가 각자 문제를 하나씩 만든다
+export type LiarQuizQuestionMode = 'random' | 'custom'
+
 // 이어그리기: 한 단계의 종류 — 그림을 그리거나(draw), 앞사람의 그림을 글로 설명한다(write)
 export type TelestrationStepKind = 'draw' | 'write'
 
@@ -344,19 +349,21 @@ export interface LiarQuizChoice {
   text: string
 }
 
-// 구경하는 사람(맞히는 사람 외 전원) 화면의 보기. 진짜 정답과 filler는 작성자가 없어 둘 다 []이므로 이 값만으로는 구별되지 않는다
+// 구경하는 사람(맞히는 사람 외 전원) 화면의 보기. 이들은 작성 단계에서 이미 진짜 정답을 봤으니, 진짜 정답(kind)과 거짓말 작성자(authorIds)를
+// 처음부터 다 보여준다. 맞히는 사람에게만 이 둘이 가지 않는다
 export interface LiarQuizSpectatorChoice extends LiarQuizChoice {
+  kind: LiarQuizChoiceKind
   authorIds: PlayerId[]
 }
 
-// 공개 때 전원에게 보여주는 보기 — 정체와 작성자가 드러난다
-export interface LiarQuizRevealChoice extends LiarQuizSpectatorChoice {
-  kind: LiarQuizChoiceKind
-}
+// 공개 때 전원에게 보여주는 보기 — 구경하는 사람이 보던 것과 같은 모양이다
+export type LiarQuizRevealChoice = LiarQuizSpectatorChoice
 
 export interface LiarQuizTurnResult {
   turnIndex: number
   guesserId: PlayerId
+  /** 직접 만든 문제를 낸 사람. 문항 은행에서 뽑은 문제면 null */
+  questionAuthorId: PlayerId | null
   /** 빈칸('___') 포함 원문 */
   question: string
   answer: string
@@ -375,10 +382,32 @@ export interface LiarQuizRoundMeta {
   turns: LiarQuizTurnResult[]
 }
 
+// 직접 문제 만들기: 각자 낸 문제 (본인에게만 돌아온다)
+export interface LiarQuizQuestionDraft {
+  /** 빈칸('___') 하나가 들어 있는 문제 문장 */
+  text: string
+  /** 빈칸에 들어갈 진짜 정답 */
+  answer: string
+  /** 선택 입력인 가짜 답안 (없어도 된다) */
+  fakes: string[]
+}
+
+// 문제 입력 단계 신호 (직접 문제 만들기 방식에서만, 라운드 시작 직후)
+export interface LiarQuizComposeSignal {
+  elapsedMs: number
+  /** 이미 낸 사람이면 true — 이때 mine은 낸 내용 */
+  submitted: boolean
+  mine: LiarQuizQuestionDraft | null
+  submittedCount: number
+  totalPlayers: number
+}
+
 export interface LiarQuizWriteSignal {
   turnIndex: number
   totalTurns: number
   guesserId: PlayerId
+  /** 직접 만든 문제를 낸 사람. 문항 은행에서 뽑은 문제면 null */
+  questionAuthorId: PlayerId | null
   question: string
   /** 거짓말을 쓰는 사람에게만 값이 있다. 맞히는 사람은 항상 null */
   answer: string | null
@@ -393,6 +422,7 @@ export interface LiarQuizGuessSignal {
   turnIndex: number
   totalTurns: number
   guesserId: PlayerId
+  questionAuthorId: PlayerId | null
   question: string
   /** 맞히는 사람은 LiarQuizChoice[], 구경하는 사람은 LiarQuizSpectatorChoice[] */
   choices: (LiarQuizChoice | LiarQuizSpectatorChoice)[]
@@ -468,6 +498,10 @@ export const ACROSTIC_LINE_MAX_LENGTH = 40
 export const LIARQUIZ_WRITE_MS = 30_000
 export const LIARQUIZ_GUESS_MS = 20_000
 export const LIARQUIZ_LIE_MAX_LENGTH = 30
+// 직접 문제 만들기: 문제 입력 단계 제한 시간, 문제 문장의 최대 글자 수, 가짜 답안 최대 개수 (backend/types.ts와 값이 같아야 한다)
+export const LIARQUIZ_COMPOSE_MS = 90_000
+export const LIARQUIZ_QUESTION_MAX_LENGTH = 80
+export const LIARQUIZ_FAKE_MAX_COUNT = 5
 
 // 소수의견: 서브라운드 개수 / 서브라운드 하나의 제한 시간 (backend/types.ts와 값이 같아야 한다)
 export const MINORITY_SUB_ROUNDS = 5
@@ -673,6 +707,8 @@ export interface ClientToServerEvents {
   'acrostic:vote': (data: { poemId: number | null }) => void
   /** 거짓말 제출. 정답과 같은 말이면 liarQuiz:submitRejected로 되돌아온다 */
   'liarQuiz:submit': (data: { turnIndex: number; text: string }) => void
+  /** 직접 문제 만들기에서 내 문제를 낸다. 형식이 틀리면 liarQuiz:questionRejected로 되돌아온다 */
+  'liarQuiz:submitQuestion': (data: LiarQuizQuestionDraft) => void
   /** 맞히는 사람의 보기 선택. confirm=false면 임시 선택(바꿀 수 있고 구경하는 사람에게 실시간 중계), true면 이 보기로 확정 */
   'liarQuiz:pick': (data: { turnIndex: number; choiceId: number; confirm: boolean }) => void
 }
@@ -849,6 +885,12 @@ export interface ServerToClientEvents {
   'acrostic:submitRejected': (data: { reason: string }) => void
   /** 막장 행시 투표 단계 시작(재접속 시 재전송) */
   'acrostic:voteStart': (data: AcrosticVoteSignal) => void
+  /** 거짓말쟁이 퀴즈 문제 입력 단계 시작(직접 문제 만들기 방식, 재접속 시 재전송) */
+  'liarQuiz:composeStart': (data: LiarQuizComposeSignal) => void
+  /** 문제 입력 현황(몇 명이 냈는지) */
+  'liarQuiz:composeProgress': (data: { submitted: number; total: number }) => void
+  /** 내가 낸 문제가 반려됐을 때 본인에게만 오는 이유 */
+  'liarQuiz:questionRejected': (data: { reason: string }) => void
   /** 거짓말쟁이 퀴즈 작성 단계 시작(턴마다, 재접속 시 재전송) */
   'liarQuiz:writeStart': (data: LiarQuizWriteSignal) => void
   /** 거짓말 제출이 반려됐을 때 본인에게만 오는 이유 */

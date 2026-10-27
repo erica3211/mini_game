@@ -6,6 +6,7 @@ import {
   LIARQUIZ_LIE_MAX_LENGTH,
   LIARQUIZ_WRITE_MS,
   type ClientToServerEvents,
+  type LiarQuizComposeSignal,
   type LiarQuizGuessSignal,
   type LiarQuizSpectatorChoice,
   type LiarQuizWriteSignal,
@@ -13,32 +14,36 @@ import {
   type PlayerInfo,
   type ServerToClientEvents,
 } from '../../lib/partyProtocol'
+import { LiarQuizComposeForm } from './LiarQuizComposeForm'
 import { LiarQuizQuestion, LiarQuizTurnCard } from './LiarQuizTurnCard'
 import { RemainingTime } from './RemainingTime'
 
-// 구경하는 사람에게만 작성자가 실려 온다(맞히는 사람은 null). 진짜 정답과 랜덤 보기는 작성자가 없어 "?"로 보인다
-function authorLabelOf(authorIds: PlayerId[] | undefined, isMine: boolean, nicknameOf: (id: PlayerId) => string): string | null {
-  if (authorIds === undefined) return null
+// 구경하는 사람(맞히는 사람 외 전원)은 이미 정답을 알고 있으니, 보기마다 정체를 다 보여준다 — 진짜 정답 / 누가 쓴 거짓말 / 가짜 보기
+function choiceLabelOf(choice: LiarQuizSpectatorChoice, isMine: boolean, nicknameOf: (id: PlayerId) => string): string {
+  if (choice.kind === 'truth') return '✅ 진짜 정답'
   if (isMine) return '내 거짓말'
-  if (authorIds.length === 0) return '❓'
-  return `✍️ ${authorIds.map(nicknameOf).join(', ')}`
+  if (choice.kind === 'lie') return `✍️ ${choice.authorIds.map(nicknameOf).join(', ')}`
+  return '🎲 가짜 보기'
 }
 
 interface Props {
   socket: Socket<ServerToClientEvents, ClientToServerEvents>
   roundKey: string
+  composeSignal: LiarQuizComposeSignal | null
   writeSignal: LiarQuizWriteSignal | null
   guessSignal: LiarQuizGuessSignal | null
   playerId: string | null
   players: PlayerInfo[]
 }
 
-export function LiarQuizGame({ socket, roundKey, writeSignal, guessSignal, playerId, players }: Props) {
+export function LiarQuizGame({ socket, roundKey, composeSignal, writeSignal, guessSignal, playerId, players }: Props) {
   const round = useLiarQuizRound(socket, roundKey, playerId, writeSignal, guessSignal)
   const signal = guessSignal ?? writeSignal
   const nicknameOf = (id: string) => players.find((p) => p.id === id)?.nickname ?? '???'
 
   if (!signal) {
+    // 직접 문제 만들기: 첫 턴이 시작되기 전에 각자 문제를 낸다. key로 라운드가 바뀔 때 입력 상태를 비운다
+    if (composeSignal) return <LiarQuizComposeForm key={roundKey} socket={socket} roundKey={roundKey} signal={composeSignal} />
     return (
       <div className="party-round-stage">
         <p className="party-round-hint">곧 시작합니다...</p>
@@ -47,9 +52,15 @@ export function LiarQuizGame({ socket, roundKey, writeSignal, guessSignal, playe
   }
 
   const guesser = nicknameOf(signal.guesserId)
+  // 직접 만든 문제에서는 누가 낸 문제인지도 알려준다 (문항 은행의 문제는 낸 사람이 없다)
+  let authorNote = ''
+  if (signal.questionAuthorId !== null) {
+    authorNote = signal.questionAuthorId === playerId ? ' · 내가 낸 문제' : ` · ${nicknameOf(signal.questionAuthorId)}님이 낸 문제`
+  }
   const header = (
     <p className="party-liar-turn-label">
       {signal.turnIndex + 1} / {signal.totalTurns} 번째 · {round.isGuesser ? '내가 맞히는 차례!' : `${guesser}님이 맞히는 차례`}
+      {authorNote}
     </p>
   )
 
@@ -88,10 +99,14 @@ export function LiarQuizGame({ socket, roundKey, writeSignal, guessSignal, playe
         <ul className="party-liar-choices">
           {guessSignal.choices.map((choice) => {
             const isSelected = round.selectedId === choice.id
-            const authorIds = (choice as LiarQuizSpectatorChoice).authorIds
-            const isMine = playerId !== null && authorIds?.includes(playerId) === true
-            const authorLabel = authorLabelOf(authorIds, isMine, nicknameOf)
-            const classes = ['party-liar-choice', isSelected ? (round.isGuesser ? 'party-liar-choice-selected' : 'party-liar-choice-hovered') : '']
+            // 맞히는 사람에게 온 보기에는 kind·authorIds가 없다
+            const spectator = 'kind' in choice ? choice : null
+            const isMine = playerId !== null && spectator?.authorIds.includes(playerId) === true
+            const authorLabel = spectator ? choiceLabelOf(spectator, isMine, nicknameOf) : null
+            // 고르는 중에는 정답 보기를 초록색으로 칠하지 않는다 — 맞히는 사람 화면이 힐끗 보일 수 있어서, 정답은 라벨 글자로만 알려준다
+            let stateClass = ''
+            if (isSelected) stateClass = round.isGuesser ? 'party-liar-choice-selected' : 'party-liar-choice-hovered'
+            const classes = ['party-liar-choice', stateClass]
             return (
               <li key={choice.id}>
                 <button

@@ -163,6 +163,7 @@ function renderGame(session: GameSession, roundKey: string) {
         <LiarQuizGame
           socket={session.socket}
           roundKey={roundKey}
+          composeSignal={session.liarQuizCompose}
           writeSignal={session.liarQuizWrite}
           guessSignal={session.liarQuizGuess}
           playerId={session.playerId}

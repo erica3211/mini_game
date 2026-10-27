@@ -15,7 +15,9 @@ import type {
   AcrosticVoteSignal,
   LiarQuizWriteSignal,
   LiarQuizGuessSignal,
+  LiarQuizComposeSignal,
 } from '../lib/partyProtocol'
+import { clearAllDrafts } from '../lib/sessionDraft'
 import { useSocket } from './useSocket'
 import type {
   TelestrationRevealSignal,
@@ -140,6 +142,7 @@ export function useGameSession(roomCodeFromUrl?: string) {
   const [minorityStart, setMinorityStart] = useState<MinorityStartSignal | null>(null)
   const [acrosticWrite, setAcrosticWrite] = useState<AcrosticWriteSignal | null>(null)
   const [acrosticVote, setAcrosticVote] = useState<AcrosticVoteSignal | null>(null)
+  const [liarQuizCompose, setLiarQuizCompose] = useState<LiarQuizComposeSignal | null>(null)
   const [liarQuizWrite, setLiarQuizWrite] = useState<LiarQuizWriteSignal | null>(null)
   const [liarQuizGuess, setLiarQuizGuess] = useState<LiarQuizGuessSignal | null>(null)
   const [telestrationTask, setTelestrationTask] = useState<TelestrationTaskSignal | null>(null)
@@ -156,6 +159,8 @@ export function useGameSession(roomCodeFromUrl?: string) {
     const onState = (state: RoomState) => {
       setRoomState(state)
       if (state.phase !== 'round_active') {
+        // 라운드 밖에 남은 쓰다 만 초안은 낡은 것이다 — 다음 라운드(다른 방·다음 판 포함)에 되살아나지 않게 비운다
+        clearAllDrafts()
         setHumanTimerStart(null)
         setOneToTwentyFiveStart(null)
         setWordChainStart(null)
@@ -178,6 +183,7 @@ export function useGameSession(roomCodeFromUrl?: string) {
         setMinorityStart(null)
         setAcrosticWrite(null)
         setAcrosticVote(null)
+        setLiarQuizCompose(null)
         setLiarQuizWrite(null)
         setLiarQuizGuess(null)
         setTelestrationTask(null)
@@ -235,9 +241,14 @@ export function useGameSession(roomCodeFromUrl?: string) {
     const onAcrosticWrite = (data: AcrosticWriteSignal) => setAcrosticWrite(data)
     const onAcrosticVote = (data: AcrosticVoteSignal) => setAcrosticVote(data)
     // 새 턴의 작성 신호가 오면 지난 턴의 맞히기 신호는 버린다 (화면은 맞히기 신호가 있으면 맞히기 단계로 본다)
+    const onLiarQuizCompose = (data: LiarQuizComposeSignal) => setLiarQuizCompose(data)
+    const onLiarQuizComposeProgress = (data: { submitted: number }) =>
+      setLiarQuizCompose((prev) => (prev ? { ...prev, submittedCount: data.submitted } : prev))
     const onLiarQuizWrite = (data: LiarQuizWriteSignal) => {
       setLiarQuizWrite(data)
       setLiarQuizGuess(null)
+      // 첫 턴이 시작되면 문제 입력 단계는 끝난 것이다
+      setLiarQuizCompose(null)
     }
     const onLiarQuizGuess = (data: LiarQuizGuessSignal) => setLiarQuizGuess(data)
     // 아래 세 증분 이벤트는 화면이 아직 안 떠 있어도 놓치지 않도록 여기서 현재 신호에 합쳐둔다 (턴이 다르면 무시)
@@ -274,6 +285,8 @@ export function useGameSession(roomCodeFromUrl?: string) {
     socket.on('minority:roundStart', onMinorityStart)
     socket.on('acrostic:writeStart', onAcrosticWrite)
     socket.on('acrostic:voteStart', onAcrosticVote)
+    socket.on('liarQuiz:composeStart', onLiarQuizCompose)
+    socket.on('liarQuiz:composeProgress', onLiarQuizComposeProgress)
     socket.on('liarQuiz:writeStart', onLiarQuizWrite)
     socket.on('liarQuiz:guessStart', onLiarQuizGuess)
     socket.on('liarQuiz:progress', onLiarQuizProgress)
@@ -307,6 +320,8 @@ export function useGameSession(roomCodeFromUrl?: string) {
       socket.off('minority:roundStart', onMinorityStart)
       socket.off('acrostic:writeStart', onAcrosticWrite)
       socket.off('acrostic:voteStart', onAcrosticVote)
+      socket.off('liarQuiz:composeStart', onLiarQuizCompose)
+      socket.off('liarQuiz:composeProgress', onLiarQuizComposeProgress)
       socket.off('liarQuiz:writeStart', onLiarQuizWrite)
       socket.off('liarQuiz:guessStart', onLiarQuizGuess)
       socket.off('liarQuiz:progress', onLiarQuizProgress)
@@ -440,6 +455,7 @@ export function useGameSession(roomCodeFromUrl?: string) {
     minorityStart,
     acrosticWrite,
     acrosticVote,
+    liarQuizCompose,
     liarQuizWrite,
     liarQuizGuess,
     telestrationTask,

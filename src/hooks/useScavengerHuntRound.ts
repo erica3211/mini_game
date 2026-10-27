@@ -17,7 +17,9 @@ type SubRoundResult = { matchPercent: number; matchScore: number; speedScore: nu
 // 촬영한 사진/일치율은 브라우저 화면 안에만 있어서 새로고침하면 사라진다 — 서버는 사진을 모르니(분석은 기기 안에서 한다),
 // 세부 라운드마다 sessionStorage에 임시 저장해 두었다가 새로고침 후 같은 세부 라운드로 돌아오면 그대로 복원한다.
 // 저장은 실패해도(용량 초과·저장소 차단 등) 게임 진행에는 영향이 없어야 해서 모든 접근을 try/catch로 감싼다
-const CAPTURE_STORAGE_PREFIX = 'scavenger_capture_'
+// 키 접두사는 lib/sessionDraft의 'party_draft_'로 시작해야 한다 — 그래야 라운드가 끝났을 때 clearAllDrafts가 같이 비워서,
+// 이전 방·이전 판에서 찍은 사진이 같은 번호의 새 라운드에 되살아나지 않는다 (roundKey에는 방 코드가 없다)
+const CAPTURE_STORAGE_PREFIX = 'party_draft_scavenger_capture_'
 
 interface SavedCapture {
   matchPercent: number
