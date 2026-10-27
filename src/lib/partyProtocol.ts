@@ -18,6 +18,7 @@ export type GameId =
   | 'telepathy'
   | 'minority'
   | 'acrostic'
+  | 'liarQuiz'
 
 export interface ModeCategory {
   id: 'INDIVIDUAL' | 'TEAM' | 'COOP'
@@ -333,6 +334,75 @@ export interface AcrosticVoteSignal {
   elapsedMs: number
 }
 
+// 거짓말쟁이 퀴즈 (games/liarQuiz.ts 참고)
+// 보기의 정체 — truth는 진짜 정답, lie는 플레이어가 쓴 거짓말, filler는 모자란 자리를 채운 가짜 단어
+export type LiarQuizChoiceKind = 'truth' | 'lie' | 'filler'
+
+// 맞히는 사람 화면의 보기 — 정체(kind)와 작성자는 없다. id는 이번 턴에서만 쓰는 번호이고 섞인 위치와 같다
+export interface LiarQuizChoice {
+  id: number
+  text: string
+}
+
+// 구경하는 사람(맞히는 사람 외 전원) 화면의 보기. 진짜 정답과 filler는 작성자가 없어 둘 다 []이므로 이 값만으로는 구별되지 않는다
+export interface LiarQuizSpectatorChoice extends LiarQuizChoice {
+  authorIds: PlayerId[]
+}
+
+// 공개 때 전원에게 보여주는 보기 — 정체와 작성자가 드러난다
+export interface LiarQuizRevealChoice extends LiarQuizSpectatorChoice {
+  kind: LiarQuizChoiceKind
+}
+
+export interface LiarQuizTurnResult {
+  turnIndex: number
+  guesserId: PlayerId
+  /** 빈칸('___') 포함 원문 */
+  question: string
+  answer: string
+  /** 화면에 보이던 순서 그대로 */
+  choices: LiarQuizRevealChoice[]
+  /** 맞히는 사람이 고른 보기 id. 시간 안에 고르지 못했으면 null */
+  pickedId: number | null
+  guesserPoints: number
+  /** 속은 경우 그 거짓말 작성자들만 {작성자: 점수}. 아니면 빈 객체 */
+  authorPoints: Record<PlayerId, number>
+  /** 거짓말이 5개를 넘어 뽑히지 못한 거짓말 (작성자는 점수를 못 받는다) */
+  droppedLies: { playerId: PlayerId; text: string }[]
+}
+
+export interface LiarQuizRoundMeta {
+  turns: LiarQuizTurnResult[]
+}
+
+export interface LiarQuizWriteSignal {
+  turnIndex: number
+  totalTurns: number
+  guesserId: PlayerId
+  question: string
+  /** 거짓말을 쓰는 사람에게만 값이 있다. 맞히는 사람은 항상 null */
+  answer: string | null
+  /** 내가 낸 거짓말 (안 냈거나 맞히는 사람이면 null) */
+  myLie: string | null
+  submittedCount: number
+  totalLiars: number
+  elapsedMs: number
+}
+
+export interface LiarQuizGuessSignal {
+  turnIndex: number
+  totalTurns: number
+  guesserId: PlayerId
+  question: string
+  /** 맞히는 사람은 LiarQuizChoice[], 구경하는 사람은 LiarQuizSpectatorChoice[] */
+  choices: (LiarQuizChoice | LiarQuizSpectatorChoice)[]
+  /** 맞히는 사람의 현재 임시 선택 보기 id (없으면 null) */
+  pickedId: number | null
+  elapsedMs: number
+  /** 결과를 공개하는 중이면 그 턴의 결과 */
+  reveal?: LiarQuizTurnResult | null
+}
+
 // 소수의견: 양자택일의 한쪽 — id는 제시어 데이터의 options 인덱스라 사람마다 표시 순서가 달라도 같은 쪽을 가리킨다
 export interface MinorityOption {
   id: 0 | 1
@@ -393,6 +463,11 @@ export const CATCHMIND_MAX_STROKE_WIDTH = 32
 export const ACROSTIC_WRITE_MS = 60_000
 export const ACROSTIC_VOTE_MS = 20_000
 export const ACROSTIC_LINE_MAX_LENGTH = 40
+
+// 거짓말쟁이 퀴즈: 거짓말 작성 / 맞히기 제한 시간, 거짓말 한 개의 최대 글자 수 (backend/types.ts와 값이 같아야 한다)
+export const LIARQUIZ_WRITE_MS = 30_000
+export const LIARQUIZ_GUESS_MS = 20_000
+export const LIARQUIZ_LIE_MAX_LENGTH = 30
 
 // 소수의견: 서브라운드 개수 / 서브라운드 하나의 제한 시간 (backend/types.ts와 값이 같아야 한다)
 export const MINORITY_SUB_ROUNDS = 5
@@ -596,6 +671,10 @@ export interface ClientToServerEvents {
   'acrostic:submit': (data: { lines: string[] }) => void
   /** 투표 한 표. poemId는 AcrosticPoem.id, null이면 기권 */
   'acrostic:vote': (data: { poemId: number | null }) => void
+  /** 거짓말 제출. 정답과 같은 말이면 liarQuiz:submitRejected로 되돌아온다 */
+  'liarQuiz:submit': (data: { turnIndex: number; text: string }) => void
+  /** 맞히는 사람의 보기 선택. confirm=false면 임시 선택(바꿀 수 있고 구경하는 사람에게 실시간 중계), true면 이 보기로 확정 */
+  'liarQuiz:pick': (data: { turnIndex: number; choiceId: number; confirm: boolean }) => void
 }
 
 /** Server -> Client */
@@ -770,4 +849,16 @@ export interface ServerToClientEvents {
   'acrostic:submitRejected': (data: { reason: string }) => void
   /** 막장 행시 투표 단계 시작(재접속 시 재전송) */
   'acrostic:voteStart': (data: AcrosticVoteSignal) => void
+  /** 거짓말쟁이 퀴즈 작성 단계 시작(턴마다, 재접속 시 재전송) */
+  'liarQuiz:writeStart': (data: LiarQuizWriteSignal) => void
+  /** 거짓말 제출이 반려됐을 때 본인에게만 오는 이유 */
+  'liarQuiz:submitRejected': (data: { turnIndex: number; reason: string }) => void
+  /** 거짓말 작성 현황(몇 명이 냈는지) */
+  'liarQuiz:progress': (data: { turnIndex: number; submitted: number }) => void
+  /** 거짓말쟁이 퀴즈 맞히기 단계 시작(재접속 시 재전송) */
+  'liarQuiz:guessStart': (data: LiarQuizGuessSignal) => void
+  /** 맞히는 사람의 임시 선택 실시간 중계 (맞히는 사람 본인은 받지 않는다) */
+  'liarQuiz:picked': (data: { turnIndex: number; choiceId: number }) => void
+  /** 한 턴이 끝났을 때 전원에게 오는 공개 */
+  'liarQuiz:turnResult': (data: LiarQuizTurnResult) => void
 }

@@ -12,6 +12,7 @@ import {
   type PixelCanvasRoundMeta,
   type ScavengerHuntRoundMeta,
   type AcrosticRoundMeta,
+  type LiarQuizRoundMeta,
   type MinorityRoundMeta,
   type TelepathyRoundMeta,
   type TelestrationRoundMeta,
@@ -19,6 +20,7 @@ import {
   type WordChainRoundMeta,
 } from '../../lib/partyProtocol'
 import { CatchmindSnapshot } from './CatchmindSnapshot'
+import { LiarQuizTurnCard } from './LiarQuizTurnCard'
 import { PartyExitToLobbyButton } from './PartyExitToLobbyButton'
 import { PartyScoreList } from './PartyScoreList'
 import { PartySubRoundCarousel } from './PartySubRoundCarousel'
@@ -50,6 +52,7 @@ export function PartyRoundResults({ session }: Props) {
     lastRound.gameId === 'scavengerHunt' ? (lastRound.meta as ScavengerHuntRoundMeta | undefined) : undefined
   const telepathyMeta = lastRound.gameId === 'telepathy' ? (lastRound.meta as TelepathyRoundMeta | undefined) : undefined
   const acrosticMeta = lastRound.gameId === 'acrostic' ? (lastRound.meta as AcrosticRoundMeta | undefined) : undefined
+  const liarQuizMeta = lastRound.gameId === 'liarQuiz' ? (lastRound.meta as LiarQuizRoundMeta | undefined) : undefined
   const minorityMeta = lastRound.gameId === 'minority' ? (lastRound.meta as MinorityRoundMeta | undefined) : undefined
   const catchmindMeta = lastRound.gameId === 'catchmind' ? (lastRound.meta as CatchmindRoundMeta | undefined) : undefined
   const typeRaceMeta = lastRound.gameId === 'typeRace' ? (lastRound.meta as TypeRaceRoundMeta | undefined) : undefined
@@ -98,6 +101,9 @@ export function PartyRoundResults({ session }: Props) {
     }
     if (lastRound.gameId === 'acrostic' && entry.value !== undefined) {
       return ` (받은 표 ${entry.value}표)`
+    }
+    if (lastRound.gameId === 'liarQuiz' && entry.value !== undefined) {
+      return ` (${liarQuizMeta?.turns.length ?? 0}턴 합산 ${entry.value}점)`
     }
     if (lastRound.gameId === 'minority' && entry.value !== undefined) {
       return ` (${minorityMeta?.subRounds.length ?? 5}라운드 합산 ${entry.value}점)`
@@ -345,6 +351,19 @@ export function PartyRoundResults({ session }: Props) {
               </li>
             ))}
           </ul>
+        </div>
+      )}
+
+      {liarQuizMeta && liarQuizMeta.turns.length > 0 && (
+        <div className="party-telepathy-reveal">
+          <PartySubRoundPager current={subRoundPage} total={liarQuizMeta.turns.length} onChange={setSubRoundPage} unit="턴" />
+          <PartySubRoundCarousel current={subRoundPage} onChange={setSubRoundPage}>
+            {liarQuizMeta.turns.map((turn) => (
+              <div className="party-telepathy-reveal-item" key={turn.turnIndex}>
+                <LiarQuizTurnCard result={turn} nicknameOf={nicknameOf} />
+              </div>
+            ))}
+          </PartySubRoundCarousel>
         </div>
       )}
 

@@ -6,6 +6,7 @@ import { BalloonPopGame } from './BalloonPopGame'
 import { CatchmindGame } from './CatchmindGame'
 import { ColorMatchGame } from './ColorMatchGame'
 import { HumanTimerGame } from './HumanTimerGame'
+import { LiarQuizGame } from './LiarQuizGame'
 import { MinorityGame } from './MinorityGame'
 import { MouseHunterGame } from './MouseHunterGame'
 import { OneToTwentyFiveGame } from './OneToTwentyFiveGame'
@@ -155,6 +156,17 @@ function renderGame(session: GameSession, roundKey: string) {
           roundKey={roundKey}
           writeSignal={session.acrosticWrite}
           voteSignal={session.acrosticVote}
+        />
+      )
+    case 'liarQuiz':
+      return (
+        <LiarQuizGame
+          socket={session.socket}
+          roundKey={roundKey}
+          writeSignal={session.liarQuizWrite}
+          guessSignal={session.liarQuizGuess}
+          playerId={session.playerId}
+          players={state.players}
         />
       )
     default:

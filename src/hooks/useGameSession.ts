@@ -13,6 +13,8 @@ import type {
   MinorityStartSignal,
   AcrosticWriteSignal,
   AcrosticVoteSignal,
+  LiarQuizWriteSignal,
+  LiarQuizGuessSignal,
 } from '../lib/partyProtocol'
 import { useSocket } from './useSocket'
 import type {
@@ -138,6 +140,8 @@ export function useGameSession(roomCodeFromUrl?: string) {
   const [minorityStart, setMinorityStart] = useState<MinorityStartSignal | null>(null)
   const [acrosticWrite, setAcrosticWrite] = useState<AcrosticWriteSignal | null>(null)
   const [acrosticVote, setAcrosticVote] = useState<AcrosticVoteSignal | null>(null)
+  const [liarQuizWrite, setLiarQuizWrite] = useState<LiarQuizWriteSignal | null>(null)
+  const [liarQuizGuess, setLiarQuizGuess] = useState<LiarQuizGuessSignal | null>(null)
   const [telestrationTask, setTelestrationTask] = useState<TelestrationTaskSignal | null>(null)
   const [telestrationReveal, setTelestrationReveal] = useState<TelestrationRevealSignal | null>(null)
   const [telestrationWordPrompt, setTelestrationWordPrompt] = useState<TelestrationWordPromptSignal | null>(null)
@@ -174,6 +178,8 @@ export function useGameSession(roomCodeFromUrl?: string) {
         setMinorityStart(null)
         setAcrosticWrite(null)
         setAcrosticVote(null)
+        setLiarQuizWrite(null)
+        setLiarQuizGuess(null)
         setTelestrationTask(null)
         setTelestrationReveal(null)
         setTelestrationWordPrompt(null)
@@ -228,6 +234,19 @@ export function useGameSession(roomCodeFromUrl?: string) {
     const onMinorityStart = (data: MinorityStartSignal) => setMinorityStart(data)
     const onAcrosticWrite = (data: AcrosticWriteSignal) => setAcrosticWrite(data)
     const onAcrosticVote = (data: AcrosticVoteSignal) => setAcrosticVote(data)
+    // 새 턴의 작성 신호가 오면 지난 턴의 맞히기 신호는 버린다 (화면은 맞히기 신호가 있으면 맞히기 단계로 본다)
+    const onLiarQuizWrite = (data: LiarQuizWriteSignal) => {
+      setLiarQuizWrite(data)
+      setLiarQuizGuess(null)
+    }
+    const onLiarQuizGuess = (data: LiarQuizGuessSignal) => setLiarQuizGuess(data)
+    // 아래 세 증분 이벤트는 화면이 아직 안 떠 있어도 놓치지 않도록 여기서 현재 신호에 합쳐둔다 (턴이 다르면 무시)
+    const onLiarQuizProgress = (data: { turnIndex: number; submitted: number }) =>
+      setLiarQuizWrite((prev) => (prev && prev.turnIndex === data.turnIndex ? { ...prev, submittedCount: data.submitted } : prev))
+    const onLiarQuizPicked = (data: { turnIndex: number; choiceId: number }) =>
+      setLiarQuizGuess((prev) => (prev && prev.turnIndex === data.turnIndex ? { ...prev, pickedId: data.choiceId } : prev))
+    const onLiarQuizTurnResult = (data: ServerSignal<'liarQuiz:turnResult'>) =>
+      setLiarQuizGuess((prev) => (prev && prev.turnIndex === data.turnIndex ? { ...prev, reveal: data } : prev))
     const onTelestrationTask = (data: TelestrationTaskSignal) => setTelestrationTask(data)
     const onTelestrationReveal = (data: TelestrationRevealSignal) => setTelestrationReveal(data)
     const onTelestrationWordPrompt = (data: TelestrationWordPromptSignal) => setTelestrationWordPrompt(data)
@@ -255,6 +274,11 @@ export function useGameSession(roomCodeFromUrl?: string) {
     socket.on('minority:roundStart', onMinorityStart)
     socket.on('acrostic:writeStart', onAcrosticWrite)
     socket.on('acrostic:voteStart', onAcrosticVote)
+    socket.on('liarQuiz:writeStart', onLiarQuizWrite)
+    socket.on('liarQuiz:guessStart', onLiarQuizGuess)
+    socket.on('liarQuiz:progress', onLiarQuizProgress)
+    socket.on('liarQuiz:picked', onLiarQuizPicked)
+    socket.on('liarQuiz:turnResult', onLiarQuizTurnResult)
     socket.on('telestration:task', onTelestrationTask)
     socket.on('telestration:reveal', onTelestrationReveal)
     socket.on('telestration:wordPrompt', onTelestrationWordPrompt)
@@ -283,6 +307,11 @@ export function useGameSession(roomCodeFromUrl?: string) {
       socket.off('minority:roundStart', onMinorityStart)
       socket.off('acrostic:writeStart', onAcrosticWrite)
       socket.off('acrostic:voteStart', onAcrosticVote)
+      socket.off('liarQuiz:writeStart', onLiarQuizWrite)
+      socket.off('liarQuiz:guessStart', onLiarQuizGuess)
+      socket.off('liarQuiz:progress', onLiarQuizProgress)
+      socket.off('liarQuiz:picked', onLiarQuizPicked)
+      socket.off('liarQuiz:turnResult', onLiarQuizTurnResult)
       socket.off('telestration:task', onTelestrationTask)
       socket.off('telestration:reveal', onTelestrationReveal)
       socket.off('telestration:wordPrompt', onTelestrationWordPrompt)
@@ -411,6 +440,8 @@ export function useGameSession(roomCodeFromUrl?: string) {
     minorityStart,
     acrosticWrite,
     acrosticVote,
+    liarQuizWrite,
+    liarQuizGuess,
     telestrationTask,
     telestrationReveal,
     telestrationWordPrompt,
