@@ -9,7 +9,7 @@ interface Props {
   roundKey: string
   startSignal: { elapsedMs: number } | null
   countdownSignal: { slotColors: string[]; slotOfPlayer: Record<PlayerId, number>; elapsedMs: number } | null
-  goSignal: { slotColors: string[]; slotOfPlayer: Record<PlayerId, number>; elapsedMs: number } | null
+  goSignal: { slotColors: string[]; slotOfPlayer: Record<PlayerId, number>; elapsedMs: number; finished?: boolean; myProgress?: number } | null
   playerId: PlayerId | null
   players: PlayerInfo[]
 }

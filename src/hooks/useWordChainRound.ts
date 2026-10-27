@@ -5,7 +5,7 @@ import { useMonotonicStartedAt } from './useMonotonicStartedAt'
 
 type PartySocket = Socket<ServerToClientEvents, ClientToServerEvents>
 type LocalStatus = 'waiting' | 'running' | 'submitted'
-type StartSignal = { chosung: string[]; elapsedMs: number }
+type StartSignal = { chosung: string[]; elapsedMs: number; submitted?: boolean }
 
 const SHAKE_DURATION_MS = 300
 const TOAST_DURATION_MS = 1500
@@ -39,7 +39,8 @@ export function useWordChainRound(socket: PartySocket, roundKey: string, startSi
   useEffect(() => {
     if (!startSignal || status === 'submitted') return
     setChosung(startSignal.chosung)
-    setStatus('running')
+    // 이미 정답을 맞힌 사람이 새로고침하면 초성·카테고리·뜻이 그대로 보이는 정답 완료 상태로 복원한다
+    setStatus(startSignal.submitted ? 'submitted' : 'running')
   }, [startSignal, status])
 
   useEffect(() => {

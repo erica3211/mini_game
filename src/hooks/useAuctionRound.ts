@@ -11,7 +11,13 @@ import { useMonotonicStartedAt } from './useMonotonicStartedAt'
 
 type PartySocket = Socket<ServerToClientEvents, ClientToServerEvents>
 type LocalStatus = 'waiting' | 'running' | 'submitted'
-type StartSignal = { budget: number; hint: { itemId: AuctionItemId; text: string }; elapsedMs: number }
+type StartSignal = {
+  budget: number
+  hint: { itemId: AuctionItemId; text: string }
+  elapsedMs: number
+  submitted?: boolean
+  bids?: Record<AuctionItemId, number> | null
+}
 
 const ZERO_BIDS: Record<AuctionItemId, number> = { A: 0, B: 0, C: 0, D: 0 }
 // 서버가 실제로 타임아웃 처리하기 전에 여유를 두고 먼저 자동 제출해서, 네트워크 지연으로
@@ -43,6 +49,12 @@ export function useAuctionRound(socket: PartySocket, roundKey: string, startSign
     if (!startSignal || status === 'submitted') return
     setBudget(startSignal.budget)
     setHint(startSignal.hint)
+    // 이미 베팅을 확정한 사람이 새로고침하면 자기가 건 금액이 그대로 보이는 제출 완료 상태로 복원한다
+    if (startSignal.submitted) {
+      setBids(startSignal.bids ?? ZERO_BIDS)
+      setStatus('submitted')
+      return
+    }
     setStatus('running')
   }, [startSignal, status])
 

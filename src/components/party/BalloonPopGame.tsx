@@ -1,23 +1,35 @@
 import { useCallback, useMemo, type PointerEvent } from 'react'
 import type { Socket } from 'socket.io-client'
 import { useBalloonPopRound } from '../../hooks/useBalloonPopRound'
-import { BALLOON_POP_MAX_PUMPS, BALLOON_POP_ROUND_TIMEOUT_MS, type ClientToServerEvents, type ServerToClientEvents } from '../../lib/partyProtocol'
+import {
+  BALLOON_POP_MAX_PUMPS,
+  BALLOON_POP_ROUND_TIMEOUT_MS,
+  type BalloonPopStatus,
+  type ClientToServerEvents,
+  type ServerToClientEvents,
+} from '../../lib/partyProtocol'
 import { RemainingTime } from './RemainingTime'
 
 interface Props {
   socket: Socket<ServerToClientEvents, ClientToServerEvents>
   roundKey: string
-  startSignal: { elapsedMs: number } | null
+  startSignal: { elapsedMs: number; pumps?: number; status?: BalloonPopStatus } | null
 }
 
-// 풍선 색은 순전히 코스메틱이라(채점과 무관) 서버가 정할 필요 없이 라운드마다 클라이언트가 하나 무작위로 고른다
+// 풍선 색은 순전히 코스메틱이라(채점과 무관) 서버가 정할 필요 없이 라운드마다 클라이언트가 고른다 — 새로고침해도 색이 바뀌지 않도록 무작위가 아니라 roundKey로 고정한다
 const BALLOON_COLORS = ['#f85149', '#649ae2', '#e2b23e', '#3ecf8e', '#c264dd', '#f2789f']
 // .party-balloonpop-stage 칸(260x300) 안에 여유 있게 들어가는 상한 — 이보다 크게 하면 칸 밖으로 잘려 보인다
 const MAX_SCALE = 1.5
 
+function hashOf(text: string): number {
+  let hash = 0
+  for (const char of text) hash = (hash * 31 + char.charCodeAt(0)) >>> 0
+  return hash
+}
+
 export function BalloonPopGame({ socket, roundKey, startSignal }: Props) {
   const { status, pumps, startPumping, pausePumping, stop, startedAt } = useBalloonPopRound(socket, roundKey, startSignal)
-  const color = useMemo(() => BALLOON_COLORS[Math.floor(Math.random() * BALLOON_COLORS.length)], [roundKey])
+  const color = useMemo(() => BALLOON_COLORS[hashOf(roundKey) % BALLOON_COLORS.length], [roundKey])
 
   const growth = Math.min(1, pumps / BALLOON_POP_MAX_PUMPS)
   const scale = 1 + growth * (MAX_SCALE - 1)

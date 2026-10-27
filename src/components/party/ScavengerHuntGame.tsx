@@ -15,7 +15,7 @@ import { RemainingTime } from './RemainingTime'
 interface Props {
   socket: Socket<ServerToClientEvents, ClientToServerEvents>
   roundKey: string
-  startSignal: { subRoundIndex: number; target: ScavengerHuntRoundTarget; elapsedMs: number } | null
+  startSignal: { subRoundIndex: number; target: ScavengerHuntRoundTarget; elapsedMs: number; submitted?: boolean } | null
 }
 
 // 목표 색상의 HSV(hue/saturation/value)를 CSS가 이해하는 HSL로 변환해서 미리보기 스와치를 그린다
@@ -181,7 +181,13 @@ export function ScavengerHuntGame({ socket, roundKey, startSignal }: Props) {
             </>
           )}
 
-          {status === 'submitted' && !result && <p className="party-round-hint">채점 중...</p>}
+          {status === 'submitted' && !result && (
+            <p className="party-round-hint">
+              제출 완료!{capturedMatchPercent !== null && ` 일치율 ${capturedMatchPercent}%`}
+              <br />
+              다른 사람들을 기다리는 중...
+            </p>
+          )}
 
           {result && (
             <div className="party-scavengerhunt-result">

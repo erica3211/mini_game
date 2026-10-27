@@ -11,7 +11,7 @@ type LocalStatus = 'waiting' | 'running' | 'submitted'
  * startSignal은 useGameSession이 세션 내내 미리 구독해둔 humanTimer:roundStart 신호다 —
  * 이 화면이 마운트되기 전에 신호가 먼저 도착해도 놓치지 않도록 여기서 직접 구독하지 않는다.
  */
-export function useHumanTimerRound(socket: PartySocket, roundKey: string, startSignal: { elapsedMs: number } | null) {
+export function useHumanTimerRound(socket: PartySocket, roundKey: string, startSignal: { elapsedMs: number; submitted?: boolean } | null) {
   const [status, setStatus] = useState<LocalStatus>('waiting')
   const startedAt = useMonotonicStartedAt(roundKey, startSignal, status)
 
@@ -21,7 +21,8 @@ export function useHumanTimerRound(socket: PartySocket, roundKey: string, startS
 
   useEffect(() => {
     if (!startSignal || status === 'submitted') return
-    setStatus('running')
+    // 이미 정지 버튼을 누른 사람이 새로고침해도 다시 시작하지 않고 제출 완료 상태로 복원한다
+    setStatus(startSignal.submitted ? 'submitted' : 'running')
   }, [startSignal, status])
 
   const stop = useCallback(() => {

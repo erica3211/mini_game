@@ -58,7 +58,7 @@ export function PartyRoundResults({ session }: Props) {
 
   const detailOf = (entry: (typeof lastRound.ranking)[number]) => {
     if (entry.disconnected) return ' (연결 끊김)'
-    if (lastRound.gameId === 'oneToFifty' && entry.value !== undefined) {
+    if (lastRound.gameId === 'oneToTwentyFive' && entry.value !== undefined) {
       return entry.dnf ? ` (${entry.value}개 터치)` : ` (${(entry.value / 1000).toFixed(2)}초 만에 완료)`
     }
     if (lastRound.gameId === 'shoutRace' && entry.value !== undefined) {
@@ -69,7 +69,7 @@ export function PartyRoundResults({ session }: Props) {
       const cpmText = avgCpm !== undefined ? `, 평균 ${avgCpm}타/분` : ''
       return entry.dnf ? ` (${entry.value}% 타이핑${cpmText})` : ` (${(entry.value / 1000).toFixed(2)}초 만에 완주${cpmText})`
     }
-    // 픽셀 캔버스는 oneToFifty처럼 dnf(한 칸도 못 칠함)여도 차지한 칸 수를 그대로 보여준다
+    // 픽셀 캔버스는 oneToTwentyFive처럼 dnf(한 칸도 못 칠함)여도 차지한 칸 수를 그대로 보여준다
     if (lastRound.gameId === 'pixelCanvas' && entry.value !== undefined) {
       return ` (${entry.value}칸 차지)`
     }
@@ -421,7 +421,8 @@ export function PartyRoundResults({ session }: Props) {
                 </div>
                 {chain.steps.map((step, s) => (
                   <TelestrationStepCard key={s} record={step} nickname={nicknameOf(step.playerId)} order={s + 1}>
-                    <p className="party-round-hint">👍 {step.votes}표</p>
+                    {/* 투표는 그림에만 할 수 있으니, 글 단계에는 표 수를 보여주지 않는다 */}
+                    {step.kind === 'draw' && <p className="party-round-hint">👍 {step.votes}표</p>}
                   </TelestrationStepCard>
                 ))}
               </div>

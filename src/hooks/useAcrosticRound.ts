@@ -8,6 +8,7 @@ import {
   type ClientToServerEvents,
   type ServerToClientEvents,
 } from '../lib/partyProtocol'
+import { clearDraft, loadDraft, saveDraft } from '../lib/sessionDraft'
 import { useMonotonicStartedAt } from './useMonotonicStartedAt'
 
 type PartySocket = Socket<ServerToClientEvents, ClientToServerEvents>
@@ -28,6 +29,8 @@ export function useAcrosticRound(
 ) {
   const word = writeSignal?.word ?? voteSignal?.word ?? ''
   const chars = [...word]
+  // 쓰던 글은 새로고침해도 남도록 라운드별로 임시 저장한다 (서버는 제출 전의 글을 모른다)
+  const draftKey = `acrostic_${roundKey}`
 
   // 줄마다 "첫 글자를 뺀 나머지"만 입력받는다 — 첫 글자는 화면에 고정되어 있고 제출할 때 서버로 합쳐서 보낸다
   const [rests, setRests] = useState<string[]>([])
@@ -54,10 +57,17 @@ export function useAcrosticRound(
     if (!writeSignal) return
     setRests((prev) => {
       if (writeSignal.submitted && writeSignal.lines) return writeSignal.lines.map((line) => [...line].slice(1).join(''))
-      return prev.length === [...writeSignal.word].length ? prev : [...writeSignal.word].map(() => '')
+      if (prev.length === [...writeSignal.word].length) return prev
+      const saved = loadDraft<string[]>(draftKey)
+      return saved && saved.length === [...writeSignal.word].length ? saved : [...writeSignal.word].map(() => '')
     })
     if (writeSignal.submitted) setSubmitted(true)
-  }, [writeSignal])
+  }, [writeSignal, draftKey])
+
+  // 입력할 때마다 초안을 저장한다 — 줄 수만큼 채워진 뒤부터만, 제출한 뒤에는 저장하지 않는다
+  useEffect(() => {
+    if (!submitted && rests.length > 0) saveDraft(draftKey, rests)
+  }, [rests, submitted, draftKey])
 
   useEffect(() => {
     if (!voteSignal?.voted) return
@@ -87,9 +97,10 @@ export function useAcrosticRound(
   const submit = useCallback(() => {
     if (!canSubmit) return
     socket.emit('acrostic:submit', { lines: chars.map((char, i) => `${char}${rests[i].trim()}`) })
+    clearDraft(draftKey)
     setSubmitted(true)
     setRejection(null)
-  }, [socket, canSubmit, chars, rests])
+  }, [socket, canSubmit, chars, rests, draftKey])
 
   const select = useCallback(
     (poemId: number) => {

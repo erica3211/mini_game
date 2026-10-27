@@ -47,6 +47,11 @@ export function useMinorityRound(socket: PartySocket, roundKey: string, startSig
     setStatus('running')
   }, [startSignal, status])
 
+  // 결과 공개 중에 새로고침·재접속했다면 서버가 보내준 공개 결과를 바로 보여준다
+  useEffect(() => {
+    if (startSignal?.reveal) setReveal(startSignal.reveal)
+  }, [startSignal])
+
   useEffect(() => {
     const onResult = (data: MinoritySubRoundResult) => {
       if (data.subRoundIndex !== startSignal?.subRoundIndex) return

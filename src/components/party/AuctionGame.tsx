@@ -16,7 +16,13 @@ import { RemainingTime } from './RemainingTime'
 interface Props {
   socket: Socket<ServerToClientEvents, ClientToServerEvents>
   roundKey: string
-  startSignal: { budget: number; hint: { itemId: AuctionItemId; text: string }; elapsedMs: number } | null
+  startSignal: {
+    budget: number
+    hint: { itemId: AuctionItemId; text: string }
+    elapsedMs: number
+    submitted?: boolean
+    bids?: Record<AuctionItemId, number> | null
+  } | null
 }
 
 export function AuctionGame({ socket, roundKey, startSignal }: Props) {

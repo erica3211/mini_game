@@ -5,7 +5,7 @@ import { useMonotonicStartedAt } from './useMonotonicStartedAt'
 
 type PartySocket = Socket<ServerToClientEvents, ClientToServerEvents>
 type LocalStatus = 'waiting' | BalloonPopStatus
-type StartSignal = { elapsedMs: number }
+type StartSignal = { elapsedMs: number; pumps?: number; status?: BalloonPopStatus }
 
 // 꾹 누르고 있는 동안 이 간격(ms)마다 한 번씩 부풀린다 — 너무 짧으면 소켓 메시지가 과도하게 쌓이고,
 // 너무 길면 "꾹 누르는" 손맛이 안 산다
@@ -31,7 +31,9 @@ export function useBalloonPopRound(socket: PartySocket, roundKey: string, startS
 
   useEffect(() => {
     if (!startSignal || status !== 'waiting') return
-    setStatus('alive')
+    // 새로고침·재접속이면 서버가 알고 있는 부풀린 횟수/터짐·멈춤 상태로 복원한다 (이 값이 화면이 뜨기 전에 도착해도 놓치지 않도록 시작 신호에 실려 온다)
+    setPumps(startSignal.pumps ?? 0)
+    setStatus(startSignal.status ?? 'alive')
   }, [startSignal, status])
 
   useEffect(() => {

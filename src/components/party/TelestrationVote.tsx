@@ -25,7 +25,7 @@ const voteKey = (chainIndex: number, stepIndex: number) => `${chainIndex}:${step
 const REVEAL_INTERVAL_MS = 1000
 
 /** 제시어(체인)는 옆으로 넘기고, 한 체인 안의 장면들은 "+ 더보기"를 한 번 누르면 1초에 하나씩 아래로 펼쳐진다.
- *  마음에 드는 그림에는 개수 제한 없이 투표할 수 있고(글과 내가 그린 그림 제외), 최소 1표를 줘야 투표를 마칠 수 있다 */
+ *  마음에 드는 그림에는 개수 제한 없이 투표할 수 있고(글과 내가 그린 그림 제외), 아무 그림에도 투표하지 않고 기권해도 투표를 마칠 수 있다 */
 export function TelestrationVote({ socket, reveal, playerId, players }: Props) {
   const { chains } = reveal
   const [chainIndex, setChainIndex] = useState(0)
@@ -114,7 +114,7 @@ export function TelestrationVote({ socket, reveal, playerId, players }: Props) {
   return (
     <div className="party-round-stage">
       <div className="party-catchmind-header">
-        <span>마음에 드는 그림에 투표하세요 (최소 1표)</span>
+        <span>마음에 드는 그림에 투표하세요</span>
         <RemainingTime startedAt={startedAt} timeoutMs={TELESTRATION_VOTE_TIMEOUT_MS} />
       </div>
 
@@ -170,10 +170,18 @@ export function TelestrationVote({ socket, reveal, playerId, players }: Props) {
         })}
       </PartySubRoundCarousel>
 
-      <button type="button" className="btn btn-primary" onClick={finish} disabled={myVotes.size === 0}>
-        투표 마치기 ({myVotes.size}표)
-      </button>
-      {myVotes.size === 0 && <p className="party-round-hint">최소 1개 그림에 투표해야 마칠 수 있어요</p>}
+      {/* 투표 마치기와 기권은 서로 다른 버튼이다 — 같은 버튼이면 표를 안 준 채로 눌러 기권하는 일이 너무 쉬워진다.
+          이미 표를 준 사람에게 기권은 의미가 없으니(눌러도 표는 그대로라 헷갈린다), 표가 하나라도 있으면 기권 버튼은 아예 숨긴다 */}
+      <div className="party-telestration-vote-actions">
+        <button type="button" className="btn btn-primary" onClick={finish} disabled={myVotes.size === 0}>
+          투표 마치기 ({myVotes.size}표)
+        </button>
+        {myVotes.size === 0 && (
+          <button type="button" className="btn btn-secondary" onClick={finish}>
+            기권
+          </button>
+        )}
+      </div>
     </div>
   )
 }

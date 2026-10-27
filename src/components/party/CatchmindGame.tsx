@@ -18,11 +18,13 @@ interface Props {
   roundKey: string
   turnStart: CatchmindTurnStartSignal | null
   wordSignal: CatchmindWordSignal | null
+  /** 공개된 글자 수 힌트 (아직 공개 전이면 null) */
+  hintLength: number | null
   playerId: PlayerId | null
   players: PlayerInfo[]
 }
 
-export function CatchmindGame({ socket, roundKey, turnStart, wordSignal, playerId, players }: Props) {
+export function CatchmindGame({ socket, roundKey, turnStart, wordSignal, hintLength: hintLengthSignal, playerId, players }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const {
     status,
@@ -43,7 +45,7 @@ export function CatchmindGame({ socket, roundKey, turnStart, wordSignal, playerI
     clearBoard,
     undoStroke,
     submitGuess,
-  } = useCatchmindRound(socket, roundKey, turnStart, wordSignal, playerId, canvasRef)
+  } = useCatchmindRound(socket, roundKey, turnStart, wordSignal, hintLengthSignal, playerId, canvasRef)
 
   const [color, setColor] = useState(CATCHMIND_COLORS[0])
   const [width, setWidth] = useState(BRUSH_THIN)
@@ -115,11 +117,14 @@ export function CatchmindGame({ socket, roundKey, turnStart, wordSignal, playerI
           {hintLength === null ? (
             <p className="party-round-hint">30초 남았을 때 글자 수가 공개돼요</p>
           ) : (
-            <div className="party-chosung-display">
-              {Array.from({ length: hintLength }).map((_, i) => (
-                <span key={i} className="party-chosung-cell party-catchmind-blank" />
-              ))}
-            </div>
+            <>
+              <div className="party-chosung-display">
+                {Array.from({ length: hintLength }).map((_, i) => (
+                  <span key={i} className="party-chosung-cell party-catchmind-blank" />
+                ))}
+              </div>
+              <p className="party-catchmind-hint-count">{hintLength}글자</p>
+            </>
           )}
         </div>
       )}

@@ -9,7 +9,7 @@ const FADE_DURATION_MS = 3000
 interface Props {
   socket: Socket<ServerToClientEvents, ClientToServerEvents>
   roundKey: string
-  startSignal: { elapsedMs: number } | null
+  startSignal: { elapsedMs: number; submitted?: boolean } | null
 }
 
 export function HumanTimerGame({ socket, roundKey, startSignal }: Props) {

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, type RefObject } from 'react'
 import { clearCatchmindCanvas, drawFullBoard, fitCatchmindCanvas, strokeSegment } from '../lib/catchmindDraw'
+import { loadDraft, saveDraft } from '../lib/sessionDraft'
 import type {
   CatchmindStroke,
   TelestrationChainReveal,
@@ -16,12 +17,16 @@ export interface TelestrationTaskSignal {
   prompt: TelestrationPrompt
   submitted: boolean
   elapsedMs: number
+  /** 현재 단계를 제출한 사람 수 (새로고침 복원용) */
+  progress?: { submitted: number; total: number }
 }
 
 /** 직접 입력 방식에서 라운드 시작 전 제시어를 적으라는 신호 */
 export interface TelestrationWordPromptSignal {
   submitted: boolean
   elapsedMs: number
+  /** 제시어를 낸 사람 수 (새로고침 복원용) */
+  progress?: { submitted: number; total: number }
 }
 
 /** 모든 단계가 끝난 뒤 공개되는 체인 전체 + 내가 이미 한 투표(재접속 복원용) */
@@ -42,16 +47,28 @@ export function useTelestrationDrawing(
   enabled: boolean,
   color: string,
   width: number,
+  /** 있으면 그린 획을 이 키로 sessionStorage에 임시 저장하고, 새로고침 후 같은 키로 돌아오면 그대로 복원한다 */
+  draftKey?: string,
 ) {
   const strokesRef = useRef<CatchmindStroke[]>([])
   const currentRef = useRef<CatchmindStroke | null>(null)
+
+  const persist = useCallback(() => {
+    if (draftKey) saveDraft(draftKey, strokesRef.current)
+  }, [draftKey])
 
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return
     fitCatchmindCanvas(canvas)
     clearCatchmindCanvas(canvas)
-  }, [canvasRef])
+    // 새로고침 전에 그리던 획이 있으면 되살린다
+    const saved = draftKey ? loadDraft<CatchmindStroke[]>(draftKey) : null
+    if (saved && saved.length > 0) {
+      strokesRef.current = saved
+      drawFullBoard(canvas, saved)
+    }
+  }, [canvasRef, draftKey])
 
   const drawingProps = useCanvasPointerDrawing(canvasRef, enabled, {
     onBegin: ({ x, y }) => {
@@ -72,6 +89,7 @@ export function useTelestrationDrawing(
     },
     onEnd: () => {
       currentRef.current = null
+      persist()
     },
   })
 
@@ -80,7 +98,8 @@ export function useTelestrationDrawing(
     if (!canvas || currentRef.current) return
     strokesRef.current.pop()
     drawFullBoard(canvas, strokesRef.current)
-  }, [canvasRef])
+    persist()
+  }, [canvasRef, persist])
 
   const clear = useCallback(() => {
     const canvas = canvasRef.current
@@ -88,7 +107,8 @@ export function useTelestrationDrawing(
     strokesRef.current = []
     currentRef.current = null
     clearCatchmindCanvas(canvas)
-  }, [canvasRef])
+    persist()
+  }, [canvasRef, persist])
 
   const getStrokes = useCallback(() => strokesRef.current, [])
 

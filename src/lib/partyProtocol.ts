@@ -5,7 +5,7 @@ export type GameId =
   | 'mouseHunter'
   // | 'reverseElection'
   | 'balloonPop'
-  | 'oneToFifty'
+  | 'oneToTwentyFive'
   | 'colorMatch'
   | 'wordChain'
   | 'auction'
@@ -72,7 +72,7 @@ export interface SessionConfig {
 export interface RoundRankingEntry {
   playerId: PlayerId
   metric: number
-  /** 화면에 보여줄 원시 값 (예: humanTimer는 실제 정지 시각 ms, oneToFifty는 완료 시간 또는 DNF 시 진행한 개수). 게임마다 의미가 다르고, DNF일 때 비워둘지도 게임마다 다름 */
+  /** 화면에 보여줄 원시 값 (예: humanTimer는 실제 정지 시각 ms, oneToTwentyFive는 완료 시간 또는 DNF 시 진행한 개수). 게임마다 의미가 다르고, DNF일 때 비워둘지도 게임마다 다름 */
   value?: number
   rank: number
   points: number
@@ -106,6 +106,13 @@ export interface WordChainRoundMeta {
 export interface AuctionRoundMeta {
   items: AuctionItemResult[]
 }
+
+
+// 이심전심: 채팅창에 쌓이는 한 줄 — 새로고침·재접속하면 서버가 지금까지의 기록을 다시 보내 채팅창을 복원한다
+export type CatchmindChatHistoryEntry =
+  | { kind: 'chat'; playerId: PlayerId; text: string }
+  | { kind: 'correct'; playerId: PlayerId; points: number }
+  | { kind: 'reveal'; drawerId: PlayerId; word: string }
 
 export interface RgbColor {
   r: number
@@ -283,6 +290,8 @@ export interface TelepathyStartSignal {
   cards: TelepathyCard[]
   myCardId: number | null
   elapsedMs: number
+  /** 재접속 시에만 채워지는 값 — 결과를 공개하는 중이었다면 그 결과 */
+  reveal?: TelepathySubRoundResult | null
 }
 
 // 막장 행시: 투표 화면에 보이는 작품 한 편 — 작성자는 숨기고, id는 이번 투표에서만 쓰는 번호다
@@ -348,6 +357,8 @@ export interface MinorityStartSignal {
   options: MinorityOption[]
   myChoice: 0 | 1 | null
   elapsedMs: number
+  /** 재접속 시에만 채워지는 값 — 결과를 공개하는 중이었다면 그 결과 */
+  reveal?: MinoritySubRoundResult | null
 }
 
 // 이어그리기: 결과 화면용 체인 기록 — 단계마다 받은 표 수가 붙는다 (games/telestration.ts 참고)
@@ -455,9 +466,10 @@ export interface RoomState {
   gameCatalog: GameMeta[]
 }
 
-export const MIN_PLAYERS_TO_START = 2
+// backend/types.ts와 값이 같아야 한다 — 인원 제한은 GameMeta.minPlayers가 있는 게임에만 건다
+export const MIN_PLAYERS_TO_START = 1
 export const HUMAN_TIMER_TARGET_MS = 10_000
-export const ONE_TO_FIFTY_ROUND_TIMEOUT_MS = 30_000
+export const ONE_TO_TWENTY_FIVE_ROUND_TIMEOUT_MS = 30_000
 export const ROUND_COUNTDOWN_MS = 3_000
 export const WORD_CHAIN_ROUND_TIMEOUT_MS = 60_000
 // 고른 카테고리의 문제 후보가 이보다 적으면 파티를 시작할 수 없다 (같은 문제 반복 방지, 서버와 같은 값)
@@ -513,9 +525,9 @@ export interface ClientToServerEvents {
   'room:playAgain': () => void
   'humanTimer:submit': (data: { elapsedMs: number }) => void
   /** 1부터 순서대로 맞게 터치할 때마다 지금까지 도달한 숫자를 가볍게 알려준다 (서버는 그대로 신뢰) */
-  'oneToFifty:progress': (data: { progress: number }) => void
-  /** 50까지 다 터치했을 때 완료 시간을 제출 */
-  'oneToFifty:submit': (data: { elapsedMs: number }) => void
+  'oneToTwentyFive:progress': (data: { progress: number }) => void
+  /** 25까지 다 터치했을 때 완료 시간을 제출 */
+  'oneToTwentyFive:submit': (data: { elapsedMs: number }) => void
   'round:requestResync': () => void
   /** 초성 퀴즈 정답 시도. 같은 라운드 안에서 맞힐 때까지 몇 번이든 다시 시도할 수 있다 */
   'wordChain:submit': (data: { guess: string }) => void
@@ -574,7 +586,7 @@ export interface ClientToServerEvents {
   'telestration:vote': (data: { chainIndex: number; stepIndex: number; voted: boolean }) => void
   /** 직접 입력 방식에서 라운드 시작 전 내가 낼 제시어 하나를 제출. 이미 냈거나 단계가 지났으면 서버가 무시한다 */
   'telestration:submitWord': (data: { text: string }) => void
-  /** 투표를 마치고 결과를 기다리겠다는 신호. 최소 1표를 준 사람만 받아주며, 전원이 보내거나 제한 시간이 지나면 라운드가 끝난다 */
+  /** 투표를 마치고 결과를 기다리겠다는 신호. 표를 하나도 안 줘도(기권) 보낼 수 있으며, 전원이 보내거나 제한 시간이 지나면 라운드가 끝난다 */
   'telestration:voteDone': () => void
   /** 카드 한 장 선택. cardId는 TelepathyCard.id (표시 위치가 아님) */
   'telepathy:submit': (data: { cardId: number }) => void
@@ -591,11 +603,11 @@ export interface ServerToClientEvents {
   'room:state': (state: RoomState) => void
   'room:error': (message: string) => void
   /** elapsedMs: 새 라운드면 0, 라운드 도중 재접속한 사람에게 다시 보낼 땐 이미 지난 시간 */
-  'humanTimer:roundStart': (data: { elapsedMs: number }) => void
-  /** board: 이 플레이어 전용으로 섞인 1~50 배치. progress/elapsedMs: 새 라운드면 0, 재접속 시엔 지금까지 진행 상황 */
-  'oneToFifty:roundStart': (data: { board: number[]; progress: number; elapsedMs: number }) => void
+  'humanTimer:roundStart': (data: { elapsedMs: number; submitted?: boolean }) => void
+  /** board: 이 플레이어 전용으로 섞인 1~25 배치. progress/elapsedMs: 새 라운드면 0, 재접속 시엔 지금까지 진행 상황 */
+  'oneToTwentyFive:roundStart': (data: { board: number[]; progress: number; elapsedMs: number; submitted?: boolean }) => void
   /** chosung: 음절별 초성 배열. elapsedMs: 새 라운드면 0, 재접속 시엔 이미 지난 시간 */
-  'wordChain:roundStart': (data: { chosung: string[]; elapsedMs: number }) => void
+  'wordChain:roundStart': (data: { chosung: string[]; elapsedMs: number; submitted?: boolean }) => void
   'wordChain:categoryRevealed': (data: { category: string }) => void
   'wordChain:definitionRevealed': (data: { definition: string }) => void
   /** 누군가 정답을 맞혔을 때 전체에게 브로드캐스트 (본인 포함). 닉네임은 room:state의 players로 조회 */
@@ -604,7 +616,14 @@ export interface ServerToClientEvents {
   'wordChain:guessResult': (data: { correct: boolean }) => void
   /** 참가자 개인 전용 힌트 카드 — 다른 물품의 힌트나 다른 사람이 뭘 받았는지는 전혀 알 수 없다.
    *  elapsedMs: 새 라운드면 0, 재접속 시엔 이미 지난 시간 */
-  'auction:roundStart': (data: { budget: number; hint: { itemId: AuctionItemId; text: string }; elapsedMs: number }) => void
+  'auction:roundStart': (data: {
+    budget: number
+    hint: { itemId: AuctionItemId; text: string }
+    elapsedMs: number
+    /** 재접속 시에만 의미 있는 값 — 이미 베팅을 확정했는지와 낸 금액 */
+    submitted?: boolean
+    bids?: Record<AuctionItemId, number> | null
+  }) => void
   /** 제출한 베팅이 유효하지 않아(합계 초과 등) 반려됐을 때 제출한 사람에게만 전송 */
   'auction:submitRejected': (data: { reason: string }) => void
   /** 세부 라운드(3개 중 하나) 시작. answerColor는 전원에게 동일하게 공개된다.
@@ -624,7 +643,7 @@ export interface ServerToClientEvents {
   /** 누군가 칠한 칸들의 변경분만 전달 (i: y*cols+x 평면 인덱스, slot: 새로 칠한 사람의 슬롯) */
   'pixelCanvas:update': (data: { cells: { i: number; slot: number }[] }) => void
   /** elapsedMs: 새 라운드면 0, 재접속 시엔 이미 지난 시간 */
-  'balloonPop:roundStart': (data: { elapsedMs: number }) => void
+  'balloonPop:roundStart': (data: { elapsedMs: number; pumps?: number; status?: BalloonPopStatus }) => void
   /** 본인의 pump/stop 요청에 대한 응답 — 다른 사람 진행 상황은 라운드 중엔 비공개이므로 본인에게만 전송 */
   'balloonPop:state': (data: { pumps: number; status: BalloonPopStatus }) => void
   /** mice: 이 참가자 전용으로 맵에 떠 있는 쥐 3마리(위치/스킨/모습) — 다른 참가자에게는 전혀 노출되지 않는다.
@@ -638,7 +657,7 @@ export interface ServerToClientEvents {
   'mouseHunter:playerCaught': (data: { playerId: PlayerId; totalCaught: number }) => void
   /** 세부 라운드(3개 중 하나) 시작. target(사물/색상 제시어)은 전원에게 동일하게 공개된다.
    *  elapsedMs: 새 세부 라운드면 0, 재접속 시엔 이미 지난 시간 */
-  'scavengerHunt:roundStart': (data: { subRoundIndex: number; target: ScavengerHuntRoundTarget; elapsedMs: number }) => void
+  'scavengerHunt:roundStart': (data: { subRoundIndex: number; target: ScavengerHuntRoundTarget; elapsedMs: number; submitted?: boolean }) => void
   /** 세부 라운드가 끝났을 때 본인에게만 보내는 결과 — 다른 사람 점수는 게임이 다 끝난 뒤 결과 화면에서 공개된다 */
   'scavengerHunt:subRoundResult': (data: {
     subRoundIndex: number
@@ -656,7 +675,7 @@ export interface ServerToClientEvents {
   'shoutRace:countdown': (data: { slotColors: string[]; slotOfPlayer: Record<PlayerId, number>; elapsedMs: number }) => void
   /** 전원 캘리브레이션 완료(또는 타임아웃)로 진짜 레이스가 시작됨 — slotColors/slotOfPlayer로 참가자별
    *  차량 색이 정해진다(모두 공개 정보). elapsedMs: 새로 시작이면 0, 재접속 시엔 레이스 시작 후 이미 지난 시간 */
-  'shoutRace:go': (data: { slotColors: string[]; slotOfPlayer: Record<PlayerId, number>; elapsedMs: number }) => void
+  'shoutRace:go': (data: { slotColors: string[]; slotOfPlayer: Record<PlayerId, number>; elapsedMs: number; finished?: boolean; myProgress?: number }) => void
   /** 전체 참가자의 현재 진행률(0~100) 스냅샷을 주기적으로 방송 — 상단 트랙 게이지의 상대방 위치 표시에 쓰인다 */
   'shoutRace:update': (data: { progress: Record<PlayerId, number> }) => void
   /** 턴(출제자 한 명) 시작 — 공개 정보만 담겨 있고 제시어는 없다(별도로 catchmind:word를 출제자에게만 전송).
@@ -667,6 +686,10 @@ export interface ServerToClientEvents {
     drawerId: PlayerId
     strokes: CatchmindStroke[]
     elapsedMs: number
+    /** 재접속 시에만 채워지는 값 — 이 사람이 이번 턴 정답을 이미 맞혔는지 */
+    guessed?: boolean
+    /** 재접속 시에만 채워지는 값 — 지금까지의 채팅/정답/공개 기록 (최근 50줄) */
+    history?: CatchmindChatHistoryEntry[]
   }) => void
   /** 이번 턴의 제시어 — 출제자 본인에게만 전송(재접속 시에도 다시 전송) */
   'catchmind:word': (data: { turnIndex: number; word: string }) => void
@@ -708,7 +731,7 @@ export interface ServerToClientEvents {
     live: Record<PlayerId, { sentenceIndex: number; typed: string }>
   }) => void
   /** 직접 입력 방식에서 제시어 작성 단계 시작(재접속 시에도 다시 전송). 제출 현황은 telestration:progress의 stepIndex -1로 온다 */
-  'telestration:wordPrompt': (data: { submitted: boolean; elapsedMs: number }) => void
+  'telestration:wordPrompt': (data: { submitted: boolean; elapsedMs: number; progress?: { submitted: number; total: number } }) => void
   /** 이어그리기 단계 시작 — 사람마다 다른 체인을 받으므로 emitToPlayer로 본인에게만 전송(재접속 시에도 다시 전송).
    *  submitted: 재접속한 사람이 이미 이번 단계를 제출한 상태인지. elapsedMs: 새 단계면 0, 재접속 시엔 이미 지난 시간 */
   'telestration:task': (data: {
@@ -718,6 +741,7 @@ export interface ServerToClientEvents {
     prompt: TelestrationPrompt
     submitted: boolean
     elapsedMs: number
+    progress?: { submitted: number; total: number }
   }) => void
   /** 현재 단계를 제출한 사람 수 — 기다리는 화면의 진행 표시용 */
   'telestration:progress': (data: { stepIndex: number; submitted: number; total: number }) => void

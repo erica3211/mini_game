@@ -29,7 +29,11 @@ export function PartyLobby({ session }: Props) {
   const connectedPlayers = state.players.filter((p) => p.connected)
   // 방장은 '게임 시작' 버튼을 누르는 행위 자체가 곧 준비 의사 표시라 준비완료 여부를 따로 검사하지 않는다
   const allReady = connectedPlayers.filter((p) => !p.isHost).every((p) => p.ready)
-  const hasSelectedGame = state.config.selectedGames.length > 0
+  // 인원이 모자라 지금은 할 수 없는 게임인지 — 이런 게임은 이미 골라 뒀더라도 선택은 서버에 남겨 두고(사람이 돌아오면 다시 살아난다),
+  // 화면에서는 선택 해제된 것처럼 비활성으로 보여주며 "시작할 수 있는 게임" 수에도 세지 않는다
+  const needsMorePlayers = (game: (typeof state.gameCatalog)[number]) =>
+    connectedPlayers.length < (game.minPlayers ?? MIN_PLAYERS_TO_START)
+  const hasSelectedGame = state.gameCatalog.some((g) => state.config.selectedGames.includes(g.id) && !needsMorePlayers(g))
   // 초성 퀴즈 카테고리: null은 전체. 고른 카테고리의 문제가 너무 적으면 같은 문제가 반복되므로 시작할 수 없다 (서버도 같은 기준으로 막는다)
   const wordChainSelected = state.config.selectedGames.includes('wordChain')
   const wordChainCategories = useWordChainCategories(wordChainSelected)
@@ -48,9 +52,6 @@ export function PartyLobby({ session }: Props) {
           ? selectedCategories.join(', ')
           : `${selectedCategories[0]} 외 ${selectedCategories.length - 1}개`
   const canStart = connectedPlayers.length >= MIN_PLAYERS_TO_START && allReady && hasSelectedGame && !tooFewWords
-  // 인원이 모자라 고를 수 없는 게임인지 (서버도 인원이 줄면 선택에서 빼 버린다)
-  const needsMorePlayers = (game: (typeof state.gameCatalog)[number]) =>
-    connectedPlayers.length < (game.minPlayers ?? MIN_PLAYERS_TO_START)
   // comingSoon 게임과 인원이 모자란 게임은 카드 자체가 선택 불가능하니 "전체 선택"의 대상에서도 제외한다
   const playableGames = state.gameCatalog.filter((g) => !g.comingSoon && !needsMorePlayers(g))
   const allGamesSelected = playableGames.length > 0 && playableGames.every((g) => state.config.selectedGames.includes(g.id))
@@ -230,8 +231,8 @@ export function PartyLobby({ session }: Props) {
 
         <div className="party-game-list">
           {state.gameCatalog.map((game) => {
-            const selected = state.config.selectedGames.includes(game.id)
             const notEnoughPlayers = needsMorePlayers(game)
+            const selected = state.config.selectedGames.includes(game.id) && !notEnoughPlayers
             return (
               <div
                 key={game.id}

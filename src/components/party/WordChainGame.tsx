@@ -11,7 +11,7 @@ import { RemainingTime } from './RemainingTime'
 interface Props {
   socket: Socket<ServerToClientEvents, ClientToServerEvents>
   roundKey: string
-  startSignal: { chosung: string[]; elapsedMs: number } | null
+  startSignal: { chosung: string[]; elapsedMs: number; submitted?: boolean } | null
   category: string | null
   definition: string | null
   players: PlayerInfo[]

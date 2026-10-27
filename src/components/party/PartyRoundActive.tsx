@@ -8,7 +8,7 @@ import { ColorMatchGame } from './ColorMatchGame'
 import { HumanTimerGame } from './HumanTimerGame'
 import { MinorityGame } from './MinorityGame'
 import { MouseHunterGame } from './MouseHunterGame'
-import { OneToFiftyGame } from './OneToFiftyGame'
+import { OneToTwentyFiveGame } from './OneToTwentyFiveGame'
 import { PartyExitToLobbyButton } from './PartyExitToLobbyButton'
 import { PixelCanvasGame } from './PixelCanvasGame'
 import { ScavengerHuntGame } from './ScavengerHuntGame'
@@ -30,9 +30,9 @@ function renderGame(session: GameSession, roundKey: string) {
       return (
         <HumanTimerGame socket={session.socket} roundKey={roundKey} startSignal={session.humanTimerStart} />
       )
-    case 'oneToFifty':
+    case 'oneToTwentyFive':
       return (
-        <OneToFiftyGame socket={session.socket} roundKey={roundKey} startSignal={session.oneToFiftyStart} />
+        <OneToTwentyFiveGame socket={session.socket} roundKey={roundKey} startSignal={session.oneToTwentyFiveStart} />
       )
     case 'wordChain':
       return (
@@ -101,6 +101,7 @@ function renderGame(session: GameSession, roundKey: string) {
           roundKey={roundKey}
           turnStart={session.catchmindTurnStart}
           wordSignal={session.catchmindWord}
+          hintLength={session.catchmindHintLength}
           playerId={session.playerId}
           players={state.players}
         />
@@ -119,6 +120,7 @@ function renderGame(session: GameSession, roundKey: string) {
       return (
         <TelestrationGame
           socket={session.socket}
+          roundKey={roundKey}
           task={session.telestrationTask}
           reveal={session.telestrationReveal}
           wordPrompt={session.telestrationWordPrompt}

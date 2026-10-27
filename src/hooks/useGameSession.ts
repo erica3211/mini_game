@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useState } from 'react'
 import type {
-  AuctionItemId,
+  CatchmindChatHistoryEntry,
   CatchmindStroke,
   MouseHunterMouse,
   PlayerId,
   RgbColor,
   RoomState,
   ScavengerHuntRoundTarget,
+  ServerToClientEvents,
   SessionConfig,
   TelepathyStartSignal,
   MinorityStartSignal,
@@ -20,6 +21,9 @@ import type {
   TelestrationWordPromptSignal,
 } from './useTelestrationDrawing'
 import type { TypeRaceStartSignal } from './useTypeRaceRound'
+
+/** 서버가 보내는 시작/복원 신호의 페이로드 타입 — 프로토콜(partyProtocol)에 있는 걸 그대로 쓴다 */
+type ServerSignal<E extends keyof ServerToClientEvents> = Parameters<ServerToClientEvents[E]>[0]
 
 const REJOIN_TTL_MS = 60 * 60 * 1000 // 마지막 접속 후 1시간이 지나면 재접속 정보를 만료시킨다
 const STORAGE_PREFIX = 'party_player_'
@@ -75,18 +79,12 @@ export function useGameSession(roomCodeFromUrl?: string) {
   const [playerId, setPlayerId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [rejoining, setRejoining] = useState(false)
-  const [humanTimerStart, setHumanTimerStart] = useState<{ elapsedMs: number } | null>(null)
-  const [oneToFiftyStart, setOneToFiftyStart] = useState<{ board: number[]; progress: number; elapsedMs: number } | null>(
-    null,
-  )
-  const [wordChainStart, setWordChainStart] = useState<{ chosung: string[]; elapsedMs: number } | null>(null)
+  const [humanTimerStart, setHumanTimerStart] = useState<ServerSignal<'humanTimer:roundStart'> | null>(null)
+  const [oneToTwentyFiveStart, setOneToTwentyFiveStart] = useState<ServerSignal<'oneToTwentyFive:roundStart'> | null>(null)
+  const [wordChainStart, setWordChainStart] = useState<ServerSignal<'wordChain:roundStart'> | null>(null)
   const [wordChainCategory, setWordChainCategory] = useState<string | null>(null)
   const [wordChainDefinition, setWordChainDefinition] = useState<string | null>(null)
-  const [auctionStart, setAuctionStart] = useState<{
-    budget: number
-    hint: { itemId: AuctionItemId; text: string }
-    elapsedMs: number
-  } | null>(null)
+  const [auctionStart, setAuctionStart] = useState<ServerSignal<'auction:roundStart'> | null>(null)
   const [colorMatchStart, setColorMatchStart] = useState<{
     subRoundIndex: number
     answerColor: RgbColor
@@ -98,7 +96,7 @@ export function useGameSession(roomCodeFromUrl?: string) {
     slotOfPlayer: Record<string, number>
     elapsedMs: number
   } | null>(null)
-  const [balloonPopStart, setBalloonPopStart] = useState<{ elapsedMs: number } | null>(null)
+  const [balloonPopStart, setBalloonPopStart] = useState<ServerSignal<'balloonPop:roundStart'> | null>(null)
   const [mouseHunterStart, setMouseHunterStart] = useState<{
     mice: MouseHunterMouse[]
     caughtCount: number
@@ -108,6 +106,7 @@ export function useGameSession(roomCodeFromUrl?: string) {
     subRoundIndex: number
     target: ScavengerHuntRoundTarget
     elapsedMs: number
+    submitted?: boolean
   } | null>(null)
   const [shoutRaceStart, setShoutRaceStart] = useState<{ elapsedMs: number } | null>(null)
   const [shoutRaceCountdown, setShoutRaceCountdown] = useState<{
@@ -119,6 +118,8 @@ export function useGameSession(roomCodeFromUrl?: string) {
     slotColors: string[]
     slotOfPlayer: Record<string, number>
     elapsedMs: number
+    finished?: boolean
+    myProgress?: number
   } | null>(null)
   const [catchmindTurnStart, setCatchmindTurnStart] = useState<{
     turnIndex: number
@@ -126,8 +127,12 @@ export function useGameSession(roomCodeFromUrl?: string) {
     drawerId: PlayerId
     strokes: CatchmindStroke[]
     elapsedMs: number
+    guessed?: boolean
+    history?: CatchmindChatHistoryEntry[]
   } | null>(null)
   const [catchmindWord, setCatchmindWord] = useState<{ turnIndex: number; word: string } | null>(null)
+  // 글자 수 힌트 — 게임 화면이 뜨기 전에(예: 새로고침 후 재접속) 서버가 다시 보내줘도 놓치지 않도록 세션에서 항상 받아둔다
+  const [catchmindHintLength, setCatchmindHintLength] = useState<number | null>(null)
   const [typeRaceStart, setTypeRaceStart] = useState<TypeRaceStartSignal | null>(null)
   const [telepathyStart, setTelepathyStart] = useState<TelepathyStartSignal | null>(null)
   const [minorityStart, setMinorityStart] = useState<MinorityStartSignal | null>(null)
@@ -148,7 +153,7 @@ export function useGameSession(roomCodeFromUrl?: string) {
       setRoomState(state)
       if (state.phase !== 'round_active') {
         setHumanTimerStart(null)
-        setOneToFiftyStart(null)
+        setOneToTwentyFiveStart(null)
         setWordChainStart(null)
         setWordChainCategory(null)
         setWordChainDefinition(null)
@@ -163,6 +168,7 @@ export function useGameSession(roomCodeFromUrl?: string) {
         setShoutRaceGo(null)
         setCatchmindTurnStart(null)
         setCatchmindWord(null)
+        setCatchmindHintLength(null)
         setTypeRaceStart(null)
         setTelepathyStart(null)
         setMinorityStart(null)
@@ -174,17 +180,16 @@ export function useGameSession(roomCodeFromUrl?: string) {
       }
     }
     const onError = (message: string) => setError(message)
-    const onHumanTimerStart = (data: { elapsedMs: number }) => setHumanTimerStart(data)
-    const onOneToFiftyStart = (data: { board: number[]; progress: number; elapsedMs: number }) => setOneToFiftyStart(data)
-    const onWordChainStart = (data: { chosung: string[]; elapsedMs: number }) => {
+    const onHumanTimerStart = (data: ServerSignal<'humanTimer:roundStart'>) => setHumanTimerStart(data)
+    const onOneToTwentyFiveStart = (data: ServerSignal<'oneToTwentyFive:roundStart'>) => setOneToTwentyFiveStart(data)
+    const onWordChainStart = (data: ServerSignal<'wordChain:roundStart'>) => {
       setWordChainStart(data)
       setWordChainCategory(null)
       setWordChainDefinition(null)
     }
     const onWordChainCategory = (data: { category: string }) => setWordChainCategory(data.category)
     const onWordChainDefinition = (data: { definition: string }) => setWordChainDefinition(data.definition)
-    const onAuctionStart = (data: { budget: number; hint: { itemId: AuctionItemId; text: string }; elapsedMs: number }) =>
-      setAuctionStart(data)
+    const onAuctionStart = (data: ServerSignal<'auction:roundStart'>) => setAuctionStart(data)
     const onColorMatchStart = (data: { subRoundIndex: number; answerColor: RgbColor; elapsedMs: number }) =>
       setColorMatchStart(data)
     const onPixelCanvasStart = (data: {
@@ -193,15 +198,15 @@ export function useGameSession(roomCodeFromUrl?: string) {
       slotOfPlayer: Record<string, number>
       elapsedMs: number
     }) => setPixelCanvasStart(data)
-    const onBalloonPopStart = (data: { elapsedMs: number }) => setBalloonPopStart(data)
+    const onBalloonPopStart = (data: ServerSignal<'balloonPop:roundStart'>) => setBalloonPopStart(data)
     const onMouseHunterStart = (data: { mice: MouseHunterMouse[]; caughtCount: number; elapsedMs: number }) =>
       setMouseHunterStart(data)
-    const onScavengerHuntStart = (data: { subRoundIndex: number; target: ScavengerHuntRoundTarget; elapsedMs: number }) =>
+    const onScavengerHuntStart = (data: { subRoundIndex: number; target: ScavengerHuntRoundTarget; elapsedMs: number; submitted?: boolean }) =>
       setScavengerHuntStart(data)
     const onShoutRaceStart = (data: { elapsedMs: number }) => setShoutRaceStart(data)
     const onShoutRaceCountdown = (data: { slotColors: string[]; slotOfPlayer: Record<string, number>; elapsedMs: number }) =>
       setShoutRaceCountdown(data)
-    const onShoutRaceGo = (data: { slotColors: string[]; slotOfPlayer: Record<string, number>; elapsedMs: number }) =>
+    const onShoutRaceGo = (data: { slotColors: string[]; slotOfPlayer: Record<string, number>; elapsedMs: number; finished?: boolean; myProgress?: number }) =>
       setShoutRaceGo(data)
     const onCatchmindTurnStart = (data: {
       turnIndex: number
@@ -209,8 +214,15 @@ export function useGameSession(roomCodeFromUrl?: string) {
       drawerId: PlayerId
       strokes: CatchmindStroke[]
       elapsedMs: number
-    }) => setCatchmindTurnStart(data)
+      guessed?: boolean
+      history?: CatchmindChatHistoryEntry[]
+    }) => {
+      setCatchmindTurnStart(data)
+      // 새 턴(또는 재접속 스냅샷)이 오면 힌트를 비운다 — 서버는 재접속 때 turnStart 다음에 hintRevealed를 이어서 다시 보낸다
+      setCatchmindHintLength(null)
+    }
     const onCatchmindWord = (data: { turnIndex: number; word: string }) => setCatchmindWord(data)
+    const onCatchmindHint = (data: { length: number }) => setCatchmindHintLength(data.length)
     const onTypeRaceStart = (data: TypeRaceStartSignal) => setTypeRaceStart(data)
     const onTelepathyStart = (data: TelepathyStartSignal) => setTelepathyStart(data)
     const onMinorityStart = (data: MinorityStartSignal) => setMinorityStart(data)
@@ -222,7 +234,7 @@ export function useGameSession(roomCodeFromUrl?: string) {
     socket.on('room:state', onState)
     socket.on('room:error', onError)
     socket.on('humanTimer:roundStart', onHumanTimerStart)
-    socket.on('oneToFifty:roundStart', onOneToFiftyStart)
+    socket.on('oneToTwentyFive:roundStart', onOneToTwentyFiveStart)
     socket.on('wordChain:roundStart', onWordChainStart)
     socket.on('wordChain:categoryRevealed', onWordChainCategory)
     socket.on('wordChain:definitionRevealed', onWordChainDefinition)
@@ -236,6 +248,7 @@ export function useGameSession(roomCodeFromUrl?: string) {
     socket.on('shoutRace:countdown', onShoutRaceCountdown)
     socket.on('shoutRace:go', onShoutRaceGo)
     socket.on('catchmind:turnStart', onCatchmindTurnStart)
+    socket.on('catchmind:hintRevealed', onCatchmindHint)
     socket.on('catchmind:word', onCatchmindWord)
     socket.on('typeRace:roundStart', onTypeRaceStart)
     socket.on('telepathy:roundStart', onTelepathyStart)
@@ -249,7 +262,7 @@ export function useGameSession(roomCodeFromUrl?: string) {
       socket.off('room:state', onState)
       socket.off('room:error', onError)
       socket.off('humanTimer:roundStart', onHumanTimerStart)
-      socket.off('oneToFifty:roundStart', onOneToFiftyStart)
+      socket.off('oneToTwentyFive:roundStart', onOneToTwentyFiveStart)
       socket.off('wordChain:roundStart', onWordChainStart)
       socket.off('wordChain:categoryRevealed', onWordChainCategory)
       socket.off('wordChain:definitionRevealed', onWordChainDefinition)
@@ -263,6 +276,7 @@ export function useGameSession(roomCodeFromUrl?: string) {
       socket.off('shoutRace:countdown', onShoutRaceCountdown)
       socket.off('shoutRace:go', onShoutRaceGo)
       socket.off('catchmind:turnStart', onCatchmindTurnStart)
+      socket.off('catchmind:hintRevealed', onCatchmindHint)
       socket.off('catchmind:word', onCatchmindWord)
       socket.off('typeRace:roundStart', onTypeRaceStart)
       socket.off('telepathy:roundStart', onTelepathyStart)
@@ -376,7 +390,7 @@ export function useGameSession(roomCodeFromUrl?: string) {
     error,
     rejoining,
     humanTimerStart,
-    oneToFiftyStart,
+    oneToTwentyFiveStart,
     wordChainStart,
     wordChainCategory,
     wordChainDefinition,
@@ -391,6 +405,7 @@ export function useGameSession(roomCodeFromUrl?: string) {
     shoutRaceGo,
     catchmindTurnStart,
     catchmindWord,
+    catchmindHintLength,
     typeRaceStart,
     telepathyStart,
     minorityStart,

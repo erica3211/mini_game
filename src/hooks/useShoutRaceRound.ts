@@ -105,7 +105,7 @@ export function useShoutRaceRound(
   roundKey: string,
   startSignal: { elapsedMs: number } | null,
   countdownSignal: { slotColors: string[]; slotOfPlayer: Record<PlayerId, number>; elapsedMs: number } | null,
-  goSignal: { slotColors: string[]; slotOfPlayer: Record<PlayerId, number>; elapsedMs: number } | null,
+  goSignal: { slotColors: string[]; slotOfPlayer: Record<PlayerId, number>; elapsedMs: number; finished?: boolean; myProgress?: number } | null,
   playerId: PlayerId | null,
 ) {
   const [micError, setMicError] = useState<string | null>(null)
@@ -278,6 +278,20 @@ export function useShoutRaceRound(
   useEffect(() => {
     if (!goSignal) return
     if (noiseFloorRef.current === null) noiseFloorRef.current = DEFAULT_NOISE_FLOOR_DB
+    // 이미 완주한 사람이 새로고침·재접속하면 다시 달리기 시작하지 않고 결승선에 도착한 상태로 복원한다
+    if (goSignal.finished && !finishedRef.current) {
+      finishedRef.current = true
+      progressRef.current = SHOUT_RACE_FINISH_PROGRESS
+      visualProgressRef.current = SHOUT_RACE_FINISH_PROGRESS
+      setPhase('finished')
+      return
+    }
+    // 레이스 도중 새로고침·재접속했다면 서버가 알고 있는 내 진행률에서 이어서 달린다 (처음 위치로 돌아가지 않게)
+    const restored = goSignal.myProgress ?? 0
+    if (restored > progressRef.current) {
+      progressRef.current = restored
+      visualProgressRef.current = restored
+    }
     setPhase((prev) => (prev === 'finished' ? prev : 'racing'))
   }, [goSignal])
 

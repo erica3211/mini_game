@@ -11,8 +11,49 @@ import { useMonotonicStartedAt } from './useMonotonicStartedAt'
 
 type PartySocket = Socket<ServerToClientEvents, ClientToServerEvents>
 type LocalStatus = 'waiting' | 'running' | 'submitted'
-type StartSignal = { subRoundIndex: number; target: ScavengerHuntRoundTarget; elapsedMs: number }
+type StartSignal = { subRoundIndex: number; target: ScavengerHuntRoundTarget; elapsedMs: number; submitted?: boolean }
 type SubRoundResult = { matchPercent: number; matchScore: number; speedScore: number; roundScore: number }
+
+// 촬영한 사진/일치율은 브라우저 화면 안에만 있어서 새로고침하면 사라진다 — 서버는 사진을 모르니(분석은 기기 안에서 한다),
+// 세부 라운드마다 sessionStorage에 임시 저장해 두었다가 새로고침 후 같은 세부 라운드로 돌아오면 그대로 복원한다.
+// 저장은 실패해도(용량 초과·저장소 차단 등) 게임 진행에는 영향이 없어야 해서 모든 접근을 try/catch로 감싼다
+const CAPTURE_STORAGE_PREFIX = 'scavenger_capture_'
+
+interface SavedCapture {
+  matchPercent: number
+  image: string
+  thumbnail: string | null
+}
+
+function saveCapture(subRoundKey: string, capture: SavedCapture) {
+  try {
+    // 지난 세부 라운드의 사진은 용량만 차지하니 지우고 지금 것만 남긴다
+    for (let i = sessionStorage.length - 1; i >= 0; i--) {
+      const key = sessionStorage.key(i)
+      if (key?.startsWith(CAPTURE_STORAGE_PREFIX)) sessionStorage.removeItem(key)
+    }
+    sessionStorage.setItem(CAPTURE_STORAGE_PREFIX + subRoundKey, JSON.stringify(capture))
+  } catch {
+    // no-op
+  }
+}
+
+function loadCapture(subRoundKey: string): SavedCapture | null {
+  try {
+    const raw = sessionStorage.getItem(CAPTURE_STORAGE_PREFIX + subRoundKey)
+    return raw ? (JSON.parse(raw) as SavedCapture) : null
+  } catch {
+    return null
+  }
+}
+
+function clearCapture(subRoundKey: string) {
+  try {
+    sessionStorage.removeItem(CAPTURE_STORAGE_PREFIX + subRoundKey)
+  } catch {
+    // no-op
+  }
+}
 
 // 화면에 보이는 30초가 다 되기 살짝 전에 자동 제출을 보낸다 (colorMatch와 같은 이유) —
 // 서버도 SCAVENGER_HUNT_SUBMIT_GRACE_MS만큼 마감을 늦춰주지만, 클라이언트도 여유를 조금 더 둬서
@@ -49,16 +90,19 @@ export function useScavengerHuntRound(socket: PartySocket, roundKey: string, sta
   useEffect(() => {
     setStatus('waiting')
     setAnalyzing(false)
-    setCapturedMatchPercent(null)
-    setCapturedImage(null)
-    capturedThumbnailRef.current = null
+    // 새로고침했다면 같은 세부 라운드에서 찍어 둔 사진/일치율을 되살린다
+    const saved = loadCapture(subRoundKey)
+    setCapturedMatchPercent(saved?.matchPercent ?? null)
+    setCapturedImage(saved?.image ?? null)
+    capturedThumbnailRef.current = saved?.thumbnail ?? null
     setResult(null)
   }, [subRoundKey])
 
   // 재접속으로 같은 세부 라운드 신호가 다시 와도(중복 startSignal) 위 리셋은 건너뛰고 running으로만 전환한다
   useEffect(() => {
     if (!startSignal || status === 'submitted') return
-    setStatus('running')
+    // 이미 제출한 사람이 새로고침·재접속하면 다시 촬영 화면이 뜨지 않고 제출 완료 상태로 복원한다 (채점 결과는 곧 서버가 보내준다)
+    setStatus(startSignal.submitted ? 'submitted' : 'running')
   }, [startSignal, status])
 
   useEffect(() => {
@@ -82,9 +126,12 @@ export function useScavengerHuntRound(socket: PartySocket, roundKey: string, sta
         // 분석이 끝난 사이 다음 세부 라운드로 넘어갔다면(=subRoundKey가 바뀌었다면) 이 결과는 이미
         // 지나간 세부 라운드의 것이니 버린다 — 그대로 반영하면 새 세부 라운드에 옛 사진/점수가 잘못 채워진다
         if (subRoundKeyRef.current !== keyAtCapture) return
+        const image = canvas.toDataURL('image/jpeg', 0.85)
+        const thumbnail = createResultThumbnail(canvas)
         setCapturedMatchPercent(matchPercent)
-        setCapturedImage(canvas.toDataURL('image/jpeg', 0.85))
-        capturedThumbnailRef.current = createResultThumbnail(canvas)
+        setCapturedImage(image)
+        capturedThumbnailRef.current = thumbnail
+        saveCapture(keyAtCapture, { matchPercent, image, thumbnail })
       } finally {
         setAnalyzing(false)
       }
@@ -93,6 +140,7 @@ export function useScavengerHuntRound(socket: PartySocket, roundKey: string, sta
   )
 
   const retake = useCallback(() => {
+    clearCapture(subRoundKeyRef.current)
     setCapturedMatchPercent(null)
     setCapturedImage(null)
     capturedThumbnailRef.current = null

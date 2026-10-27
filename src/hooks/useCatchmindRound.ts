@@ -1,7 +1,14 @@
 import { useCallback, useEffect, useRef, useState, type RefObject } from 'react'
 import type { Socket } from 'socket.io-client'
 import { clearCatchmindCanvas, drawFullBoard, fitCatchmindCanvas, strokeSegment } from '../lib/catchmindDraw'
-import type { CatchmindGuesserResult, CatchmindStroke, ClientToServerEvents, PlayerId, ServerToClientEvents } from '../lib/partyProtocol'
+import type {
+  CatchmindChatHistoryEntry,
+  CatchmindGuesserResult,
+  CatchmindStroke,
+  ClientToServerEvents,
+  PlayerId,
+  ServerToClientEvents,
+} from '../lib/partyProtocol'
 import { useMonotonicStartedAt } from './useMonotonicStartedAt'
 
 type PartySocket = Socket<ServerToClientEvents, ClientToServerEvents>
@@ -13,6 +20,10 @@ export interface CatchmindTurnStartSignal {
   drawerId: PlayerId
   strokes: CatchmindStroke[]
   elapsedMs: number
+  /** 재접속 시에만 채워지는 값 — 이 사람이 이번 턴 정답을 이미 맞혔는지 */
+  guessed?: boolean
+  /** 재접속 시에만 채워지는 값 — 지금까지의 채팅/정답/공개 기록 */
+  history?: CatchmindChatHistoryEntry[]
 }
 
 export interface CatchmindWordSignal {
@@ -56,6 +67,8 @@ export function useCatchmindRound(
   roundKey: string,
   turnStart: CatchmindTurnStartSignal | null,
   wordSignal: CatchmindWordSignal | null,
+  // 글자 수 힌트는 useGameSession이 세션 내내 받아둔 값을 그대로 쓴다 — 이 훅이 직접 구독하면 재접속 직후 화면이 뜨기 전에 온 신호를 놓친다
+  hintLength: number | null,
   playerId: PlayerId | null,
   canvasRef: RefObject<HTMLCanvasElement | null>,
 ) {
@@ -64,7 +77,6 @@ export function useCatchmindRound(
   const isDrawer = turnStart !== null && playerId !== null && playerId === turnStart.drawerId
 
   const [finishedTurnKey, setFinishedTurnKey] = useState<string | null>(null)
-  const [hintLength, setHintLength] = useState<number | null>(null)
   const [guessed, setGuessed] = useState(false)
   const [chat, setChat] = useState<CatchmindChatEntry[]>([])
   const [lastTurnEnd, setLastTurnEnd] = useState<CatchmindTurnEndInfo | null>(null)
@@ -96,10 +108,14 @@ export function useCatchmindRound(
 
   // 턴이 바뀌면 이번 턴 전용 로컬 상태를 초기화한다 (채팅 기록은 게임이 끝날 때까지 유지)
   useEffect(() => {
-    setHintLength(null)
     setGuessed(false)
     pendingPointsRef.current = []
   }, [turnKey])
+
+  // 이미 정답을 맞힌 상태로 새로고침·재접속하면 서버가 turnStart에 guessed를 실어 보내준다 — 위 초기화 다음에 반영해야 한다
+  useEffect(() => {
+    if (turnStart?.guessed) setGuessed(true)
+  }, [turnStart])
 
   // roundKey(=새 게임 슬롯)가 바뀌면 채팅 기록도 비운다
   useEffect(() => {
@@ -108,8 +124,13 @@ export function useCatchmindRound(
     setToasts([])
   }, [roundKey])
 
+  // 새로고침·재접속하면 서버가 보내준 지금까지의 채팅 기록으로 채팅창을 복원한다 (효과는 선언 순서대로 실행되므로 반드시 위의 roundKey 초기화 효과보다 뒤에 있어야 복원한 기록이 지워지지 않는다)
   useEffect(() => {
-    const onHintRevealed = (data: { length: number }) => setHintLength(data.length)
+    if (!turnStart?.history) return
+    setChat(turnStart.history.map((entry) => ({ ...entry, id: chatIdSeq++ })))
+  }, [turnStart])
+
+  useEffect(() => {
     const onChatMessage = (data: { playerId: PlayerId; text: string }) => {
       setChat((prev) => [...prev.slice(-49), { id: chatIdSeq++, kind: 'chat', playerId: data.playerId, text: data.text }])
     }
@@ -160,7 +181,6 @@ export function useCatchmindRound(
       myLastPointRef.current = null
     }
 
-    socket.on('catchmind:hintRevealed', onHintRevealed)
     socket.on('catchmind:chatMessage', onChatMessage)
     socket.on('catchmind:correctGuess', onCorrectGuess)
     socket.on('catchmind:turnEnd', onTurnEnd)
@@ -170,7 +190,6 @@ export function useCatchmindRound(
     socket.on('catchmind:clear', onClear)
     socket.on('catchmind:undo', onUndo)
     return () => {
-      socket.off('catchmind:hintRevealed', onHintRevealed)
       socket.off('catchmind:chatMessage', onChatMessage)
       socket.off('catchmind:correctGuess', onCorrectGuess)
       socket.off('catchmind:turnEnd', onTurnEnd)

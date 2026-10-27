@@ -18,6 +18,7 @@ import {
   type PlayerInfo,
   type ServerToClientEvents,
 } from '../../lib/partyProtocol'
+import { clearDraft, loadDraft, saveDraft } from '../../lib/sessionDraft'
 import { BRUSH_THIN, CatchmindToolbar } from '../CatchmindToolbar'
 import { CatchmindSnapshot } from './CatchmindSnapshot'
 import { RemainingTime } from './RemainingTime'
@@ -27,6 +28,7 @@ type PartySocket = Socket<ServerToClientEvents, ClientToServerEvents>
 
 interface Props {
   socket: PartySocket
+  roundKey: string
   task: TelestrationTaskSignal | null
   reveal: TelestrationRevealSignal | null
   wordPrompt: TelestrationWordPromptSignal | null
@@ -34,12 +36,12 @@ interface Props {
   players: PlayerInfo[]
 }
 
-export function TelestrationGame({ socket, task, reveal, wordPrompt, playerId, players }: Props) {
+export function TelestrationGame({ socket, roundKey, task, reveal, wordPrompt, playerId, players }: Props) {
   if (reveal) {
     return <TelestrationVote socket={socket} reveal={reveal} playerId={playerId} players={players} />
   }
   if (!task && wordPrompt) {
-    return <TelestrationWordEntry socket={socket} prompt={wordPrompt} />
+    return <TelestrationWordEntry socket={socket} roundKey={roundKey} prompt={wordPrompt} />
   }
   if (!task) {
     return (
@@ -49,14 +51,16 @@ export function TelestrationGame({ socket, task, reveal, wordPrompt, playerId, p
     )
   }
   // 단계가 바뀌면 입력/그림/제출 상태가 통째로 초기화돼야 하므로 stepIndex로 새로 마운트한다
-  return <TelestrationStep key={task.stepIndex} socket={socket} task={task} />
+  return <TelestrationStep key={task.stepIndex} socket={socket} roundKey={roundKey} task={task} />
 }
 
 /** 직접 입력 방식: 라운드 시작 전에 내가 낼 제시어를 하나 적는다 (남이 낸 제시어를 받아 그리게 된다) */
-function TelestrationWordEntry({ socket, prompt }: { socket: PartySocket; prompt: TelestrationWordPromptSignal }) {
-  const [text, setText] = useState('')
+function TelestrationWordEntry({ socket, roundKey, prompt }: { socket: PartySocket; roundKey: string; prompt: TelestrationWordPromptSignal }) {
+  // 쓰던 제시어는 새로고침해도 남도록 임시 저장한다
+  const draftKey = `telestration_word_${roundKey}`
+  const [text, setText] = useState(() => loadDraft<string>(draftKey) ?? '')
   const [submitted, setSubmitted] = useState(prompt.submitted)
-  const [progress, setProgress] = useState<{ submitted: number; total: number } | null>(null)
+  const [progress, setProgress] = useState<{ submitted: number; total: number } | null>(prompt.progress ?? null)
   const startedAt = useMemo(() => performance.now() - prompt.elapsedMs, [prompt])
 
   useEffect(() => {
@@ -74,6 +78,7 @@ function TelestrationWordEntry({ socket, prompt }: { socket: PartySocket; prompt
     const trimmed = text.trim()
     if (!trimmed || submitted) return
     socket.emit('telestration:submitWord', { text: trimmed })
+    clearDraft(draftKey)
     setSubmitted(true)
   }
 
@@ -98,7 +103,10 @@ function TelestrationWordEntry({ socket, prompt }: { socket: PartySocket; prompt
               className="party-wordchain-input"
               value={text}
               maxLength={TELESTRATION_MAX_WORD_LENGTH}
-              onChange={(e) => setText(e.target.value)}
+              onChange={(e) => {
+                setText(e.target.value)
+                saveDraft(draftKey, e.target.value)
+              }}
               placeholder="예: 우주를 나는 고양이"
               autoFocus
             />
@@ -140,19 +148,22 @@ function PromptView({ task }: { task: TelestrationTaskSignal }) {
   )
 }
 
-function TelestrationStep({ socket, task }: { socket: PartySocket; task: TelestrationTaskSignal }) {
+function TelestrationStep({ socket, roundKey, task }: { socket: PartySocket; roundKey: string; task: TelestrationTaskSignal }) {
   const isDraw = task.kind === 'draw'
   const timeoutMs = isDraw ? TELESTRATION_DRAW_TIMEOUT_MS : TELESTRATION_WRITE_TIMEOUT_MS
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [submitted, setSubmitted] = useState(task.submitted)
   const [color, setColor] = useState(CATCHMIND_COLORS[0])
   const [width, setWidth] = useState(BRUSH_THIN)
-  const [text, setText] = useState('')
-  const [progress, setProgress] = useState<{ submitted: number; total: number } | null>(null)
+  // 그리던 그림/쓰던 글은 새로고침해도 남도록 임시 저장한다 (단계마다 따로)
+  const strokesDraftKey = `telestration_strokes_${roundKey}_${task.stepIndex}`
+  const textDraftKey = `telestration_text_${roundKey}_${task.stepIndex}`
+  const [text, setText] = useState(() => loadDraft<string>(textDraftKey) ?? '')
+  const [progress, setProgress] = useState<{ submitted: number; total: number } | null>(task.progress ?? null)
   // RemainingTime은 performance.now() 기준 시작 시각을 받는다
   const startedAt = useMemo(() => performance.now() - task.elapsedMs, [task])
 
-  const { drawingProps, undo, clear, getStrokes } = useTelestrationDrawing(canvasRef, isDraw && !submitted, color, width)
+  const { drawingProps, undo, clear, getStrokes } = useTelestrationDrawing(canvasRef, isDraw && !submitted, color, width, strokesDraftKey)
 
   useEffect(() => {
     const onProgress = (data: { stepIndex: number; submitted: number; total: number }) => {
@@ -174,6 +185,8 @@ function TelestrationStep({ socket, task }: { socket: PartySocket; task: Telestr
       if (trimmed) socket.emit('telestration:submit', { stepIndex: task.stepIndex, text: trimmed })
       else if (!force) return
     }
+    clearDraft(strokesDraftKey)
+    clearDraft(textDraftKey)
     setSubmitted(true)
   }
 
@@ -243,7 +256,10 @@ function TelestrationStep({ socket, task }: { socket: PartySocket; task: Telestr
                 className="party-wordchain-input"
                 value={text}
                 maxLength={TELESTRATION_MAX_TEXT_LENGTH}
-                onChange={(e) => setText(e.target.value)}
+                onChange={(e) => {
+                  setText(e.target.value)
+                  saveDraft(textDraftKey, e.target.value)
+                }}
                 placeholder="이 그림을 한 문장으로 설명해보세요"
                 autoFocus
               />
