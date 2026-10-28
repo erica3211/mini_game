@@ -13,6 +13,8 @@ import {
 import { WORD_CHAIN_MIN_CANDIDATES } from '../games/wordChain/protocol'
 import type { GameSession } from './useGameSession'
 
+const GAMES_PER_PAGE = 10
+
 interface Props {
   session: GameSession
 }
@@ -28,6 +30,7 @@ export function PartyLobby({ session }: Props) {
   const state = session.roomState!
   const [copied, setCopied] = useState(false)
   const [categoryModalOpen, setCategoryModalOpen] = useState(false)
+  const [gamePage, setGamePage] = useState(0)
   // 방장 권한을 넘길지 확인 중인 참가자 (null이면 확인창이 닫혀 있다)
   const [transferTarget, setTransferTarget] = useState<PlayerInfo | null>(null)
   const inviteUrl = `${window.location.origin}/party/${state.code}`
@@ -39,6 +42,15 @@ export function PartyLobby({ session }: Props) {
   // 화면에서는 선택 해제된 것처럼 비활성으로 보여주며 "시작할 수 있는 게임" 수에도 세지 않는다
   const needsMorePlayers = (game: (typeof state.gameCatalog)[number]) =>
     connectedPlayers.length < (game.minPlayers ?? DEFAULT_GAME_MIN_PLAYERS)
+  // 필요 인원이 적은 게임이 앞, 같으면 소요 시간이 짧은 게임이 앞 (같으면 카탈로그 순서 유지)
+  const sortedGames = [...state.gameCatalog].sort(
+    (a, b) =>
+      (a.minPlayers ?? DEFAULT_GAME_MIN_PLAYERS) - (b.minPlayers ?? DEFAULT_GAME_MIN_PLAYERS) ||
+      a.playTimeSeconds - b.playTimeSeconds,
+  )
+  const pageCount = Math.max(1, Math.ceil(sortedGames.length / GAMES_PER_PAGE))
+  const currentPage = Math.min(gamePage, pageCount - 1)
+  const pagedGames = sortedGames.slice(currentPage * GAMES_PER_PAGE, (currentPage + 1) * GAMES_PER_PAGE)
   const hasSelectedGame = state.gameCatalog.some((g) => state.config.selectedGames.includes(g.id) && !needsMorePlayers(g))
   // 초성 퀴즈 카테고리: null은 전체. 고른 카테고리의 문제가 너무 적으면 같은 문제가 반복되므로 시작할 수 없다 (서버도 같은 기준으로 막는다)
   const wordChainSelected = state.config.selectedGames.includes('wordChain')
@@ -245,7 +257,7 @@ export function PartyLobby({ session }: Props) {
         <div className="party-config-row party-config-summary">현재 선택된 게임 : {selectedGameCount}개</div>
 
         <div className="party-game-list">
-          {state.gameCatalog.map((game) => {
+          {pagedGames.map((game) => {
             const notEnoughPlayers = needsMorePlayers(game)
             const selected = state.config.selectedGames.includes(game.id) && !notEnoughPlayers
             return (
@@ -338,6 +350,40 @@ export function PartyLobby({ session }: Props) {
             )
           })}
         </div>
+
+        {pageCount > 1 && (
+          <nav className="party-game-pager" aria-label="게임 목록 페이지">
+            <button
+              type="button"
+              className="party-game-pager-btn"
+              disabled={currentPage <= 0}
+              onClick={() => setGamePage(currentPage - 1)}
+              aria-label="이전 페이지"
+            >
+              ‹
+            </button>
+            {Array.from({ length: pageCount }, (_, page) => (
+              <button
+                key={page}
+                type="button"
+                className={`party-game-pager-btn${page === currentPage ? ' party-game-pager-btn-current' : ''}`}
+                aria-current={page === currentPage ? 'page' : undefined}
+                onClick={() => setGamePage(page)}
+              >
+                {page + 1}
+              </button>
+            ))}
+            <button
+              type="button"
+              className="party-game-pager-btn"
+              disabled={currentPage >= pageCount - 1}
+              onClick={() => setGamePage(currentPage + 1)}
+              aria-label="다음 페이지"
+            >
+              ›
+            </button>
+          </nav>
+        )}
 
         <Modal
           open={categoryModalOpen && session.isHost && wordChainSelected && wordChainCategories !== null}
