@@ -11,6 +11,7 @@ import { MinorityGame } from '../games/minority/MinorityGame'
 import { MouseHunterGame } from '../games/mouseHunter/MouseHunterGame'
 import { OneToTwentyFiveGame } from '../games/oneToTwentyFive/OneToTwentyFiveGame'
 import { PartyExitToLobbyButton } from './PartyExitToLobbyButton'
+import { PartyTeamBanner } from './PartyTeamBanner'
 import { PixelCanvasGame } from '../games/pixelCanvas/PixelCanvasGame'
 import { ScavengerHuntGame } from '../games/scavengerHunt/ScavengerHuntGame'
 import { ShoutRaceGame } from '../games/shoutRace/ShoutRaceGame'
@@ -106,6 +107,7 @@ function renderGame(session: GameSession, roundKey: string) {
           hintLength={session.catchmindHintLength}
           playerId={session.playerId}
           players={state.players}
+          teams={state.teams}
         />
       )
     case 'typeRace':
@@ -138,6 +140,7 @@ function renderGame(session: GameSession, roundKey: string) {
           startSignal={session.telepathyStart}
           playerId={session.playerId}
           players={state.players}
+          teams={state.teams}
         />
       )
     case 'minority':
@@ -209,6 +212,11 @@ export function PartyRoundActive({ session }: Props) {
       ) : (
         gameMeta && (
           <>
+            <PartyTeamBanner
+              teams={state.teams}
+              playerId={session.playerId}
+              nicknameOf={(id) => state.players.find((p) => p.id === id)?.nickname ?? '???'}
+            />
             {renderGame(session, roundKey)}
             <RulesBox summary={gameMeta.howToPlay} />
           </>

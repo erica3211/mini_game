@@ -6,11 +6,18 @@ import { Modal } from '../../shared/components/Modal'
 import { useWordChainCategories } from '../games/wordChain/useWordChainCategories'
 import {
   DEFAULT_GAME_MIN_PLAYERS,
-  MIN_PLAYERS_TO_START,
+  MAX_TEAM_COUNT,
+  MIN_TEAM_COUNT,
+  TEAM_NAMES,
+  minPlayersToStart,
   type GameId,
   type PlayerInfo,
 } from '../../shared/lib/partyProtocol'
 import { WORD_CHAIN_MIN_CANDIDATES } from '../games/wordChain/protocol'
+import { partyBasePath } from './partyPaths'
+import { TeamColorMark } from './PartyTeamColorMark'
+import { teamColorClass, teamEmoji } from './PartyTeamBanner'
+import { teamProblem } from './teamUtils'
 import { PartySubRoundCarousel } from './PartySubRoundCarousel'
 import type { GameSession } from './useGameSession'
 
@@ -32,9 +39,13 @@ export function PartyLobby({ session }: Props) {
   const [copied, setCopied] = useState(false)
   const [categoryModalOpen, setCategoryModalOpen] = useState(false)
   const [gamePage, setGamePage] = useState(0)
+  // 내 팀 색을 고르는 창이 열려 있는가
+  const [paletteOpen, setPaletteOpen] = useState(false)
   // 방장 권한을 넘길지 확인 중인 참가자 (null이면 확인창이 닫혀 있다)
   const [transferTarget, setTransferTarget] = useState<PlayerInfo | null>(null)
-  const inviteUrl = `${window.location.origin}/party/${state.code}`
+  const isTeamRoom = state.mode === 'team'
+  const minPlayers = minPlayersToStart(state.mode)
+  const inviteUrl = `${window.location.origin}${partyBasePath(state.mode)}/${state.code}`
 
   const connectedPlayers = state.players.filter((p) => p.connected)
   // 방장은 '게임 시작' 버튼을 누르는 행위 자체가 곧 준비 의사 표시라 준비완료 여부를 따로 검사하지 않는다
@@ -74,7 +85,18 @@ export function PartyLobby({ session }: Props) {
           : `${selectedCategories[0]} 외 ${selectedCategories.length - 1}개`
   // 소켓이 끊긴 동안 보낸 요청은 서버에 닿기 전에 사라질 수 있어서, 다시 연결될 때까지 시작·설정 변경을 막는다
   const offline = !session.connected || session.rejoining
-  const canStart = !offline && connectedPlayers.length >= MIN_PLAYERS_TO_START && allReady && hasSelectedGame && !tooFewWords
+  // 팀전은 대기실에서 각자 팀을 고른다 (게임이 끝나도 팀이 유지된다)
+  const teamIssue = isTeamRoom ? teamProblem(connectedPlayers) : null
+  // 팀 색별 인원 (색 고르기 모달에 보여준다)
+  // 팀 이동: 지금 있는 팀들(config.teamColors)을 순서대로 돈다
+  const nextTeamOf = (teamId: number) => {
+    const teams = state.config.teamColors
+    return teams[(teams.indexOf(teamId) + 1) % teams.length]
+  }
+  const teamCounts = new Map<number, number>()
+  for (const p of state.players) if (p.teamId !== null) teamCounts.set(p.teamId, (teamCounts.get(p.teamId) ?? 0) + 1)
+  const canStart =
+    !offline && connectedPlayers.length >= minPlayers && teamIssue === null && allReady && hasSelectedGame && !tooFewWords
   const configLocked = !session.isHost || offline
   // comingSoon 게임과 인원이 모자란 게임은 카드 자체가 선택 불가능하니 "전체 선택"의 대상에서도 제외한다
   const playableGames = state.gameCatalog.filter((g) => !g.comingSoon && !needsMorePlayers(g))
@@ -123,7 +145,7 @@ export function PartyLobby({ session }: Props) {
 
   return (
     <section className="game-page">
-      <h1 className="page-title">🎉 파티게임 대기실</h1>
+      <h1 className="page-title">{isTeamRoom ? '👥 팀전 대기실' : '🎉 파티게임 대기실'}</h1>
       <p className="page-subtitle">방 코드 {state.code}</p>
 
       <div className="party-invite">
@@ -134,6 +156,19 @@ export function PartyLobby({ session }: Props) {
       </div>
 
       <h2 className="party-section-title">참가자 ({connectedPlayers.length}명)</h2>
+      {isTeamRoom && session.me && session.me.teamId !== null && (
+        <div className="party-team-color-row">
+          <span className="party-team-color-label">내 팀 색</span>
+          <button type="button" className="party-team-color-btn" disabled={offline} onClick={() => setPaletteOpen(true)}>
+            <span className={`party-team-swatch ${teamColorClass(session.me.teamId)}`} />
+            {TEAM_NAMES[session.me.teamId]}
+            <span className="party-team-color-chevron" aria-hidden="true">
+              ▾
+            </span>
+          </button>
+        </div>
+      )}
+      {isTeamRoom && <p className="party-player-hint">내 이름 앞의 색 동그라미를 누르면 다른 팀으로 옮겨요.</p>}
       {session.isHost && connectedPlayers.length > 1 && (
         <p className="party-player-hint">참가자를 누르면 방장 권한을 넘길 수 있어요.</p>
       )}
@@ -145,7 +180,7 @@ export function PartyLobby({ session }: Props) {
           return (
             <li
               key={p.id}
-              className={`party-player-row${canTransfer ? ' party-player-row-clickable' : ''}`}
+              className={`party-player-row${canTransfer ? ' party-player-row-clickable' : ''}${isTeamRoom && p.teamId !== null ? ` party-team-row ${teamColorClass(p.teamId)}` : ''}`}
               {...(canTransfer
                 ? {
                     role: 'button',
@@ -162,11 +197,24 @@ export function PartyLobby({ session }: Props) {
                 : {})}
             >
               <span>
-                {p.isHost && '👑 '}
+                {isTeamRoom && p.teamId !== null && (
+                  <TeamColorMark
+                    teamId={p.teamId}
+                    nextTeamId={nextTeamOf(p.teamId)}
+                    onMove={p.id === session.playerId && !offline ? () => session.setTeam(nextTeamOf(p.teamId!)) : undefined}
+                  />
+                )}
                 {p.nickname}
                 {p.id === session.playerId && ' (나)'}
               </span>
-              {!p.isHost && <span className={badge.className}>{badge.label}</span>}
+              {/* 방장은 준비 상태 뱃지 대신 오른쪽 끝에 왕관을 단다 (개인전·팀전 공통) */}
+              {p.isHost ? (
+                <span className="party-host-crown" role="img" aria-label="방장" title="방장">
+                  👑
+                </span>
+              ) : (
+                <span className={badge.className}>{badge.label}</span>
+              )}
             </li>
           )
         })}
@@ -186,9 +234,13 @@ export function PartyLobby({ session }: Props) {
             <p className="error">
               {offline
                 ? '연결이 끊겼어요. 다시 연결되면 시작할 수 있어요.'
-                : connectedPlayers.length < MIN_PLAYERS_TO_START
-                ? `파티게임은 혼자서 할 수 없어요. 최소 ${MIN_PLAYERS_TO_START}명이 필요해요.`
-                : !hasSelectedGame
+                : connectedPlayers.length < minPlayers
+                ? isTeamRoom
+                  ? `팀전은 팀당 2명씩, 최소 ${minPlayers}명이 필요해요.`
+                  : `파티게임은 혼자서 할 수 없어요. 최소 ${minPlayers}명이 필요해요.`
+                : teamIssue
+                  ? teamIssue
+                  : !hasSelectedGame
                   ? '최소 1개 이상의 게임을 선택해주세요.'
                   : tooFewWords
                     ? `초성 퀴즈 문제 후보가 ${WORD_CHAIN_MIN_CANDIDATES}개 이상 되도록 카테고리를 골라주세요.`
@@ -236,6 +288,33 @@ export function PartyLobby({ session }: Props) {
             </button>
           </div>
         </div>
+
+        {isTeamRoom && (
+          <div className="party-config-row">
+            팀 수
+            <div className="party-config-stepper">
+              <button
+                type="button"
+                className="party-config-stepper-btn"
+                disabled={configLocked || state.config.teamCount <= MIN_TEAM_COUNT}
+                onClick={() => session.updateConfig({ teamCount: state.config.teamCount - 1 })}
+                aria-label="팀 수 줄이기"
+              >
+                −
+              </button>
+              <span className="party-config-stepper-value">{state.config.teamCount}</span>
+              <button
+                type="button"
+                className="party-config-stepper-btn"
+                disabled={configLocked || state.config.teamCount >= MAX_TEAM_COUNT}
+                onClick={() => session.updateConfig({ teamCount: state.config.teamCount + 1 })}
+                aria-label="팀 수 늘리기"
+              >
+                +
+              </button>
+            </div>
+          </div>
+        )}
 
         <label className="party-config-row">
           <input
@@ -405,6 +484,31 @@ export function PartyLobby({ session }: Props) {
           </CategoryPicker>
         </Modal>
       </div>
+
+      <Modal open={paletteOpen && isTeamRoom} title="팀 색 고르기" doneLabel="닫기" onClose={() => setPaletteOpen(false)}>
+        <p className="party-team-note">내 팀의 색을 바꿔요. 다른 팀이 쓰고 있는 색은 고를 수 없어요.</p>
+        <div className="party-team-palette">
+          {TEAM_NAMES.map((name, teamId) => (
+            <button
+              key={teamId}
+              type="button"
+              className={`party-team-palette-btn ${teamColorClass(teamId)}${session.me?.teamId === teamId ? ' party-team-palette-btn-current' : ''}`}
+              aria-pressed={session.me?.teamId === teamId}
+              disabled={offline || (state.config.teamColors.includes(teamId) && session.me?.teamId !== teamId)}
+              onClick={() => {
+                session.setTeamColor(teamId)
+                setPaletteOpen(false)
+              }}
+            >
+              <span className="party-team-palette-emoji">{teamEmoji(teamId)}</span>
+              <span className="party-team-palette-name">{name}</span>
+              <span className="party-team-palette-count">
+                {session.me?.teamId === teamId ? '내 팀' : state.config.teamColors.includes(teamId) ? '다른 팀' : ''}
+              </span>
+            </button>
+          ))}
+        </div>
+      </Modal>
 
       <ConfirmModal
         open={transferTarget !== null && session.isHost}

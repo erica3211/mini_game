@@ -29,8 +29,30 @@ export interface CatchmindTurnMeta {
   drawerPoints: number
 }
 
+// 팀전: 한 턴에서 한 팀의 결과 — 모든 팀이 같은 제시어를 각자 그리고 맞히므로, 먼저 맞힌 팀부터 높은 점수를 받는다
+export interface CatchmindTeamTurnSummary {
+  teamId: number
+  drawerId: PlayerId
+  solved: boolean
+  /** 정답을 입력한 팀원 (못 맞혔으면 null) */
+  solverId: PlayerId | null
+  /** 턴 시작부터 정답까지 걸린 시간 (못 맞혔으면 null) */
+  elapsedMs: number | null
+  points: number
+}
+
+export interface CatchmindTeamTurnMeta {
+  turnIndex: number
+  word: string
+  teams: (CatchmindTeamTurnSummary & { strokes: CatchmindStroke[] })[]
+}
+
 export interface CatchmindRoundMeta {
+  /** 개인전의 턴 기록 (팀전에서는 빈 배열) */
   turns: CatchmindTurnMeta[]
+  /** 팀전의 턴 기록 (개인전에서는 없음) */
+  teamTurns?: CatchmindTeamTurnMeta[]
+  teamScores?: { teamId: number; score: number }[]
 }
 
 export const CATCHMIND_TURN_TIMEOUT_MS = 60_000

@@ -81,7 +81,7 @@ export function Home() {
             <span className="party-mode-option-emoji">👤</span>
             <span className="party-mode-option-label">개인전</span>
           </button>
-          <button type="button" className="party-mode-option" disabled>
+          <button type="button" className="party-mode-option" onClick={() => navigate('/teamParty')}>
             <span className="party-mode-option-emoji">👥</span>
             <span className="party-mode-option-label">팀전</span>
           </button>

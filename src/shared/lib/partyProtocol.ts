@@ -1,7 +1,12 @@
 import type { AcrosticVoteSignal, AcrosticWriteSignal } from '../../party/games/acrostic/protocol'
 import type { AuctionItemId } from '../../party/games/auction/protocol'
 import type { BalloonPopStatus } from '../../party/games/balloonPop/protocol'
-import type { CatchmindChatHistoryEntry, CatchmindGuesserResult, CatchmindStroke } from '../../party/games/catchmind/protocol'
+import type {
+  CatchmindChatHistoryEntry,
+  CatchmindGuesserResult,
+  CatchmindStroke,
+  CatchmindTeamTurnSummary,
+} from '../../party/games/catchmind/protocol'
 import type {
   LiarQuizComposeSignal,
   LiarQuizGuessSignal,
@@ -48,6 +53,19 @@ export type GameId =
 /** 방의 진행 방식 — backend/types.ts와 같아야 한다. /party는 개인전, /teamParty는 팀전 방이다 */
 export type RoomMode = 'individual' | 'team'
 
+/** 팀전에서 한 게임(라운드) 동안의 팀 구성 — 대기실에서 직접 고른 팀이 그대로 쓰인다 (backend/types.ts와 같아야 한다) */
+export interface TeamInfo {
+  id: number
+  name: string
+  memberIds: PlayerId[]
+}
+// 팀 색 목록 (backend/types.ts와 같아야 한다) — 번호(0부터)마다 색 이름이 정해져 있다. 팀 번호(TeamInfo.id, PlayerInfo.teamId)가 곧 그 팀이
+// 지금 쓰는 색 번호이고, 팀원은 팀 색을 다른 색으로 바꿀 수 있다. PartyTeamBanner의 색 이모지와 styles.css의 .party-team-color-N도 같은 순서다
+export const TEAM_NAMES = ['파랑팀', '빨강팀', '초록팀', '노랑팀', '보라팀', '주황팀', '갈색팀', '분홍팀']
+export const MIN_TEAM_COUNT = 2
+export const MAX_TEAM_COUNT = 4
+export const MIN_PLAYERS_PER_TEAM = 2
+
 export interface MechanismCategory {
   id: 'TIMING' | 'TAP' | 'DRAG' | 'TEXT' | 'VOTE' | 'VOICE' | 'CAMERA' | 'CLICK_SPEED'
   name: string
@@ -80,6 +98,8 @@ export interface PlayerInfo {
   ready: boolean
   connected: boolean
   isHost: boolean
+  /** 팀전 방에서 대기실에 정해져 있는 팀 번호 (개인전이면 null) */
+  teamId: number | null
 }
 
 export interface SessionConfig {
@@ -93,6 +113,10 @@ export interface SessionConfig {
   telestrationWordMode: TelestrationWordMode
   /** 거짓말쟁이 퀴즈 문제 방식 — random: 서버가 문항 은행에서 뽑는다, custom: 라운드 시작 직후 참가자가 각자 문제를 하나씩 만든다 */
   liarQuizQuestionMode: LiarQuizQuestionMode
+  /** 팀전의 팀 수 (2~4) — 방장이 정한다 */
+  teamCount: number
+  /** 팀전에서 지금 쓰는 팀 색 번호들 (순서가 팀 순서). 다른 팀이 쓰는 색은 고를 수 없다 */
+  teamColors: number[]
 }
 
 export interface RoundRankingEntry {
@@ -119,6 +143,8 @@ export interface RoundResult {
   ranking: RoundRankingEntry[]
   /** 게임별 부가 결과 데이터 (예: wordChain의 정답 공개). 구조가 게임마다 다르므로 gameId로 분기해 타입을 좁혀 사용한다 */
   meta?: unknown
+  /** 팀전이었다면 이 라운드의 팀 배정 (개인전이면 없음) */
+  teams?: TeamInfo[]
 }
 
 export interface RoomState {
@@ -138,11 +164,18 @@ export interface RoomState {
   scores: Record<PlayerId, number>
   roundHistory: RoundResult[]
   gameCatalog: GameMeta[]
+  /** 팀전 라운드(카운트다운·진행·결과 단계)의 팀 배정 — 그 밖의 단계와 개인전에서는 빈 배열 */
+  teams: TeamInfo[]
 }
 
 // backend/types.ts와 값이 같아야 한다 — 시작 최소 인원은 방 전체 조건이고, 게임별 제한은 GameMeta.minPlayers가 있는 게임에만 건다
 export const MIN_PLAYERS_TO_START = 2
 export const DEFAULT_GAME_MIN_PLAYERS = 1
+
+/** 방 모드별 게임 시작 최소 인원 — 팀전은 최소 팀 수 × 팀당 최소 인원 */
+export function minPlayersToStart(mode: RoomMode): number {
+  return mode === 'team' ? MIN_TEAM_COUNT * MIN_PLAYERS_PER_TEAM : MIN_PLAYERS_TO_START
+}
 export const ROUND_COUNTDOWN_MS = 3_000
 
 type CreateRoomAck = { ok: true; roomCode: string; playerId: string } | { ok: false; error: string }
@@ -151,7 +184,11 @@ type RejoinRoomAck = { ok: true } | { ok: false; error: string }
 
 /** Client -> Server */
 export interface ClientToServerEvents {
-  'room:create': (nickname: string, ack: (result: CreateRoomAck) => void) => void
+  /** 대기실에서 다른 팀으로 옮기기 (팀전 방의 대기실에서만) */
+  'player:setTeam': (teamId: number) => void
+  /** 대기실에서 내 팀의 색 바꾸기 (팀전 방의 대기실에서만). 다른 팀이 쓰는 색은 고를 수 없다 */
+  'player:setTeamColor': (colorId: number) => void
+  'room:create': (nickname: string, mode: RoomMode, ack: (result: CreateRoomAck) => void) => void
   'room:join': (data: { roomCode: string; nickname: string }, ack: (result: JoinRoomAck) => void) => void
   'room:rejoin': (data: { roomCode: string; playerId: string }, ack: (result: RejoinRoomAck) => void) => void
   'player:ready': (ready: boolean) => void
@@ -351,7 +388,12 @@ export interface ServerToClientEvents {
   'catchmind:chatMessage': (data: { playerId: PlayerId; text: string }) => void
   /** 누군가 정답을 맞혔을 때 전체에게 방송 (본인 포함) — 실제 정답 텍스트는 공개하지 않는다.
    *  points는 이번 턴에서 이 사람이 받은 점수 */
-  'catchmind:correctGuess': (data: { playerId: PlayerId; points: number }) => void
+  'catchmind:correctGuess': (data: {
+    playerId: PlayerId
+    points: number
+    /** 팀전에서만: 이 팀이 정답을 맞혀 팀원 모두의 이번 턴이 끝났다 */
+    teamSolved?: boolean
+  }) => void
   /** 턴이 끝났을 때(전원 정답 또는 타임아웃) 정답과 이번 턴 결과를 전체 공개 */
   'catchmind:turnEnd': (data: {
     turnIndex: number
@@ -359,6 +401,8 @@ export interface ServerToClientEvents {
     word: string
     correctGuessers: CatchmindGuesserResult[]
     drawerPoints: number
+    /** 팀전에서만: 이번 턴의 팀별 결과 (정답 순서/시간/점수) */
+    teams?: CatchmindTeamTurnSummary[]
   }) => void
   /** 출제자의 draw 이벤트를 그대로 전원에게 중계(출제자 본인 포함) */
   'catchmind:strokeStart': (data: { color: string; width: number; x: number; y: number }) => void

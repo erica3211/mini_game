@@ -34,6 +34,8 @@ export function App() {
           <Route path="/suika" element={<Suika />} />
           <Route path="/party" element={<PartyGame />} />
           <Route path="/party/:roomCode" element={<PartyRoom />} />
+          <Route path="/teamParty" element={<PartyGame mode="team" />} />
+          <Route path="/teamParty/:roomCode" element={<PartyRoom />} />
           <Route path="/dev/mouse-spots" element={<MouseHunterSpotsDebug />} />
         </Routes>
       </main>

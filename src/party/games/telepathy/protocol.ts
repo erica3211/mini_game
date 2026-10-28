@@ -7,15 +7,28 @@ export interface TelepathyCard {
 }
 
 // 텔레파시: 서브라운드 하나가 끝났을 때 전원에게 공개하는 참가자별 선택과 점수 (party/games/telepathy/index.ts 참고)
+// 텔레파시 팀전: 서브라운드에서 한 팀의 결과 — 팀원 모두 같은 카드를 골랐을 때만(만장일치) 점수를 받는다
+export interface TelepathyTeamSubRoundResult {
+  teamId: number
+  unanimous: boolean
+  /** 만장일치였다면 팀이 고른 카드 (아니면 null) */
+  cardId: number | null
+  points: number
+}
+
 export interface TelepathySubRoundResult {
   subRoundIndex: number
   prompt: string
   cards: TelepathyCard[]
   picks: Record<PlayerId, { cardId: number | null; score: number }>
+  /** 팀전에서만: 팀별 결과. 이때 picks의 score는 그 사람이 속한 팀이 받은 점수다 */
+  teams?: TelepathyTeamSubRoundResult[]
 }
 
 export interface TelepathyRoundMeta {
   subRounds: TelepathySubRoundResult[]
+  /** 팀전에서만: 팀별 합산 점수 */
+  teamScores?: { teamId: number; score: number }[]
 }
 
 export interface TelepathyStartSignal {

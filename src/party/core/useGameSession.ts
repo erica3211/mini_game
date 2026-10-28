@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import type { PlayerId, RgbColor, RoomState, ServerToClientEvents, SessionConfig } from '../../shared/lib/partyProtocol'
+import type { PlayerId, RgbColor, RoomMode, RoomState, ServerToClientEvents, SessionConfig } from '../../shared/lib/partyProtocol'
 import type { AcrosticWriteSignal, AcrosticVoteSignal } from '../games/acrostic/protocol'
 import type { CatchmindChatHistoryEntry, CatchmindStroke } from '../games/catchmind/protocol'
 import type { LiarQuizWriteSignal, LiarQuizGuessSignal, LiarQuizComposeSignal } from '../games/liarQuiz/protocol'
@@ -393,9 +393,9 @@ export function useGameSession(roomCodeFromUrl?: string) {
   }, [roomCodeFromUrl, socket])
 
   const createRoom = useCallback(
-    (nickname: string) =>
+    (nickname: string, mode: RoomMode = 'individual') =>
       new Promise<{ ok: true; roomCode: string } | { ok: false; error: string }>((resolve) => {
-        socket.emit('room:create', nickname, (result) => {
+        socket.emit('room:create', nickname, mode, (result) => {
           if (result.ok) {
             saveSession(result.roomCode, result.playerId)
             setPlayerId(result.playerId)
@@ -424,6 +424,8 @@ export function useGameSession(roomCodeFromUrl?: string) {
     [socket],
   )
 
+  const setTeam = useCallback((teamId: number) => socket.emit('player:setTeam', teamId), [socket])
+  const setTeamColor = useCallback((colorId: number) => socket.emit('player:setTeamColor', colorId), [socket])
   const setReady = useCallback((ready: boolean) => socket.emit('player:ready', ready), [socket])
   const updateConfig = useCallback(
     (patch: Partial<SessionConfig>) => {
@@ -501,6 +503,8 @@ export function useGameSession(roomCodeFromUrl?: string) {
     createRoom,
     joinRoom,
     setReady,
+    setTeam,
+    setTeamColor,
     updateConfig,
     transferHost,
     start,

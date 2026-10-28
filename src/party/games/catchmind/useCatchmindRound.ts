@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState, type RefObject } from 'react'
 import type { Socket } from 'socket.io-client'
 import { clearCatchmindCanvas, drawFullBoard, fitCatchmindCanvas, strokeSegment } from '../../../shared/drawing/catchmindDraw'
 import type { ClientToServerEvents, PlayerId, ServerToClientEvents } from '../../../shared/lib/partyProtocol'
-import type { CatchmindChatHistoryEntry, CatchmindGuesserResult, CatchmindStroke } from './protocol'
+import type { CatchmindChatHistoryEntry, CatchmindGuesserResult, CatchmindStroke, CatchmindTeamTurnSummary } from './protocol'
 import { useMonotonicStartedAt } from '../../core/useMonotonicStartedAt'
 
 type PartySocket = Socket<ServerToClientEvents, ClientToServerEvents>
@@ -31,6 +31,8 @@ export interface CatchmindTurnEndInfo {
   word: string
   correctGuessers: CatchmindGuesserResult[]
   drawerPoints: number
+  /** 팀전에서만: 이번 턴의 팀별 결과 */
+  teams?: CatchmindTeamTurnSummary[]
 }
 
 export type CatchmindChatEntry =
@@ -128,8 +130,9 @@ export function useCatchmindRound(
     const onChatMessage = (data: { playerId: PlayerId; text: string }) => {
       setChat((prev) => [...prev.slice(-49), { id: chatIdSeq++, kind: 'chat', playerId: data.playerId, text: data.text }])
     }
-    const onCorrectGuess = (data: { playerId: PlayerId; points: number }) => {
-      if (data.playerId === playerId) setGuessed(true)
+    const onCorrectGuess = (data: { playerId: PlayerId; points: number; teamSolved?: boolean }) => {
+      // 팀전에서는 팀원 한 명이 맞히면 팀 전체의 이번 턴이 끝난다
+      if (data.playerId === playerId || data.teamSolved) setGuessed(true)
       const id = chatIdSeq++
       setChat((prev) => [...prev.slice(-49), { id, kind: 'correct', playerId: data.playerId, points: data.points }])
       setToasts((prev) => [...prev, { id, playerId: data.playerId, points: data.points }])

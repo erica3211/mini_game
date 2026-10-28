@@ -1,9 +1,16 @@
 import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { PartyLoading } from './PartyLoading'
+import type { RoomMode } from '../../shared/lib/partyProtocol'
+import { partyBasePath } from './partyPaths'
 import { useGameSession } from './useGameSession'
 
-export function PartyGame() {
+interface Props {
+  /** 만들 방의 진행 방식 — /party는 개인전, /teamParty는 팀전 */
+  mode?: RoomMode
+}
+
+export function PartyGame({ mode = 'individual' }: Props) {
   const navigate = useNavigate()
   const session = useGameSession()
   const [nickname, setNickname] = useState('')
@@ -15,9 +22,9 @@ export function PartyGame() {
     if (!nickname.trim()) return
     setSubmitting(true)
     setError(null)
-    const result = await session.createRoom(nickname.trim())
+    const result = await session.createRoom(nickname.trim(), mode)
     setSubmitting(false)
-    if (result.ok) navigate(`/party/${result.roomCode}`)
+    if (result.ok) navigate(`${partyBasePath(mode)}/${result.roomCode}`)
     else setError(result.error)
   }
 
@@ -31,8 +38,12 @@ export function PartyGame() {
 
   return (
     <section className="game-page">
-      <h1 className="page-title">🎉 함께하는 파티게임</h1>
-      <p className="page-subtitle">닉네임을 입력하고 방을 만들어 친구들을 초대해보세요.</p>
+      <h1 className="page-title">{mode === 'team' ? '👥 팀전 파티게임' : '🎉 함께하는 파티게임'}</h1>
+      <p className="page-subtitle">
+        {mode === 'team'
+          ? '닉네임을 입력하고 방을 만들어 친구들을 초대해보세요. 대기실에서 각자 팀을 골라요.'
+          : '닉네임을 입력하고 방을 만들어 친구들을 초대해보세요.'}
+      </p>
 
       <form className="guess-form" onSubmit={handleCreate}>
         <input

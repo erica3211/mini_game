@@ -1,6 +1,12 @@
 import type { Socket } from 'socket.io-client'
 import { useTelepathyRound } from './useTelepathyRound'
-import { type ClientToServerEvents, type PlayerInfo, type ServerToClientEvents } from '../../../shared/lib/partyProtocol'
+import {
+  type ClientToServerEvents,
+  type PlayerInfo,
+  type ServerToClientEvents,
+  type TeamInfo,
+} from '../../../shared/lib/partyProtocol'
+import { teamColorClass, teamEmoji, teamOf } from '../../core/PartyTeamBanner'
 import { TELEPATHY_SUB_ROUND_MS, TELEPATHY_SUB_ROUNDS, type TelepathyStartSignal } from './protocol'
 import { RemainingTime } from '../../../shared/components/RemainingTime'
 
@@ -10,11 +16,18 @@ interface Props {
   startSignal: TelepathyStartSignal | null
   playerId: string | null
   players: PlayerInfo[]
+  /** 팀전이면 이번 라운드의 팀 배정 (개인전이면 빈 배열) */
+  teams?: TeamInfo[]
 }
 
-export function TelepathyGame({ socket, roundKey, startSignal, playerId, players }: Props) {
+export function TelepathyGame({ socket, roundKey, startSignal, playerId, players, teams = [] }: Props) {
   const { status, selectedCardId, reveal, startedAt, select, submit } = useTelepathyRound(socket, roundKey, startSignal)
-  const nicknameOf = (id: string) => players.find((p) => p.id === id)?.nickname ?? '???'
+  // 팀전이면 이름 앞에 그 사람의 팀 색을 붙여 누가 어느 팀인지 한눈에 보이게 한다
+  const nicknameOf = (id: string) => {
+    const name = players.find((p) => p.id === id)?.nickname ?? '???'
+    const team = teamOf(teams, id)
+    return team ? `${teamEmoji(team.id)} ${name}` : name
+  }
 
   if (!startSignal || status === 'waiting') {
     return (
@@ -25,6 +38,9 @@ export function TelepathyGame({ socket, roundKey, startSignal, playerId, players
   }
 
   const revealed = reveal !== null
+  const isTeamGame = teams.length > 0
+  const myTeam = teamOf(teams, playerId)
+  const myTeamResult = reveal?.teams?.find((result) => result.teamId === myTeam?.id)
   const myScore = reveal && playerId ? (reveal.picks[playerId]?.score ?? 0) : null
   // 공개 단계에서 카드별로 누가 골랐는지 모아서 보여준다
   const pickersOf = (cardId: number) =>
@@ -40,7 +56,11 @@ export function TelepathyGame({ socket, roundKey, startSignal, playerId, players
       <p className="party-telepathy-prompt">{startSignal.prompt}</p>
 
       {startedAt !== null && status === 'running' && <RemainingTime startedAt={startedAt} timeoutMs={TELEPATHY_SUB_ROUND_MS} />}
-      {status === 'running' && !revealed && <p className="party-round-hint">다른 사람들이 가장 많이 고를 것 같은 카드는?</p>}
+      {status === 'running' && !revealed && (
+        <p className="party-round-hint">
+          {isTeamGame ? '팀원 모두 같은 카드를 골라야 점수를 받아요! 서로 통할까요?' : '다른 사람들이 가장 많이 고를 것 같은 카드는?'}
+        </p>
+      )}
       {status === 'submitted' && !revealed && <p className="party-round-hint">다른 사람들을 기다리는 중...</p>}
 
       <ul className="party-telepathy-cards">
@@ -48,7 +68,8 @@ export function TelepathyGame({ socket, roundKey, startSignal, playerId, players
           const pickers = pickersOf(card.id)
           const isMine = selectedCardId === card.id
           // 과반수가 고른 카드만 초록 — 점수가 나는 카드와 같은 기준이라, 의견이 갈리면 아무 카드도 초록이 아니다
-          const isTop = revealed && pickers.length * 2 > submittedCount
+          // (팀전은 점수가 팀 안의 일치 여부로 정해져서 카드를 강조하지 않는다)
+          const isTop = revealed && !isTeamGame && pickers.length * 2 > submittedCount
           return (
             <li key={card.id}>
               <button
@@ -82,7 +103,32 @@ export function TelepathyGame({ socket, roundKey, startSignal, playerId, players
         </button>
       )}
 
-      {revealed && (
+      {revealed && isTeamGame && (
+        <>
+          <p className="party-telepathy-result-score">
+            {myTeamResult?.unanimous ? `우리 팀이 통했어요! +${myTeamResult.points}점` : '팀원들의 선택이 달랐어요... 0점'}
+          </p>
+          <ul className="party-team-standings">
+            {(reveal?.teams ?? []).map((result) => {
+              const team = teams.find((t) => t.id === result.teamId)
+              const cardLabel = startSignal.cards.find((card) => card.id === result.cardId)?.label
+              return (
+                <li key={result.teamId} className={`party-team-standing ${teamColorClass(result.teamId)}`}>
+                  <div className="party-team-standing-head">
+                    <span>
+                      {teamEmoji(result.teamId)} {team?.name ?? '팀'}
+                    </span>
+                    <span>{result.unanimous ? `✅ 만장일치 +${result.points}점` : '❌ 의견이 갈렸어요'}</span>
+                  </div>
+                  {result.unanimous && cardLabel && <div className="party-team-standing-mates">{cardLabel}</div>}
+                </li>
+              )
+            })}
+          </ul>
+        </>
+      )}
+
+      {revealed && !isTeamGame && (
         <p className="party-telepathy-result-score">
           {myScore ? `통했어요! +${myScore}점` : '이번엔 안 통했어요... 0점'}
         </p>

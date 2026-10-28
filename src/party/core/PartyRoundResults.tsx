@@ -21,6 +21,8 @@ import { CatchmindSnapshot } from '../games/catchmind/CatchmindSnapshot'
 import { LiarQuizTurnCard } from '../games/liarQuiz/LiarQuizTurnCard'
 import { PartyExitToLobbyButton } from './PartyExitToLobbyButton'
 import { PartyScoreList } from './PartyScoreList'
+import { teamColorClass, teamEmoji } from './PartyTeamBanner'
+import { teamScoreRows } from './teamUtils'
 import { PartySubRoundCarousel } from './PartySubRoundCarousel'
 import { PartySubRoundPager } from './PartySubRoundPager'
 import { PixelCanvasSnapshot } from '../games/pixelCanvas/PixelCanvasSnapshot'
@@ -37,7 +39,14 @@ export function PartyRoundResults({ session }: Props) {
   // colorMatch/scavengerHunt처럼 서브라운드가 여러 개인 게임의 결과를 한 번에 하나씩만 보여줄 때 쓰는 페이지
   // 인덱스 — 라운드마다 이 컴포넌트가 새로 마운트되므로(phase가 round_active로 나갔다 돌아옴) 항상 1라운드로 초기화된다
   const [subRoundPage, setSubRoundPage] = useState(0)
-  const nicknameOf = (playerId: string) => state.players.find((p) => p.id === playerId)?.nickname ?? '???'
+  // 팀전이면 이름 앞에 그 사람의 팀 색을 붙여 누가 어느 팀인지 한눈에 보이게 한다
+  const teamOfPlayer = (playerId: string) => lastRound.teams?.find((team) => team.memberIds.includes(playerId))
+  const plainNicknameOf = (playerId: string) => state.players.find((p) => p.id === playerId)?.nickname ?? '???'
+  const nicknameOf = (playerId: string) => {
+    const name = state.players.find((p) => p.id === playerId)?.nickname ?? '???'
+    const team = teamOfPlayer(playerId)
+    return team ? `${teamEmoji(team.id)} ${name}` : name
+  }
   const isLastRound = state.currentRoundIndex + 1 >= state.config.totalRounds
   const wordChainMeta = lastRound.gameId === 'wordChain' ? (lastRound.meta as WordChainRoundMeta | undefined) : undefined
   const auctionMeta = lastRound.gameId === 'auction' ? (lastRound.meta as AuctionRoundMeta | undefined) : undefined
@@ -134,9 +143,29 @@ export function PartyRoundResults({ session }: Props) {
       points: entry.points,
     }))
 
+  // 팀전이면 같은 팀 사람은 같은 등수·점수라서, 아무 팀원의 기록을 팀의 기록으로 쓴다
+  const roundTeams = lastRound.teams ?? []
+  const teamName = (teamId: number) => roundTeams.find((team) => team.id === teamId)?.name ?? '팀'
+  const teamStandings = roundTeams
+    .map((team) => {
+      const entry = lastRound.ranking.find((e) => team.memberIds.includes(e.playerId))
+      return { team, rank: entry?.rank ?? roundTeams.length, score: entry?.value ?? 0, points: entry?.points ?? 0 }
+    })
+    .sort((a, b) => a.rank - b.rank || a.team.id - b.team.id)
+    // 개인 등수(4명 중 3위 등)가 아니라 팀끼리의 등수로 다시 매긴다 — 같은 점수는 공동 등수
+    .map((row, _index, rows) => ({ ...row, rank: rows.findIndex((other) => other.rank === row.rank) + 1 }))
+
+  // 팀전은 팀이 유지되니 누적 점수도 팀 단위로 보여준다
+  const showTeamCumulative = roundTeams.length > 0
+  const teamCumulativeEntries = teamScoreRows(roundTeams, state.scores).map(({ team, rank, score }) => ({
+    id: String(team.id),
+    label: `${rank}위 ${teamEmoji(team.id)} ${team.name} (${team.memberIds.map((id) => state.players.find((p) => p.id === id)?.nickname ?? '???').join(', ')})`,
+    points: score,
+  }))
+
   const cumulativeEntries = [...state.players]
     .sort((a, b) => (state.scores[b.id] ?? 0) - (state.scores[a.id] ?? 0))
-    .map((p) => ({ id: p.id, label: p.nickname, points: state.scores[p.id] ?? 0 }))
+    .map((p) => ({ id: p.id, label: nicknameOf(p.id), points: state.scores[p.id] ?? 0 }))
 
   return (
     <section className="game-page">
@@ -304,6 +333,9 @@ export function PartyRoundResults({ session }: Props) {
 
       {telepathyMeta && (
         <div className="party-telepathy-reveal">
+          {roundTeams.length > 0 && (
+            <p className="party-team-note">점수 기준: 팀원 모두가 같은 카드를 고른 팀만 점수를 받아요. 한 명이라도 다르면 0점이에요.</p>
+          )}
           <PartySubRoundPager current={subRoundPage} total={telepathyMeta.subRounds.length} onChange={setSubRoundPage} />
           <PartySubRoundCarousel current={subRoundPage} onChange={setSubRoundPage}>
             {telepathyMeta.subRounds.map((subRound) => (
@@ -312,6 +344,20 @@ export function PartyRoundResults({ session }: Props) {
                   <span>{subRound.subRoundIndex + 1}번 문제</span>
                   <span>{subRound.prompt}</span>
                 </div>
+                {subRound.teams && (
+                  <ul className="party-team-standings">
+                    {subRound.teams.map((result) => (
+                      <li key={result.teamId} className={`party-team-standing ${teamColorClass(result.teamId)}`}>
+                        <div className="party-team-standing-head">
+                          <span>
+                            {teamEmoji(result.teamId)} {teamName(result.teamId)}
+                          </span>
+                          <span>{result.unanimous ? `✅ 만장일치 +${result.points}점` : '❌ 의견이 갈렸어요'}</span>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
                 <ul className="party-telepathy-reveal-picks">
                   {Object.entries(subRound.picks)
                     .sort(([, a], [, b]) => b.score - a.score)
@@ -411,7 +457,52 @@ export function PartyRoundResults({ session }: Props) {
         </div>
       )}
 
-      {catchmindMeta && (
+      {catchmindMeta?.teamTurns && (
+        <div className="party-catchmind-reveal">
+          <p className="party-team-note">
+            점수 기준: 먼저 맞힌 팀이 팀 수({roundTeams.length}팀)만큼의 점수를 받고, 다음 팀부터 1점씩 줄어요. 못 맞히면 0점이에요.
+          </p>
+          <PartySubRoundPager current={subRoundPage} total={catchmindMeta.teamTurns.length} onChange={setSubRoundPage} />
+          <PartySubRoundCarousel current={subRoundPage} onChange={setSubRoundPage}>
+            {catchmindMeta.teamTurns.map((turn) => (
+              <div className="party-catchmind-reveal-item" key={turn.turnIndex}>
+                <div className="party-catchmind-reveal-header">
+                  <span>{turn.turnIndex + 1}번째 턴</span>
+                  <span>
+                    정답: <strong>{turn.word}</strong>
+                  </span>
+                </div>
+                {/* 먼저 맞힌 팀(점수가 높은 팀)이 위에 오고, 못 맞힌 팀은 맨 아래 */}
+                {[...turn.teams]
+                  .sort((a, b) => b.points - a.points || a.teamId - b.teamId)
+                  .map((teamTurn) => (
+                  <div key={teamTurn.teamId} className={`party-catchmind-team-card ${teamColorClass(teamTurn.teamId)}`}>
+                    <div className="party-catchmind-team-head">
+                      <span className="party-catchmind-team-name">
+                        {teamEmoji(teamTurn.teamId)} {teamName(teamTurn.teamId)}
+                      </span>
+                      <span className={`party-catchmind-team-points${teamTurn.solved ? '' : ' party-catchmind-team-points-none'}`}>
+                        {teamTurn.solved ? `+${teamTurn.points}점` : '못 맞혔어요'}
+                      </span>
+                    </div>
+                    <div className="party-catchmind-team-meta">
+                      <span>🎨 {plainNicknameOf(teamTurn.drawerId)}</span>
+                      {teamTurn.solved && (
+                        <span>
+                          ✅ {plainNicknameOf(teamTurn.solverId ?? '')} · {((teamTurn.elapsedMs ?? 0) / 1000).toFixed(1)}초
+                        </span>
+                      )}
+                    </div>
+                    <CatchmindSnapshot strokes={teamTurn.strokes} />
+                  </div>
+                ))}
+              </div>
+            ))}
+          </PartySubRoundCarousel>
+        </div>
+      )}
+
+      {catchmindMeta && !catchmindMeta.teamTurns && (
         <div className="party-catchmind-reveal">
           <PartySubRoundPager current={subRoundPage} total={catchmindMeta.turns.length} onChange={setSubRoundPage} />
           <PartySubRoundCarousel current={subRoundPage} onChange={setSubRoundPage}>
@@ -466,11 +557,41 @@ export function PartyRoundResults({ session }: Props) {
         </div>
       )}
 
-      <h2 className="party-section-title">이번 라운드 점수</h2>
-      <PartyScoreList entries={roundEntries} badgeClass="badge-strike" />
+      {/* 팀전은 개인 목록 대신 팀 카드로 이번 라운드 점수를 보여준다 (카드 안에 팀원이 받은 점수도 있다) */}
+      {roundTeams.length === 0 ? (
+        <>
+          <h2 className="party-section-title">이번 라운드 점수</h2>
+          <PartyScoreList entries={roundEntries} badgeClass="badge-strike" />
+        </>
+      ) : (
+        <>
+          <h2 className="party-section-title">이번 라운드 점수</h2>
+          <p className="party-team-note">합산 점수로 팀 순위가 정해지고, 순위에 따라 받는 점수(초록색)가 누적 점수에 더해져요.</p>
+          {teamStandings.length > 0 && (
+            <ul className="party-team-standings">
+              {teamStandings.map(({ team, rank, score, points }) => (
+                <li
+                  key={team.id}
+                  className={`party-team-standing ${teamColorClass(team.id)}${team.memberIds.includes(session.playerId ?? '') ? ' party-team-standing-mine' : ''}`}
+                >
+                  <div className="party-team-standing-head">
+                    <span>
+                      {rank}위 {teamEmoji(team.id)} {team.name} · 합산 {score}점
+                    </span>
+                    <span className="badge badge-strike">{points}점</span>
+                  </div>
+                  {/* 지금 팀전 게임은 점수가 팀 단위라 팀원별 점수는 보여주지 않는다. 팀원마다 점수가 다른 게임이 생기면
+                      여기에 \`닉네임 (N점)\`을 붙이고 합산을 팀원 점수의 합으로 계산한다 */}
+                  <div className="party-team-standing-mates">{team.memberIds.map(nicknameOf).join(', ')}</div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </>
+      )}
 
-      <h2 className="party-section-title">누적 점수</h2>
-      <PartyScoreList entries={cumulativeEntries} />
+      <h2 className="party-section-title">{showTeamCumulative ? '팀 누적 점수' : '누적 점수'}</h2>
+      <PartyScoreList entries={showTeamCumulative ? teamCumulativeEntries : cumulativeEntries} />
 
       {session.isHost && (
         <button type="button" className="btn btn-primary" onClick={session.nextRound}>

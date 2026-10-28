@@ -27,6 +27,8 @@
   --tint-danger: rgba(255, 123, 156, 0.18);
   --border-strike: #7fe0bc;
   --border-danger: #ff7b9c;
+  --tint-warn: rgba(255, 224, 138, 0.5);
+  --border-warn: #f0c04a;
   --radius: 16px;
   color-scheme: light;
   font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', system-ui, sans-serif;
@@ -58,6 +60,8 @@
   --tint-danger: rgba(248, 81, 73, 0.1);
   --border-strike: rgba(46, 160, 67, 0.45);
   --border-danger: rgba(248, 81, 73, 0.4);
+  --tint-warn: rgba(210, 153, 34, 0.14);
+  --border-warn: rgba(210, 153, 34, 0.5);
   color-scheme: dark;
 }
 

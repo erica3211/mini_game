@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { ROUND_COUNTDOWN_MS } from '../../shared/lib/partyProtocol'
+import { PartyTeamBanner } from './PartyTeamBanner'
 import type { GameSession } from './useGameSession'
 
 interface Props {
@@ -38,6 +39,11 @@ export function PartyRoundCountdown({ session }: Props) {
   return (
     <section className="game-page party-countdown">
       <p className="page-subtitle">{gameMeta ? `${gameMeta.emoji} ${gameMeta.title}` : '곧 시작합니다'}</p>
+      <PartyTeamBanner
+        teams={state.teams}
+        playerId={session.playerId}
+        nicknameOf={(id) => state.players.find((p) => p.id === id)?.nickname ?? '???'}
+      />
       {count > 0 && (
         <div key={count} className="party-countdown-number">
           {count}

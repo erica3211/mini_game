@@ -555,3 +555,315 @@ label.party-config-row input[type='checkbox'] {
 .party-game-extra-warn {
   color: var(--text-danger);
 }
+
+/* 팀전: 팀 색상 — 팀 번호(0~7)마다 색이 정해져 있다 (TEAM_NAMES, PartyTeamBanner의 이모지와 같은 순서) */
+.party-team-color-0 {
+  /* 파랑 */
+  --team-rgb: 59, 130, 246;
+  background: rgba(var(--team-rgb), 0.2);
+  border-color: rgb(var(--team-rgb));
+}
+
+.party-team-color-1 {
+  /* 빨강 */
+  --team-rgb: 239, 68, 68;
+  background: rgba(var(--team-rgb), 0.2);
+  border-color: rgb(var(--team-rgb));
+}
+
+.party-team-color-2 {
+  /* 초록 */
+  --team-rgb: 34, 197, 94;
+  background: rgba(var(--team-rgb), 0.2);
+  border-color: rgb(var(--team-rgb));
+}
+
+.party-team-color-3 {
+  /* 노랑 */
+  --team-rgb: 234, 179, 8;
+  background: rgba(var(--team-rgb), 0.2);
+  border-color: rgb(var(--team-rgb));
+}
+
+.party-team-color-4 {
+  /* 보라 */
+  --team-rgb: 168, 85, 247;
+  background: rgba(var(--team-rgb), 0.2);
+  border-color: rgb(var(--team-rgb));
+}
+
+.party-team-color-5 {
+  /* 주황 */
+  --team-rgb: 249, 115, 22;
+  background: rgba(var(--team-rgb), 0.2);
+  border-color: rgb(var(--team-rgb));
+}
+
+.party-team-color-6 {
+  /* 갈색 */
+  --team-rgb: 146, 100, 60;
+  background: rgba(var(--team-rgb), 0.2);
+  border-color: rgb(var(--team-rgb));
+}
+
+.party-team-color-7 {
+  /* 분홍 */
+  --team-rgb: 236, 72, 153;
+  background: rgba(var(--team-rgb), 0.2);
+  border-color: rgb(var(--team-rgb));
+}
+
+/* 팀전: 내 팀 띠 */
+.party-team-banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.25rem 0.75rem;
+  width: 100%;
+  margin: 0.5rem 0;
+  padding: 0.5rem 0.75rem;
+  border-width: 2px;
+  border-style: solid;
+  border-radius: var(--radius);
+  color: var(--text);
+}
+
+.party-team-banner-mates {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+/* 팀전: 대기실의 팀 설정 안내 */
+.party-team-note {
+  margin: 0.25rem 0 0.75rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+/* 팀전: 라운드 결과의 팀 순위 목록 */
+.party-team-standings {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0.75rem 0;
+  padding: 0;
+  list-style: none;
+}
+
+.party-team-standing {
+  padding: 0.6rem 0.75rem;
+  border-width: 2px;
+  border-style: solid;
+  border-radius: var(--radius);
+  color: var(--text);
+}
+
+.party-team-standing-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-weight: 700;
+}
+
+.party-team-standing-mates {
+  margin-top: 0.15rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.party-team-standing-mine {
+  box-shadow: 0 0 0 2px var(--text);
+}
+
+/* 대기실 참가자 목록에서 방장 표시 (오른쪽 끝) */
+.party-host-crown {
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+/* 이심전심 팀전 결과: 팀별 카드 (팀 이름·점수 / 그린 사람·맞힌 사람 / 그림) */
+.party-catchmind-team-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-top: 0.6rem;
+  padding: 0.75rem;
+  border-width: 2px;
+  border-style: solid;
+  border-radius: var(--radius);
+  color: var(--text);
+}
+
+.party-catchmind-team-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.party-catchmind-team-name {
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.party-catchmind-team-points {
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+  background: var(--tint-strike);
+  border: 1px solid var(--border-strike);
+  font-size: 0.9rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.party-catchmind-team-points-none {
+  background: transparent;
+  border-color: var(--border);
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.party-catchmind-team-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.9rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+/* 팀전: 참가자 목록의 팀 색 동그라미 — 내 줄에서는 눌러서 팀을 바꾼다 */
+.party-team-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.6rem;
+  margin-right: 0.15rem;
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  line-height: 1;
+}
+
+/* 눌리는 영역만 44px로 키우고(padding), 음수 margin으로 줄 안의 자리는 다른 줄과 같게 유지한다 */
+
+
+/* 팀전 대기실: 참가자 줄 전체가 그 사람의 팀 색으로 칠해진다 (색은 .party-team-color-N이 정한다) */
+.party-team-row {
+  border-width: 2px;
+  color: var(--text);
+  transition: background 0.15s, border-color 0.15s;
+}
+
+/* 팀전 대기실: 내 줄의 색 동그라미는 눌러서 다른 팀으로 옮긴다 (눌리는 영역만 44px로 키우고, 음수 margin으로 줄 안의 자리는 다른 줄과 같게 유지) */
+.party-team-mark-button {
+  padding: 0.85rem 0.7rem;
+  margin: -0.85rem -0.7rem;
+  margin-right: -0.36rem;
+  border-radius: 999px;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.party-team-mark-button:active {
+  background: var(--tint-info);
+}
+
+/* 팀전 대기실: "내 팀 색  ● 노랑팀 ▾" — 누르면 색 고르기 모달이 열린다 */
+.party-team-color-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0.25rem 0 0.75rem;
+}
+
+.party-team-color-label {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.party-team-color-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2.5rem;
+  padding: 0 0.85rem;
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.party-team-color-btn:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.party-team-color-chevron {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+/* 팀 색을 보여주는 동그란 색 점 (색은 .party-team-color-N이 정한 --team-rgb) */
+.party-team-swatch {
+  display: inline-block;
+  width: 1rem;
+  height: 1rem;
+  border: none;
+  border-radius: 50%;
+  background: rgb(var(--team-rgb));
+}
+
+/* 팀 색 고르기 모달 안의 색 목록 */
+.party-team-palette {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.6rem;
+  margin: 0.5rem 0;
+}
+
+.party-team-palette-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.15rem;
+  min-height: 5.2rem;
+  padding: 0.4rem;
+  border-width: 2px;
+  border-style: solid;
+  border-radius: 10px;
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.party-team-palette-btn:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+.party-team-palette-btn-current {
+  box-shadow: 0 0 0 2px var(--text);
+}
+
+.party-team-palette-emoji {
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.party-team-palette-name {
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.party-team-palette-count {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}

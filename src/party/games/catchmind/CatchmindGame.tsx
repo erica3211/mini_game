@@ -2,7 +2,14 @@ import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react'
 import type { Socket } from 'socket.io-client'
 import { useCanvasPointerDrawing } from '../../../shared/drawing/useCanvasPointerDrawing'
 import { type CatchmindTurnStartSignal, type CatchmindWordSignal, useCatchmindRound } from './useCatchmindRound'
-import { type ClientToServerEvents, type PlayerId, type PlayerInfo, type ServerToClientEvents } from '../../../shared/lib/partyProtocol'
+import {
+  type ClientToServerEvents,
+  type PlayerId,
+  type PlayerInfo,
+  type ServerToClientEvents,
+  type TeamInfo,
+} from '../../../shared/lib/partyProtocol'
+import { teamColorClass, teamEmoji } from '../../core/PartyTeamBanner'
 import { CATCHMIND_COLORS, CATCHMIND_TURN_TIMEOUT_MS } from './protocol'
 import { BRUSH_THIN, CatchmindToolbar } from '../../../shared/drawing/CatchmindToolbar'
 import { RemainingTime } from '../../../shared/components/RemainingTime'
@@ -16,9 +23,20 @@ interface Props {
   hintLength: number | null
   playerId: PlayerId | null
   players: PlayerInfo[]
+  /** 팀전이면 이번 라운드의 팀 배정 (개인전이면 빈 배열) */
+  teams?: TeamInfo[]
 }
 
-export function CatchmindGame({ socket, roundKey, turnStart, wordSignal, hintLength: hintLengthSignal, playerId, players }: Props) {
+export function CatchmindGame({
+  socket,
+  roundKey,
+  turnStart,
+  wordSignal,
+  hintLength: hintLengthSignal,
+  playerId,
+  players,
+  teams = [],
+}: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const {
     status,
@@ -145,11 +163,33 @@ export function CatchmindGame({ socket, roundKey, turnStart, wordSignal, hintLen
           <p>
             정답: <strong>{lastTurnEnd.word}</strong>
           </p>
-          <p>
-            {lastTurnEnd.correctGuessers.length === 0
-              ? '아무도 못 맞혔어요 😢'
-              : `${nicknameOf(lastTurnEnd.correctGuessers[0].playerId)}님이 가장 먼저 맞혔어요!`}
-          </p>
+          {lastTurnEnd.teams ? (
+            <ul className="party-team-standings">
+              {[...lastTurnEnd.teams]
+                .sort((a, b) => b.points - a.points || a.teamId - b.teamId)
+                .map((result) => (
+                  <li key={result.teamId} className={`party-team-standing ${teamColorClass(result.teamId)}`}>
+                    <div className="party-team-standing-head">
+                      <span>
+                        {teamEmoji(result.teamId)} {teams.find((t) => t.id === result.teamId)?.name ?? '팀'}
+                      </span>
+                      <span>
+                        {result.solved
+                          ? `${((result.elapsedMs ?? 0) / 1000).toFixed(1)}초 · +${result.points}점`
+                          : '못 맞혔어요 · 0점'}
+                      </span>
+                    </div>
+                  </li>
+                ))}
+            </ul>
+          ) : (
+            <p>
+              {lastTurnEnd.correctGuessers.length === 0
+                ? '아무도 못 맞혔어요 😢'
+                : `${nicknameOf(lastTurnEnd.correctGuessers[0].playerId)}님이 가장 먼저 맞혔어요!`}
+            </p>
+          )}
+          {lastTurnEnd.teams && <p className="party-team-note">먼저 맞힌 팀부터 높은 점수를 받아요. (못 맞히면 0점)</p>}
         </div>
       )}
 
