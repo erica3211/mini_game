@@ -213,11 +213,19 @@ label.party-config-row input[type='checkbox'] {
   margin: 0.75rem 0;
 }
 
+/* "현재 선택된 게임" 줄의 오른쪽 끝에 붙는 작은 페이저 */
 .party-game-pager {
   display: flex;
-  justify-content: center;
-  gap: 0.4rem;
-  margin: 0.75rem 0;
+  align-items: center;
+  gap: 0.25rem;
+  margin-left: auto;
+}
+
+.party-game-pager-label {
+  min-width: 3rem;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
 }
 
 .party-game-pager-btn {
@@ -231,12 +239,6 @@ label.party-config-row input[type='checkbox'] {
   font-weight: 700;
   cursor: pointer;
   touch-action: manipulation;
-}
-
-.party-game-pager-btn-current {
-  border-color: var(--text-info);
-  background: var(--tint-info);
-  color: var(--text-info);
 }
 
 .party-game-pager-btn:disabled {

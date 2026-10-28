@@ -11,6 +11,7 @@ import {
   type PlayerInfo,
 } from '../../shared/lib/partyProtocol'
 import { WORD_CHAIN_MIN_CANDIDATES } from '../games/wordChain/protocol'
+import { PartySubRoundCarousel } from './PartySubRoundCarousel'
 import type { GameSession } from './useGameSession'
 
 const GAMES_PER_PAGE = 10
@@ -50,7 +51,9 @@ export function PartyLobby({ session }: Props) {
   )
   const pageCount = Math.max(1, Math.ceil(sortedGames.length / GAMES_PER_PAGE))
   const currentPage = Math.min(gamePage, pageCount - 1)
-  const pagedGames = sortedGames.slice(currentPage * GAMES_PER_PAGE, (currentPage + 1) * GAMES_PER_PAGE)
+  const gamePages = Array.from({ length: pageCount }, (_, page) =>
+    sortedGames.slice(page * GAMES_PER_PAGE, (page + 1) * GAMES_PER_PAGE),
+  )
   const hasSelectedGame = state.gameCatalog.some((g) => state.config.selectedGames.includes(g.id) && !needsMorePlayers(g))
   // 초성 퀴즈 카테고리: null은 전체. 고른 카테고리의 문제가 너무 적으면 같은 문제가 반복되므로 시작할 수 없다 (서버도 같은 기준으로 막는다)
   const wordChainSelected = state.config.selectedGames.includes('wordChain')
@@ -254,10 +257,40 @@ export function PartyLobby({ session }: Props) {
           무작위 순서
         </label>
 
-        <div className="party-config-row party-config-summary">현재 선택된 게임 : {selectedGameCount}개</div>
+        <div className="party-config-row party-config-summary">
+          현재 선택된 게임 : {selectedGameCount}개
+          {pageCount > 1 && (
+            <nav className="party-game-pager" aria-label="게임 목록 페이지">
+              <button
+                type="button"
+                className="party-game-pager-btn"
+                disabled={currentPage <= 0}
+                onClick={() => setGamePage(currentPage - 1)}
+                aria-label="이전 페이지"
+              >
+                ‹
+              </button>
+              <span className="party-game-pager-label">
+                {currentPage + 1} / {pageCount}
+              </span>
+              <button
+                type="button"
+                className="party-game-pager-btn"
+                disabled={currentPage >= pageCount - 1}
+                onClick={() => setGamePage(currentPage + 1)}
+                aria-label="다음 페이지"
+              >
+                ›
+              </button>
+            </nav>
+          )}
+        </div>
 
-        <div className="party-game-list">
-          {pagedGames.map((game) => {
+        {/* 결과 화면과 같은 scroll-snap 캐러셀 — 옆으로 밀거나 페이저 버튼을 누르면 부드럽게 슬라이드된다 */}
+        <PartySubRoundCarousel current={currentPage} onChange={setGamePage}>
+          {gamePages.map((pageGames, pageIndex) => (
+            <div className="party-game-list" key={pageIndex}>
+              {pageGames.map((game) => {
             const notEnoughPlayers = needsMorePlayers(game)
             const selected = state.config.selectedGames.includes(game.id) && !notEnoughPlayers
             return (
@@ -349,41 +382,9 @@ export function PartyLobby({ session }: Props) {
               </div>
             )
           })}
-        </div>
-
-        {pageCount > 1 && (
-          <nav className="party-game-pager" aria-label="게임 목록 페이지">
-            <button
-              type="button"
-              className="party-game-pager-btn"
-              disabled={currentPage <= 0}
-              onClick={() => setGamePage(currentPage - 1)}
-              aria-label="이전 페이지"
-            >
-              ‹
-            </button>
-            {Array.from({ length: pageCount }, (_, page) => (
-              <button
-                key={page}
-                type="button"
-                className={`party-game-pager-btn${page === currentPage ? ' party-game-pager-btn-current' : ''}`}
-                aria-current={page === currentPage ? 'page' : undefined}
-                onClick={() => setGamePage(page)}
-              >
-                {page + 1}
-              </button>
-            ))}
-            <button
-              type="button"
-              className="party-game-pager-btn"
-              disabled={currentPage >= pageCount - 1}
-              onClick={() => setGamePage(currentPage + 1)}
-              aria-label="다음 페이지"
-            >
-              ›
-            </button>
-          </nav>
-        )}
+            </div>
+          ))}
+        </PartySubRoundCarousel>
 
         <Modal
           open={categoryModalOpen && session.isHost && wordChainSelected && wordChainCategories !== null}
