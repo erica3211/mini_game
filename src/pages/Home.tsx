@@ -1,4 +1,6 @@
-import { Link } from 'react-router-dom'
+import { useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { Modal } from '../shared/components/Modal'
 
 const games = [
   {
@@ -40,6 +42,10 @@ const games = [
 ] as const
 
 export function Home() {
+  const navigate = useNavigate()
+  // 파티게임 방 만들기를 누르면 개인전/팀전 중 어느 방식으로 만들지 먼저 묻는다
+  const [modeModalOpen, setModeModalOpen] = useState(false)
+
   return (
     <section>
       <h1 className="page-title">미니게임 모음집</h1>
@@ -62,12 +68,25 @@ export function Home() {
       <h2 className="page-title party-section-heading">함께하는 파티게임</h2>
       <p className="page-subtitle">방을 만들어 링크를 공유하면 여러 명이 함께 라운드를 돌며 겨룰 수 있어요.</p>
       <div className="game-grid">
-        <Link to="/party" className="game-card">
+        <button type="button" className="game-card game-card-button" onClick={() => setModeModalOpen(true)}>
           <span className="game-emoji">🎉</span>
           <span className="game-title">파티게임 방 만들기</span>
           <span className="game-description">여러 라운드를 돌며 최종 점수로 우승자를 가려요.</span>
-        </Link>
+        </button>
       </div>
+
+      <Modal open={modeModalOpen} title="어떤 방식으로 할까요?" doneLabel="닫기" onClose={() => setModeModalOpen(false)}>
+        <div className="party-mode-options">
+          <button type="button" className="party-mode-option" onClick={() => navigate('/party')}>
+            <span className="party-mode-option-emoji">👤</span>
+            <span className="party-mode-option-label">개인전</span>
+          </button>
+          <button type="button" className="party-mode-option" disabled>
+            <span className="party-mode-option-emoji">👥</span>
+            <span className="party-mode-option-label">팀전</span>
+          </button>
+        </div>
+      </Modal>
     </section>
   )
 }

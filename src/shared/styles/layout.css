@@ -96,6 +96,58 @@
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
 }
 
+/* Link가 아니라 button으로 만든 카드 (눌러서 팝업을 여는 카드) — 버튼 기본 모양만 지운다 */
+.game-card-button {
+  width: 100%;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+/* 파티게임 방식(개인전/팀전) 선택 팝업의 선택지 */
+.party-mode-options {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+}
+
+.party-mode-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 8rem;
+  padding: 0.75rem;
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.party-mode-option:hover:not(:disabled) {
+  border-color: var(--text-info);
+  background: var(--tint-info);
+}
+
+.party-mode-option:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.party-mode-option-emoji {
+  font-size: 2rem;
+}
+
+.party-mode-option-label {
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
 .game-card-soon {
   opacity: 0.5;
 }
