@@ -6,6 +6,24 @@
   gap: 0.75rem;
 }
 
+/* 방 안에서 소켓이 끊겼을 때 화면은 그대로 두고 위에만 띄우는 안내 — 터치를 막지 않는다 */
+.party-reconnect-banner {
+  position: fixed;
+  top: 0.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 150;
+  padding: 0.4rem 0.9rem;
+  border-radius: 999px;
+  background: var(--tint-info);
+  color: var(--text-info);
+  border: 1px solid var(--text-info);
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
 /* 최종 결과: 1등 축하 색종이 폭죽 */
 .party-confetti {
   position: fixed;
@@ -129,6 +147,19 @@
   align-items: center;
   gap: 0.6rem;
   margin: 0.5rem 0;
+  /* 빠르게 연달아 눌러도 더블탭 확대로 처리돼 터치가 씹히지 않게 한다 */
+  touch-action: manipulation;
+}
+
+/* 체크박스가 13px라 손가락으로 맞추기 어렵다 — 행 전체(label)를 누를 수 있게 높이를 키운다 */
+label.party-config-row {
+  min-height: 2.75rem;
+  cursor: pointer;
+}
+
+label.party-config-row input[type='checkbox'] {
+  width: 1.4rem;
+  height: 1.4rem;
 }
 
 .party-config-summary {
@@ -151,8 +182,9 @@
 }
 
 .party-config-stepper-btn {
-  width: 2rem;
-  height: 2rem;
+  width: 2.75rem;
+  height: 2.75rem;
+  touch-action: manipulation;
   border: 1px solid var(--border);
   border-radius: 50%;
   background: var(--surface);
@@ -207,6 +239,7 @@
   color: inherit;
   font: inherit;
   cursor: pointer;
+  touch-action: manipulation;
 }
 
 .party-game-card:not(.party-game-card-disabled):hover {

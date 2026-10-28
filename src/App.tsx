@@ -5,6 +5,7 @@ import { HangulBaseball } from './solo/hangulBaseball/HangulBaseball'
 import { BlackJack } from './solo/blackjack/BlackJack'
 import { ChoseongQuiz } from './solo/choseongQuiz/ChoseongQuiz'
 import { AiCatchmind } from './solo/aiCatchmind/AiCatchmind'
+import { Suika } from './solo/suika/Suika'
 import { MouseHunterSpotsDebug } from './party/games/mouseHunter/MouseHunterSpotsDebug'
 import { PartyGame } from './party/core/PartyGame'
 import { PartyRoom } from './party/core/PartyRoom'
@@ -30,6 +31,7 @@ export function App() {
           <Route path="/black-jack" element={<BlackJack />} />
           <Route path="/choseong-quiz" element={<ChoseongQuiz />} />
           <Route path="/catchmind" element={<AiCatchmind />} />
+          <Route path="/suika" element={<Suika />} />
           <Route path="/party" element={<PartyGame />} />
           <Route path="/party/:roomCode" element={<PartyRoom />} />
           <Route path="/dev/mouse-spots" element={<MouseHunterSpotsDebug />} />

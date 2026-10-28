@@ -25,11 +25,16 @@ export function PartyRoom() {
     if (!result.ok) setJoinError(result.error)
   }
 
-  if (!session.connected) {
+  // 이미 방에 들어와 있던 사람은 소켓이 잠깐 끊겨도 화면을 로딩으로 갈아엎지 않는다 —
+  // 갈아엎으면 그 사이의 터치가 사라지고 스크롤도 맨 위로 돌아간다 (카카오톡 인앱 브라우저처럼 연결이 자주 끊기는 환경)
+  const inRoom = Boolean(session.playerId && session.roomState)
+  const reconnecting = !session.connected || session.rejoining
+
+  if (!session.connected && !inRoom) {
     return <PartyLoading message="서버에 연결하는 중이에요. 잠들어 있던 서버라면 최대 1분 정도 걸릴 수 있어요." />
   }
 
-  if (session.rejoining) {
+  if (session.rejoining && !inRoom) {
     return <PartyLoading message="접속하는 중..." />
   }
 
@@ -66,7 +71,18 @@ export function PartyRoom() {
     return <PartyLoading message="방 정보를 불러오는 중..." />
   }
 
-  switch (session.roomState.phase) {
+  return (
+    <>
+      {reconnecting && (
+        <output className="party-reconnect-banner">연결이 불안정해요. 다시 연결하는 중…</output>
+      )}
+      {renderPhase(session)}
+    </>
+  )
+}
+
+function renderPhase(session: ReturnType<typeof useGameSession>) {
+  switch (session.roomState!.phase) {
     case 'lobby':
       return <PartyLobby session={session} />
     case 'round_countdown':

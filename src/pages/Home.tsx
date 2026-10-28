@@ -31,6 +31,12 @@ const games = [
     title: 'AI 캐치마인드',
     description: '내가 그린 그림을 AI가 맞혀요. 얼마나 빨리 알아볼까요?',
   },
+  {
+    path: '/suika',
+    emoji: '🍉',
+    title: '수박게임',
+    description: '같은 과일끼리 합쳐서 점점 키워 수박을 만들어보세요.',
+  },
 ] as const
 
 export function Home() {
