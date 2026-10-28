@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { PlayerId, RgbColor, RoomState, ServerToClientEvents, SessionConfig } from '../../shared/lib/partyProtocol'
 import type { AcrosticWriteSignal, AcrosticVoteSignal } from '../games/acrostic/protocol'
 import type { CatchmindChatHistoryEntry, CatchmindStroke } from '../games/catchmind/protocol'
@@ -68,9 +68,20 @@ function saveSession(roomCode: string, playerId: string) {
 }
 
 /** 방 코드(roomCodeFromUrl)가 있으면 새로고침은 물론 앱을 껐다 켜도(1시간 이내) 저장된 참가자로 자동 재접속을 시도한다 */
+/** 설정 변경 응답(room:state)이 더 오지 않고 이만큼 지나면 낙관적 값을 버리고 서버 값으로 맞춘다 */
+const PENDING_CONFIG_SETTLE_MS = 800
+/** 응답이 아예 없을 때도 낙관적 값이 이 시간 뒤에는 사라진다 */
+const PENDING_CONFIG_TIMEOUT_MS = 5000
+
 export function useGameSession(roomCodeFromUrl?: string) {
   const { socket, connected } = useSocket()
   const [roomState, setRoomState] = useState<RoomState | null>(null)
+  // 방장이 방금 바꾼 설정 — 서버가 room:state로 돌려주기 전까지 화면에 먼저 반영한다.
+  // 서버 응답을 기다렸다가 그 값을 기준으로 다음 값을 계산하면, 응답이 오기 전에 연달아 누른 터치가
+  // 서로 덮어쓰거나 한참 뒤에야 반영된다 (연결이 느린 모바일/인앱 브라우저에서 "터치가 씹히는" 증상)
+  const [pendingConfig, setPendingConfig] = useState<Partial<SessionConfig>>({})
+  const pendingConfigRef = useRef<Partial<SessionConfig>>({})
+  const pendingClearTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [playerId, setPlayerId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [rejoining, setRejoining] = useState(false)
@@ -150,6 +161,13 @@ export function useGameSession(roomCodeFromUrl?: string) {
   useEffect(() => {
     const onState = (state: RoomState) => {
       setRoomState(state)
+      // 연달아 보낸 변경의 응답이 줄줄이 오는 동안에는 중간 값으로 되돌아가지 않도록, 응답이 잠잠해진 뒤에야 서버 값으로 맞춘다
+      // (서버가 변경을 거절했다면 이때 서버 값으로 되돌아간다)
+      if (pendingClearTimer.current) clearTimeout(pendingClearTimer.current)
+      pendingClearTimer.current = setTimeout(() => {
+        pendingConfigRef.current = {}
+        setPendingConfig({})
+      }, PENDING_CONFIG_SETTLE_MS)
       if (state.phase !== 'round_active') {
         // 라운드 밖에 남은 쓰다 만 초안은 낡은 것이다 — 다음 라운드(다른 방·다음 판 포함)에 되살아나지 않게 비운다
         clearAllDrafts()
@@ -407,7 +425,20 @@ export function useGameSession(roomCodeFromUrl?: string) {
   )
 
   const setReady = useCallback((ready: boolean) => socket.emit('player:ready', ready), [socket])
-  const updateConfig = useCallback((patch: Partial<SessionConfig>) => socket.emit('host:updateConfig', patch), [socket])
+  const updateConfig = useCallback(
+    (patch: Partial<SessionConfig>) => {
+      pendingConfigRef.current = { ...pendingConfigRef.current, ...patch }
+      setPendingConfig(pendingConfigRef.current)
+      // 응답이 안 오는 경우(연결 끊김 등)에도 낙관적 값이 영원히 남지 않게 한다
+      if (pendingClearTimer.current) clearTimeout(pendingClearTimer.current)
+      pendingClearTimer.current = setTimeout(() => {
+        pendingConfigRef.current = {}
+        setPendingConfig({})
+      }, PENDING_CONFIG_TIMEOUT_MS)
+      socket.emit('host:updateConfig', patch)
+    },
+    [socket],
+  )
   const transferHost = useCallback((targetPlayerId: string) => socket.emit('host:transferHost', targetPlayerId), [socket])
   const start = useCallback(() => socket.emit('host:start'), [socket])
   const nextRound = useCallback(() => socket.emit('host:nextRound'), [socket])
@@ -424,10 +455,15 @@ export function useGameSession(roomCodeFromUrl?: string) {
   const me = roomState?.players.find((p) => p.id === playerId) ?? null
   const isHost = roomState !== null && playerId !== null && roomState.hostId === playerId
 
+  const displayRoomState = useMemo(
+    () => (roomState && Object.keys(pendingConfig).length > 0 ? { ...roomState, config: { ...roomState.config, ...pendingConfig } } : roomState),
+    [roomState, pendingConfig],
+  )
+
   return {
     socket,
     connected,
-    roomState,
+    roomState: displayRoomState,
     playerId,
     me,
     isHost,
