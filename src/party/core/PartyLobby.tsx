@@ -4,7 +4,12 @@ import { CategoryPicker } from '../../shared/components/CategoryPicker'
 import { ConfirmModal } from '../../shared/components/ConfirmModal'
 import { Modal } from '../../shared/components/Modal'
 import { useWordChainCategories } from '../games/wordChain/useWordChainCategories'
-import { MIN_PLAYERS_TO_START, type GameId, type PlayerInfo } from '../../shared/lib/partyProtocol'
+import {
+  DEFAULT_GAME_MIN_PLAYERS,
+  MIN_PLAYERS_TO_START,
+  type GameId,
+  type PlayerInfo,
+} from '../../shared/lib/partyProtocol'
 import { WORD_CHAIN_MIN_CANDIDATES } from '../games/wordChain/protocol'
 import type { GameSession } from './useGameSession'
 
@@ -33,7 +38,7 @@ export function PartyLobby({ session }: Props) {
   // 인원이 모자라 지금은 할 수 없는 게임인지 — 이런 게임은 이미 골라 뒀더라도 선택은 서버에 남겨 두고(사람이 돌아오면 다시 살아난다),
   // 화면에서는 선택 해제된 것처럼 비활성으로 보여주며 "시작할 수 있는 게임" 수에도 세지 않는다
   const needsMorePlayers = (game: (typeof state.gameCatalog)[number]) =>
-    connectedPlayers.length < (game.minPlayers ?? MIN_PLAYERS_TO_START)
+    connectedPlayers.length < (game.minPlayers ?? DEFAULT_GAME_MIN_PLAYERS)
   const hasSelectedGame = state.gameCatalog.some((g) => state.config.selectedGames.includes(g.id) && !needsMorePlayers(g))
   // 초성 퀴즈 카테고리: null은 전체. 고른 카테고리의 문제가 너무 적으면 같은 문제가 반복되므로 시작할 수 없다 (서버도 같은 기준으로 막는다)
   const wordChainSelected = state.config.selectedGames.includes('wordChain')
@@ -52,7 +57,10 @@ export function PartyLobby({ session }: Props) {
         : selectedCategories.length <= 2
           ? selectedCategories.join(', ')
           : `${selectedCategories[0]} 외 ${selectedCategories.length - 1}개`
-  const canStart = connectedPlayers.length >= MIN_PLAYERS_TO_START && allReady && hasSelectedGame && !tooFewWords
+  // 소켓이 끊긴 동안 보낸 요청은 서버에 닿기 전에 사라질 수 있어서, 다시 연결될 때까지 시작·설정 변경을 막는다
+  const offline = !session.connected || session.rejoining
+  const canStart = !offline && connectedPlayers.length >= MIN_PLAYERS_TO_START && allReady && hasSelectedGame && !tooFewWords
+  const configLocked = !session.isHost || offline
   // comingSoon 게임과 인원이 모자란 게임은 카드 자체가 선택 불가능하니 "전체 선택"의 대상에서도 제외한다
   const playableGames = state.gameCatalog.filter((g) => !g.comingSoon && !needsMorePlayers(g))
   const allGamesSelected = playableGames.length > 0 && playableGames.every((g) => state.config.selectedGames.includes(g.id))
@@ -161,8 +169,10 @@ export function PartyLobby({ session }: Props) {
           </div>
           {!canStart && (
             <p className="error">
-              {connectedPlayers.length < MIN_PLAYERS_TO_START
-                ? `최소 ${MIN_PLAYERS_TO_START}명이 필요해요.`
+              {offline
+                ? '연결이 끊겼어요. 다시 연결되면 시작할 수 있어요.'
+                : connectedPlayers.length < MIN_PLAYERS_TO_START
+                ? `파티게임은 혼자서 할 수 없어요. 최소 ${MIN_PLAYERS_TO_START}명이 필요해요.`
                 : !hasSelectedGame
                   ? '최소 1개 이상의 게임을 선택해주세요.'
                   : tooFewWords
@@ -174,7 +184,7 @@ export function PartyLobby({ session }: Props) {
       ) : (
         session.me && (
           <div className="party-final-actions">
-            <button type="button" className="btn btn-primary" onClick={() => session.setReady(!session.me!.ready)}>
+            <button type="button" className="btn btn-primary" disabled={offline} onClick={() => session.setReady(!session.me!.ready)}>
               {session.me.ready ? '준비 취소' : '준비 완료'}
             </button>
             <button type="button" className="btn btn-secondary" onClick={handleLeave}>
@@ -193,7 +203,7 @@ export function PartyLobby({ session }: Props) {
             <button
               type="button"
               className="party-config-stepper-btn"
-              disabled={!session.isHost || state.config.totalRounds <= 1}
+              disabled={configLocked || state.config.totalRounds <= 1}
               onClick={() => session.updateConfig({ totalRounds: state.config.totalRounds - 1 })}
               aria-label="라운드 수 줄이기"
             >
@@ -203,7 +213,7 @@ export function PartyLobby({ session }: Props) {
             <button
               type="button"
               className="party-config-stepper-btn"
-              disabled={!session.isHost || state.config.totalRounds >= 20}
+              disabled={configLocked || state.config.totalRounds >= 20}
               onClick={() => session.updateConfig({ totalRounds: state.config.totalRounds + 1 })}
               aria-label="라운드 수 늘리기"
             >
@@ -216,7 +226,7 @@ export function PartyLobby({ session }: Props) {
           <input
             type="checkbox"
             checked={allGamesSelected}
-            disabled={!session.isHost}
+            disabled={configLocked}
             onChange={toggleAllGames}
           />
           전체 선택
@@ -226,7 +236,7 @@ export function PartyLobby({ session }: Props) {
           <input
             type="checkbox"
             checked={state.config.randomOrder}
-            disabled={!session.isHost}
+            disabled={configLocked}
             onChange={(e) => session.updateConfig({ randomOrder: e.target.checked })}
           />
           무작위 순서
@@ -241,12 +251,12 @@ export function PartyLobby({ session }: Props) {
             return (
               <div
                 key={game.id}
-                className={`party-game-card${selected ? ' party-game-card-selected' : ''}${!session.isHost || game.comingSoon || notEnoughPlayers ? ' party-game-card-disabled' : ''}`}
+                className={`party-game-card${selected ? ' party-game-card-selected' : ''}${configLocked || game.comingSoon || notEnoughPlayers ? ' party-game-card-disabled' : ''}`}
               >
                 <button
                   type="button"
                   className="party-game-card-main"
-                  disabled={!session.isHost || game.comingSoon || notEnoughPlayers}
+                  disabled={configLocked || game.comingSoon || notEnoughPlayers}
                   aria-pressed={selected}
                   onClick={() => toggleGame(game.id)}
                 >
@@ -278,6 +288,7 @@ export function PartyLobby({ session }: Props) {
                       <button
                         type="button"
                         className="btn btn-secondary"
+                        disabled={offline}
                         onClick={() =>
                           session.updateConfig({
                             telestrationWordMode: state.config.telestrationWordMode === 'custom' ? 'random' : 'custom',
@@ -298,6 +309,7 @@ export function PartyLobby({ session }: Props) {
                       <button
                         type="button"
                         className="btn btn-secondary"
+                        disabled={offline}
                         onClick={() =>
                           session.updateConfig({
                             liarQuizQuestionMode: state.config.liarQuizQuestionMode === 'custom' ? 'random' : 'custom',
@@ -316,7 +328,7 @@ export function PartyLobby({ session }: Props) {
                       {tooFewWords && ` (${WORD_CHAIN_MIN_CANDIDATES}개 이상 필요)`}
                     </span>
                     {session.isHost && (
-                      <button type="button" className="btn btn-secondary" onClick={() => setCategoryModalOpen(true)}>
+                      <button type="button" className="btn btn-secondary" disabled={offline} onClick={() => setCategoryModalOpen(true)}>
                         변경
                       </button>
                     )}

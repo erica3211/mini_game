@@ -140,8 +140,9 @@ export interface RoomState {
   gameCatalog: GameMeta[]
 }
 
-// backend/types.ts와 값이 같아야 한다 — 인원 제한은 GameMeta.minPlayers가 있는 게임에만 건다
-export const MIN_PLAYERS_TO_START = 1
+// backend/types.ts와 값이 같아야 한다 — 시작 최소 인원은 방 전체 조건이고, 게임별 제한은 GameMeta.minPlayers가 있는 게임에만 건다
+export const MIN_PLAYERS_TO_START = 2
+export const DEFAULT_GAME_MIN_PLAYERS = 1
 export const ROUND_COUNTDOWN_MS = 3_000
 
 type CreateRoomAck = { ok: true; roomCode: string; playerId: string } | { ok: false; error: string }
