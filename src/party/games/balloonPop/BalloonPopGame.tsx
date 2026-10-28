@@ -1,13 +1,8 @@
 import { useCallback, useMemo, type PointerEvent } from 'react'
 import type { Socket } from 'socket.io-client'
 import { useBalloonPopRound } from './useBalloonPopRound'
-import {
-  BALLOON_POP_MAX_PUMPS,
-  BALLOON_POP_ROUND_TIMEOUT_MS,
-  type BalloonPopStatus,
-  type ClientToServerEvents,
-  type ServerToClientEvents,
-} from '../../../shared/lib/partyProtocol'
+import { type ClientToServerEvents, type ServerToClientEvents } from '../../../shared/lib/partyProtocol'
+import { BALLOON_POP_MAX_PUMPS, BALLOON_POP_ROUND_TIMEOUT_MS, type BalloonPopStatus } from './protocol'
 import { RemainingTime } from '../../../shared/components/RemainingTime'
 
 interface Props {

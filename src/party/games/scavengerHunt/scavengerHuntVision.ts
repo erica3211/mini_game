@@ -1,4 +1,4 @@
-import type { ScavengerHuntColorTarget } from '../../../shared/lib/partyProtocol'
+import type { ScavengerHuntColorTarget } from './protocol'
 
 // 카메라 화면 중앙 가이드 틀이 프레임의 짧은 변 기준 몇 %를 차지하는지 — 색상 검증 모드는 이 비율 그대로
 // 크롭한 영역만 분석한다. 카메라 UI(ScavengerHuntGame.tsx)의 가이드 틀 오버레이도 반드시 같은 값을 써야 한다.

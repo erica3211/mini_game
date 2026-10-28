@@ -1,11 +1,7 @@
 import type { Socket } from 'socket.io-client'
 import { useWordChainRound } from './useWordChainRound'
-import {
-  WORD_CHAIN_ROUND_TIMEOUT_MS,
-  type ClientToServerEvents,
-  type PlayerInfo,
-  type ServerToClientEvents,
-} from '../../../shared/lib/partyProtocol'
+import { type ClientToServerEvents, type PlayerInfo, type ServerToClientEvents } from '../../../shared/lib/partyProtocol'
+import { WORD_CHAIN_ROUND_TIMEOUT_MS } from './protocol'
 import { RemainingTime } from '../../../shared/components/RemainingTime'
 
 interface Props {

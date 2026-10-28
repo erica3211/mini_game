@@ -1,0 +1,11 @@
+.party-stop-btn {
+  font-size: 1.5rem;
+  padding: 1.5rem 3rem;
+}
+
+.party-fading-timer {
+  font-size: 2.5rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+}

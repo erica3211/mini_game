@@ -3,14 +3,8 @@ import type { Socket } from 'socket.io-client'
 import { useAuctionRound } from './useAuctionRound'
 import { formatWon, signClass } from './auctionFormat'
 import { pickAuctionFlavors, resolveHintText } from './auctionItems'
-import {
-  AUCTION_ITEM_IDS,
-  AUCTION_ROUND_TIMEOUT_MS,
-  auctionItemNumber,
-  type AuctionItemId,
-  type ClientToServerEvents,
-  type ServerToClientEvents,
-} from '../../../shared/lib/partyProtocol'
+import { type ClientToServerEvents, type ServerToClientEvents } from '../../../shared/lib/partyProtocol'
+import { AUCTION_ITEM_IDS, AUCTION_ROUND_TIMEOUT_MS, auctionItemNumber, type AuctionItemId } from './protocol'
 import { RemainingTime } from '../../../shared/components/RemainingTime'
 
 interface Props {

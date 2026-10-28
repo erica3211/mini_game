@@ -1,4 +1,4 @@
-import type { CatchmindStroke } from '../lib/partyProtocol'
+import type { CatchmindStroke } from '../../party/games/catchmind/protocol'
 
 /** 캔버스 백킹 스토어의 논리 해상도 — 도화지는 항상 흰 배경, 화면 크기는 CSS(aspect-ratio)가 담당한다 */
 export const CATCHMIND_CANVAS_WIDTH = 640

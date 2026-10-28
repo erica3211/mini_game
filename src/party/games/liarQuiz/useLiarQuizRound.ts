@@ -1,13 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { Socket } from 'socket.io-client'
-import {
-  LIARQUIZ_WRITE_MS,
-  type ClientToServerEvents,
-  type LiarQuizGuessSignal,
-  type LiarQuizWriteSignal,
-  type PlayerId,
-  type ServerToClientEvents,
-} from '../../../shared/lib/partyProtocol'
+import { type ClientToServerEvents, type PlayerId, type ServerToClientEvents } from '../../../shared/lib/partyProtocol'
+import { LIARQUIZ_WRITE_MS, type LiarQuizGuessSignal, type LiarQuizWriteSignal } from './protocol'
 import { clearDraft, loadDraft, saveDraft } from '../../core/sessionDraft'
 import { useMonotonicStartedAt } from '../../core/useMonotonicStartedAt'
 

@@ -1,6 +1,6 @@
-import type { SimonInputTypeId } from '../../../shared/lib/partyProtocol'
+import type { SimonInputTypeId } from './protocol'
 
-// 기억력 시퀀스의 입력 방식(유형)별 화면 정의 — 순수 데이터라서 JSX가 없다. 서버의 games/simon/inputTypes.ts와 짝이다.
+// 기억력 시퀀스의 입력 방식(유형)별 화면 정의 — 순수 데이터라서 JSX가 없다. 서버의 party/games/simon/inputTypes.ts와 짝이다.
 // 심볼은 와이어에서 문자열 키로 오가며 (예: 'red', 'up', '5', '🍎', 'p4'), 키를 어떻게 그릴지는 여기서만 정한다.
 // 새 유형을 추가하려면 SimonInputTypeId에 한 줄 + 이 Record에 한 블록 (빠뜨리면 컴파일 에러)
 export interface SimonSymbolView {

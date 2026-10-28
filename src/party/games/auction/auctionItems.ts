@@ -8,7 +8,7 @@ import pirateTreasureChest from './assets/PirateTreasureChest.png'
 import secretPotionBottle from './assets/SecretPotionBottle.png'
 import spaceCatStatue from './assets/SpaceCatStatue.png'
 import vintagePocketWatch from './assets/VintagePocketWatch.png'
-import type { AuctionItemId } from '../../../shared/lib/partyProtocol'
+import type { AuctionItemId } from './protocol'
 
 export interface AuctionItemFlavor {
   name: string

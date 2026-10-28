@@ -1,0 +1,353 @@
+/* 게임 공통 */
+.rules {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.875rem 1rem;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.rules strong {
+  color: var(--text);
+}
+
+/* margin-top: auto는 콘텐츠가 길면 0이 되므로, 게임 영역과의 최소 간격은 padding으로 확보한다 */
+.rules-dock {
+  margin-top: auto;
+  padding-top: 2rem;
+}
+
+/* 요약 문단의 기본 여백 때문에 박스 위쪽이 휑해 보이지 않게 없앤다 (간격은 .rules padding이 담당) */
+.rules > p:first-child {
+  margin: 0;
+}
+
+.rules-clamped {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+}
+
+.rules-toggles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.rules-toggles:empty {
+  display: none;
+}
+
+.rules-toggle {
+  margin-top: 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--accent);
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.3rem 0.7rem;
+  cursor: pointer;
+}
+
+.rules-toggle:hover {
+  border-color: var(--border-strong);
+}
+
+.rules-example {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px dashed var(--border);
+  font-size: 0.85rem;
+}
+
+.btn {
+  border: none;
+  border-radius: 8px;
+  padding: 0.6rem 1.2rem;
+  font-weight: 600;
+  transition: background 0.15s;
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: var(--on-color);
+}
+
+.btn-primary:hover {
+  background: var(--primary-hover);
+}
+
+.btn-secondary {
+  background: var(--out);
+  color: var(--text);
+}
+
+.btn-secondary:hover {
+  background: var(--surface-raised);
+}
+
+.error {
+  color: var(--text-danger);
+  font-size: 0.875rem;
+  margin: 0.5rem 0;
+}
+
+/* window.confirm 대신 쓰는 공용 확인 모달 */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+  z-index: 100;
+}
+
+.modal-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  max-width: 22rem;
+  width: 100%;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
+}
+
+.modal-message {
+  margin: 0 0 1.25rem;
+  color: var(--text);
+  line-height: 1.5;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 0.6rem;
+}
+
+.modal-actions .btn {
+  flex: 1;
+}
+
+/* 숫자야구 입력 */
+.guess-form {
+  display: flex;
+  gap: 0.5rem;
+  margin: 1rem 0;
+}
+
+.guess-input {
+  flex: 1;
+  max-width: 200px;
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.6rem 0.9rem;
+  font-size: 1.25rem;
+  letter-spacing: 0.35em;
+  text-align: center;
+}
+
+.guess-input::placeholder {
+  color: var(--text-muted);
+  opacity: 0.6;
+}
+
+.guess-input:focus {
+  outline: 2px solid var(--text-info);
+  border-color: transparent;
+}
+
+.badge {
+  display: inline-block;
+  min-width: 2.2rem;
+  text-align: center;
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--on-color);
+  white-space: nowrap;
+}
+
+.badge-strike {
+  background: var(--strike);
+}
+
+.badge-ball {
+  background: var(--ball);
+}
+
+.badge-out {
+  background: var(--out);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+}
+
+.badge-win {
+  background: var(--strike);
+}
+
+.badge-push {
+  background: var(--out);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+}
+
+.badge-lose {
+  background: var(--danger);
+}
+
+.party-round-remaining {
+  color: var(--text-muted);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+@keyframes party-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-4px);
+  }
+  75% {
+    transform: translateX(4px);
+  }
+}
+
+/* 카테고리 선택 칩 — 선택됨은 연한 면 + 진한 테두리, 선택 안 됨은 테두리만 */
+.category-picker {
+  width: 100%;
+  max-width: 34rem;
+  margin: 0 0 1.25rem;
+}
+
+.category-picker-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.category-picker-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.category-picker-link {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.category-picker-link:hover {
+  color: var(--text);
+}
+
+.category-picker-chips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.4rem;
+}
+
+.category-chip {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.3rem 0.8rem;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.category-chip:hover {
+  border-color: var(--border-strong);
+}
+
+/* 설정 팝업 */
+.modal-card-wide {
+  max-width: 36rem;
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.modal-title {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  padding: 0.25rem;
+  color: var(--text-muted);
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 1.25rem;
+}
+
+.category-chip:disabled {
+  cursor: default;
+}
+
+.category-chip:disabled:hover {
+  border-color: var(--border);
+}
+
+.category-chip-selected:disabled:hover {
+  border-color: var(--border-strong);
+}
+
+.category-chip-selected {
+  background: var(--surface-raised);
+  border-color: var(--border-strong);
+  color: var(--text);
+  font-weight: 600;
+}
+
+.category-picker-note {
+  margin-top: 0.75rem;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.category-picker-note p {
+  margin: 0.2rem 0;
+}
+
+.category-picker-note strong {
+  color: var(--accent);
+}
+
+.category-picker-note .category-picker-warn {
+  color: var(--text-danger);
+}

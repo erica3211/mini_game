@@ -1,0 +1,34 @@
+/* 샤우팅 질주 — 캘리브레이션 끝난 뒤 신호등(빨→주→초 Start!) 연출. 서버가 신호 전체 길이만 알려주고
+   어느 색이 지금 켜져 있는지는 useShoutRaceRound가 경과 시간을 3등분해 계산한다(countdownLight) */
+.party-shoutrace-lights {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.party-shoutrace-light {
+  font-size: 2rem;
+  filter: grayscale(1) brightness(0.5);
+  opacity: 0.4;
+  transition: filter 0.15s, opacity 0.15s, transform 0.15s;
+}
+
+.party-shoutrace-light-active {
+  filter: none;
+  opacity: 1;
+  transform: scale(1.15);
+}
+
+.party-shoutrace-light-start {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--text-success);
+  animation: party-countdown-pop 0.4s ease-out;
+}
+
+.party-shoutrace-db-meter {
+  font-size: 1.4rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}

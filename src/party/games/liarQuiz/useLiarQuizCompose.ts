@@ -1,13 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { Socket } from 'socket.io-client'
-import {
-  LIARQUIZ_COMPOSE_MS,
-  LIARQUIZ_FAKE_MAX_COUNT,
-  type ClientToServerEvents,
-  type LiarQuizComposeSignal,
-  type LiarQuizQuestionDraft,
-  type ServerToClientEvents,
-} from '../../../shared/lib/partyProtocol'
+import { type ClientToServerEvents, type ServerToClientEvents } from '../../../shared/lib/partyProtocol'
+import { LIARQUIZ_COMPOSE_MS, LIARQUIZ_FAKE_MAX_COUNT, type LiarQuizComposeSignal, type LiarQuizQuestionDraft } from './protocol'
 import { clearDraft, loadDraft, saveDraft } from '../../core/sessionDraft'
 import { useMonotonicStartedAt } from '../../core/useMonotonicStartedAt'
 

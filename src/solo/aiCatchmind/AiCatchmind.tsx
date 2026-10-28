@@ -7,7 +7,7 @@ import { useAiCatchmind } from './useAiCatchmind'
 import { useCanvasPointerDrawing } from '../../shared/drawing/useCanvasPointerDrawing'
 import { DOODLE_CLASSES } from './doodleLabels'
 import type { DoodleGuess } from './doodleNet'
-import { CATCHMIND_COLORS, CATCHMIND_TURN_TIMEOUT_MS } from '../../shared/lib/partyProtocol'
+import { CATCHMIND_COLORS, CATCHMIND_TURN_TIMEOUT_MS } from '../../party/games/catchmind/protocol'
 
 const nameOf = (classIndex: number) => DOODLE_CLASSES[classIndex][1]
 const percent = (probability: number) => `${Math.round(probability * 100)}%`

@@ -1,13 +1,7 @@
 import { useCallback, useEffect, useRef, useState, type RefObject } from 'react'
 import type { Socket } from 'socket.io-client'
-import {
-  PIXEL_CANVAS_COLS,
-  PIXEL_CANVAS_ROUND_TIMEOUT_MS,
-  PIXEL_CANVAS_ROWS,
-  type ClientToServerEvents,
-  type PlayerId,
-  type ServerToClientEvents,
-} from '../../../shared/lib/partyProtocol'
+import { type ClientToServerEvents, type PlayerId, type ServerToClientEvents } from '../../../shared/lib/partyProtocol'
+import { PIXEL_CANVAS_COLS, PIXEL_CANVAS_ROUND_TIMEOUT_MS, PIXEL_CANVAS_ROWS } from './protocol'
 import { colorOfCell, drawCell, drawFullGrid, fitCanvasToGrid } from './pixelCanvasDraw'
 import { useMonotonicStartedAt } from '../../core/useMonotonicStartedAt'
 
@@ -21,7 +15,7 @@ type StartSignal = {
 }
 
 const CELL_COUNT = PIXEL_CANVAS_COLS * PIXEL_CANVAS_ROWS
-// 백엔드 games/pixelCanvas.ts의 PIXEL_CANVAS_BRUSH_RADIUS와 반드시 같은 값을 유지해야 한다 —
+// 백엔드 party/games/pixelCanvas/index.ts의 PIXEL_CANVAS_BRUSH_RADIUS와 반드시 같은 값을 유지해야 한다 —
 // 내 화면에 미리 칠해보는(낙관적 반영) 모양이 서버가 실제로 칠하는 모양과 달라지면 안 된다
 const BRUSH_RADIUS = 0
 // 드래그 중 모아둔 붓 중심점을 서버로 보내는 주기 — 포인터 이벤트마다 보내면 소켓이 넘치고,

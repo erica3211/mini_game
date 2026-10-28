@@ -1,0 +1,105 @@
+/* 파스텔 라이트 테마 (기본) + 다크 테마 (토글) */
+:root,
+:root[data-theme='light'] {
+  --bg: #fefaf2;
+  --surface: #fefaf2;
+  --surface-raised: #ffd1dc;
+  --text: #5c4643;
+  --text-muted: #a68984;
+  --primary: #ff7b9c;
+  --primary-hover: #ff5c82;
+  /* 연핑크/코랄 배경 위에 얹을 수 없을 만큼 밝아서, 본문 위 강조 텍스트용으로는 더 짙은 코랄 잉크를 쓴다 */
+  --accent: #d6336c;
+  --info: #c5e3ff;
+  --text-info: #2b6cb0;
+  --lavender: #e6d7ff;
+  --strike: #c5f4e2;
+  --text-success: #12805a;
+  --text-danger: #d6336c;
+  --ball: #fff3b0;
+  --out: #e3d2ce;
+  --danger: #ff7b9c;
+  --border: #ffd1dc;
+  --border-strong: #ff7b9c;
+  --on-color: var(--text);
+  --tint-info: rgba(197, 227, 255, 0.55);
+  --tint-strike: rgba(197, 244, 226, 0.6);
+  --tint-danger: rgba(255, 123, 156, 0.18);
+  --border-strike: #7fe0bc;
+  --border-danger: #ff7b9c;
+  --radius: 16px;
+  color-scheme: light;
+  font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', system-ui, sans-serif;
+}
+
+:root[data-theme='dark'] {
+  --bg: #0d1117;
+  --surface: #161b22;
+  --surface-raised: #21262d;
+  --text: #e6edf3;
+  --text-muted: #8b949e;
+  --primary: #143c74;
+  --primary-hover: #375783;
+  --accent: #649ae2;
+  --info: #649ae2;
+  --text-info: #649ae2;
+  --lavender: #30363d;
+  --strike: #238636;
+  --text-success: #3fb950;
+  --text-danger: #f85149;
+  --ball: #c2b223;
+  --out: #3e4244;
+  --danger: #f85149;
+  --border: #30363d;
+  --border-strong: #8b949e;
+  --on-color: #fff;
+  --tint-info: rgba(88, 166, 255, 0.08);
+  --tint-strike: rgba(46, 160, 67, 0.12);
+  --tint-danger: rgba(248, 81, 73, 0.1);
+  --border-strike: rgba(46, 160, 67, 0.45);
+  --border-danger: rgba(248, 81, 73, 0.4);
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+}
+
+/* 라이트 테마 전용 배경 낙서 패턴 — html(캔버스)에 걸어야 body 높이와 무관하게 스크롤 전체를 덮는다.
+   body는 투명하게 비워서 카드 사이 여백으로 패턴이 그대로 비쳐 보이게 한다. 다크 테마는 단색 배경 유지 */
+:root[data-theme='light'] {
+  background-color: var(--bg);
+  background-image: url('../../assets/pattern-bg.png');
+  background-repeat: repeat;
+  background-size: 600px 380px;
+}
+
+:root[data-theme='light'] body {
+  background: transparent;
+}
+
+/* .site-main이 콘텐츠 높이만큼만 차지하면 화면이 그보다 길 때 아래쪽에서 불투명 배경이 뚝
+   끊기고 패턴이 드러나 버린다 — #root를 세로 flex로 만들어 site-main이 항상 화면 높이 이상을
+   채우게 한다 */
+#root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+button {
+  font: inherit;
+  cursor: pointer;
+}
+
+:focus-visible {
+  outline: 2px solid var(--text-info);
+  outline-offset: 2px;
+}

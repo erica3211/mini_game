@@ -1,13 +1,7 @@
 import type { Socket } from 'socket.io-client'
 import { useMinorityRound } from './useMinorityRound'
-import {
-  MINORITY_SUB_ROUND_MS,
-  MINORITY_SUB_ROUNDS,
-  type ClientToServerEvents,
-  type MinorityStartSignal,
-  type PlayerInfo,
-  type ServerToClientEvents,
-} from '../../../shared/lib/partyProtocol'
+import { type ClientToServerEvents, type PlayerInfo, type ServerToClientEvents } from '../../../shared/lib/partyProtocol'
+import { MINORITY_SUB_ROUND_MS, MINORITY_SUB_ROUNDS, type MinorityStartSignal } from './protocol'
 import { RemainingTime } from '../../../shared/components/RemainingTime'
 
 interface Props {

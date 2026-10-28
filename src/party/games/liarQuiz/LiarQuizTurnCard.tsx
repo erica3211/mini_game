@@ -1,4 +1,4 @@
-import type { LiarQuizTurnResult } from '../../../shared/lib/partyProtocol'
+import type { LiarQuizTurnResult } from './protocol'
 
 interface QuestionProps {
   question: string

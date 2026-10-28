@@ -1,13 +1,7 @@
 import { useEffect, useRef, useState, type RefObject } from 'react'
 import type { Socket } from 'socket.io-client'
-import {
-  SHOUT_RACE_COUNTDOWN_MS,
-  SHOUT_RACE_FINISH_PROGRESS,
-  SHOUT_RACE_ROUND_TIMEOUT_MS,
-  type ClientToServerEvents,
-  type PlayerId,
-  type ServerToClientEvents,
-} from '../../../shared/lib/partyProtocol'
+import { type ClientToServerEvents, type PlayerId, type ServerToClientEvents } from '../../../shared/lib/partyProtocol'
+import { SHOUT_RACE_COUNTDOWN_MS, SHOUT_RACE_FINISH_PROGRESS, SHOUT_RACE_ROUND_TIMEOUT_MS } from './protocol'
 import { useMonotonicStartedAt } from '../../core/useMonotonicStartedAt'
 
 type PartySocket = Socket<ServerToClientEvents, ClientToServerEvents>

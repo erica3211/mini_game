@@ -1,14 +1,13 @@
 import type { Socket } from 'socket.io-client'
 import { useAcrosticRound } from './useAcrosticRound'
+import { type ClientToServerEvents, type ServerToClientEvents } from '../../../shared/lib/partyProtocol'
 import {
   ACROSTIC_LINE_MAX_LENGTH,
   ACROSTIC_VOTE_MS,
   ACROSTIC_WRITE_MS,
   type AcrosticVoteSignal,
   type AcrosticWriteSignal,
-  type ClientToServerEvents,
-  type ServerToClientEvents,
-} from '../../../shared/lib/partyProtocol'
+} from './protocol'
 import { RemainingTime } from '../../../shared/components/RemainingTime'
 
 interface Props {

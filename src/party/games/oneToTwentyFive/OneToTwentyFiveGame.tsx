@@ -1,6 +1,7 @@
 import type { Socket } from 'socket.io-client'
 import { useOneToTwentyFiveRound } from './useOneToTwentyFiveRound'
-import { ONE_TO_TWENTY_FIVE_ROUND_TIMEOUT_MS, type ClientToServerEvents, type ServerToClientEvents } from '../../../shared/lib/partyProtocol'
+import { type ClientToServerEvents, type ServerToClientEvents } from '../../../shared/lib/partyProtocol'
+import { ONE_TO_TWENTY_FIVE_ROUND_TIMEOUT_MS } from './protocol'
 import { RemainingTime } from '../../../shared/components/RemainingTime'
 
 interface Props {

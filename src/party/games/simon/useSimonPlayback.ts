@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import type { SimonTiming } from '../../../shared/lib/partyProtocol'
+import type { SimonTiming } from './protocol'
 import { boundariesMs, inputOpensOffsetMs, phaseAt, type SimonPlaybackState } from './simonRules'
 
 const INTRO: SimonPlaybackState = { phase: 'intro', litIndex: null, shownCount: 0 }

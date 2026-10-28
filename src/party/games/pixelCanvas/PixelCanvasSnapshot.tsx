@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import type { PixelCanvasRoundMeta } from '../../../shared/lib/partyProtocol'
+import type { PixelCanvasRoundMeta } from './protocol'
 import { drawFullGrid, fitCanvasToGrid } from './pixelCanvasDraw'
 
 interface Props {

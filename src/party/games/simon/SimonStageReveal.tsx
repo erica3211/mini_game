@@ -1,4 +1,4 @@
-import type { SimonStageResult } from '../../../shared/lib/partyProtocol'
+import type { SimonStageResult } from './protocol'
 import { SIMON_CLIENT_TYPES } from './simonInputTypes'
 import { SimonChip } from './SimonPad'
 

@@ -1,13 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { Socket } from 'socket.io-client'
 import type { TelestrationRevealSignal } from './useTelestrationDrawing'
-import {
-  TELESTRATION_VOTE_TIMEOUT_MS,
-  type ClientToServerEvents,
-  type PlayerId,
-  type PlayerInfo,
-  type ServerToClientEvents,
-} from '../../../shared/lib/partyProtocol'
+import { type ClientToServerEvents, type PlayerId, type PlayerInfo, type ServerToClientEvents } from '../../../shared/lib/partyProtocol'
+import { TELESTRATION_VOTE_TIMEOUT_MS } from './protocol'
 import { PartySubRoundCarousel } from '../../core/PartySubRoundCarousel'
 import { PartySubRoundPager } from '../../core/PartySubRoundPager'
 import { RemainingTime } from '../../../shared/components/RemainingTime'

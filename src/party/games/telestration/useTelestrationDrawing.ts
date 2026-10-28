@@ -1,12 +1,8 @@
 import { useCallback, useEffect, useRef, type RefObject } from 'react'
 import { clearCatchmindCanvas, drawFullBoard, fitCatchmindCanvas, strokeSegment } from '../../../shared/drawing/catchmindDraw'
 import { loadDraft, saveDraft } from '../../core/sessionDraft'
-import type {
-  CatchmindStroke,
-  TelestrationChainReveal,
-  TelestrationPrompt,
-  TelestrationStepKind,
-} from '../../../shared/lib/partyProtocol'
+import type { CatchmindStroke } from '../catchmind/protocol'
+import type { TelestrationChainReveal, TelestrationPrompt, TelestrationStepKind } from './protocol'
 import { useCanvasPointerDrawing } from '../../../shared/drawing/useCanvasPointerDrawing'
 
 /** 서버가 단계마다 본인에게만 보내주는 과제 — 사람마다 받는 체인이 달라서 emitToPlayer로만 전달된다 */

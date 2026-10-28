@@ -1,0 +1,413 @@
+/* 레이싱 게임 공통(샤우팅 질주 / 타자 질주가 공유) — 상단 트랙 게이지. 참가자 수만큼 색상 점이 진행률(%)에 따라
+   좌우로 움직이고, 점을 클릭하면(관전 모드가 있는 게임에서) 그 사람 화면으로 전환된다 */
+.party-race-track {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  max-width: 420px;
+}
+
+.party-race-track-flag {
+  flex-shrink: 0;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  letter-spacing: 0.03em;
+}
+
+.party-race-track-bar {
+  position: relative;
+  flex: 1;
+  height: 2.5rem;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--surface-raised), var(--surface));
+  border: 1px solid var(--border);
+  overflow: visible;
+}
+
+.party-race-track-dot {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  transition: left 0.12s linear;
+}
+
+.party-race-track-dot-mark {
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 50%;
+  background: var(--dot-color, var(--accent));
+  border: 1px solid rgba(0, 0, 0, 0.4);
+  box-shadow: 0 0 0 2px var(--bg);
+}
+
+.party-race-track-dot-me .party-race-track-dot-mark {
+  width: 1rem;
+  height: 1rem;
+  box-shadow:
+    0 0 0 2px var(--bg),
+    0 0 8px var(--dot-color, var(--accent));
+}
+
+.party-race-track-dot-clickable {
+  cursor: pointer;
+}
+
+.party-race-track-nickname {
+  font-size: 0.62rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  white-space: nowrap;
+  background: var(--bg);
+  padding: 0 0.3rem;
+  border-radius: 4px;
+}
+
+.party-race-track-dot-me .party-race-track-nickname {
+  color: var(--text);
+}
+
+.party-race-finished {
+  font-weight: 700;
+  color: var(--accent);
+}
+
+/* 레이싱 게임 공통(샤우팅 질주 / 타자 질주가 공유) — 메인 레이스 뷰 + 게이지. --race-speed(0~1)는 각 게임의
+   훅(useShoutRaceRound/useTypeRaceRound)이 매 프레임 party-race-root에 직접 써넣는다(리렌더 없이) — 도로
+   스크롤 속도, 차체 틸트, 게이지 바늘이 전부 이 하나의 CSS 변수에서 calc()로 파생된다.
+   data-boosting/data-maxspeed도 같은 방식으로 갱신 */
+.party-race-root {
+  /* 입력 신호(목소리 크기/타자 속도)가 데드존 안인 기본값 — 차가 완전히 멈춰 있다 */
+  --race-speed: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+/* 신호등(countdown) 단계: 차는 이미 보이고 색도 정해져 있지만, "출발" 전까지는 모든 애니메이션이 멈춰 있다.
+   도로/산/구름/바퀴는 CSS 애니메이션이 아니라 매 프레임 JS가 위치를 직접 쓰는 방식이라 이 규칙이 필요 없다 —
+   tick 루프 자체가 racing/finished 상태에서만 도니까 자동으로 멈춰 있다. 신호등 연출이 없는 게임(타자 질주)에는
+   data-phase='countdown'이 아예 안 실리므로 이 규칙은 자연히 적용되지 않는다 */
+.party-race-root[data-phase='countdown'] .party-race-car {
+  animation-play-state: paused;
+}
+
+.party-race-stage {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  height: 180px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  overflow: hidden;
+  image-rendering: pixelated;
+}
+
+.party-race-root[data-maxspeed='true'] .party-race-stage {
+  animation: race-camera-shake 0.22s infinite;
+}
+
+.party-race-sky {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, #6fb6ef 0%, #9adcf5 55%, #cdeffc 100%);
+}
+
+/* 구름 — 하늘 위쪽을 흐르는 가장 먼 레이어라 산보다도 느리게 스크롤한다(패럴랙스). background-position-x는
+   각 게임 훅의 tick 루프가 매 프레임 누적 거리로 직접 쓴다(CLOUDS_TILE_PX=220과 같은 폭으로
+   반복되므로 모듈로 계산만으로 이음매 없이 반복) */
+.party-race-clouds {
+  position: absolute;
+  left: -110px;
+  right: -110px;
+  top: 12px;
+  height: 46px;
+  background-image:
+    radial-gradient(20px 11px at 24px 22px, rgba(255, 255, 255, 0.95), transparent 70%),
+    radial-gradient(14px 8px at 54px 14px, rgba(255, 255, 255, 0.85), transparent 70%),
+    radial-gradient(17px 9px at 150px 26px, rgba(255, 255, 255, 0.9), transparent 70%),
+    radial-gradient(12px 7px at 178px 16px, rgba(255, 255, 255, 0.8), transparent 70%);
+  background-size: 220px 46px;
+  background-repeat: repeat-x;
+}
+
+/* 산 — 도로보다 훨씬 느리게 움직여 "멀리 있는" 느낌을 준다. 능선은 clip-path 폴리곤으로 봉우리 좌표를
+   직접(px) 지정해서 그린다 — 이전엔 45/135deg 그라데이션 두 장을 겹치는 방식으로 만들었는데, 타일 폭 대비
+   높이가 맞지 않아 삼각형이 대각선 중간에서 잘려(꼭대기가 평평하게 잘린 모양) 보이는 문제가 있었다.
+   폭 1800px 안에 봉우리를 미리 다 그려두고(주기적으로 타일링하지 않음) JS가 transform: translateX()로
+   그대로 밀기만 하므로, 레이스 내내(최대 라운드 제한시간 × 초당 MOUNTAINS_PX_PER_SEC) 스크롤해도 그림이
+   바닥나지 않는다 — 이음매를 신경 쓸 필요가 없어 반복 타일링보다 훨씬 단순하고 확실하다 */
+.party-race-mountains {
+  position: absolute;
+  left: -500px;
+  bottom: 34px;
+  width: 1800px;
+  height: 55px;
+  background: #7ed957;
+  clip-path: polygon(
+    0px 55px,
+    100px 8px,
+    200px 55px,
+    300px 15px,
+    400px 55px,
+    500px 6px,
+    600px 55px,
+    700px 16px,
+    800px 55px,
+    900px 9px,
+    1000px 55px,
+    1100px 18px,
+    1200px 55px,
+    1300px 7px,
+    1400px 55px,
+    1500px 14px,
+    1600px 55px,
+    1700px 10px,
+    1800px 55px
+  );
+}
+
+.party-race-speedlines {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.35) 0 2px, transparent 2px 40px);
+  opacity: 0;
+  transition: opacity 0.15s;
+  pointer-events: none;
+}
+
+.party-race-root[data-maxspeed='true'] .party-race-speedlines {
+  opacity: 0.5;
+}
+
+.party-race-road {
+  /* 도로 "면" — 단색+미세한 그라데이션으로 노면 질감만 표현. 차선(점선)은 안쪽 .party-race-road-line이
+     얇은 띠로 따로 그린다 (예전엔 이 요소 자체에 반복 그라데이션을 90deg로 걸어서 도로 전체 높이가 세로
+     줄무늬로 채워져 차선이 아니라 울타리/바코드처럼 보였다) */
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 34px;
+  background: linear-gradient(180deg, #2a2e37 0%, #1c1f26 60%, #14161b 100%);
+  border-top: 2px solid #454b57;
+}
+
+/* 차선(점선) — background-position-x는 각 게임 훅의 tick 루프가 매 프레임 누적 거리로 직접 쓴다
+   (ROAD_TILE_PX=60과 같은 폭으로 반복). ::before 가상요소는 ref를 붙일 수 없어서 실제 자식 엘리먼트로 뺐다 */
+.party-race-road-line {
+  position: absolute;
+  left: -60px;
+  right: -60px;
+  top: 50%;
+  height: 4px;
+  transform: translateY(-50%);
+  background-image: repeating-linear-gradient(90deg, #e6edf3 0 24px, transparent 24px 60px);
+  background-repeat: repeat-x;
+}
+
+/* 시작선/결승선 — .party-race-stage의 직계 자식으로 둬서 .party-race-car의 left:30%(=
+   각 게임 훅의 CAR_LEFT_PERCENT)와 같은 좌표계를 쓴다. left는 매 프레임 진행률에서 직접
+   계산해 JS가 써주므로(리렌더 없이) 여기서는 색/모양만 정의한다 */
+.party-race-startline,
+.party-race-finishline {
+  position: absolute;
+  bottom: 0;
+  width: 6px;
+  height: 34px;
+  transform: translateX(-50%);
+}
+
+.party-race-startline {
+  background: repeating-linear-gradient(45deg, #e6edf3 0 4px, #1c1f26 4px 8px);
+}
+
+.party-race-finishline {
+  background-image: conic-gradient(#111 90deg, #f5f5f5 90deg 180deg, #111 180deg 270deg, #f5f5f5 270deg);
+  background-size: 6px 6px;
+}
+
+.party-race-car {
+  position: absolute;
+  left: 30%;
+  bottom: 24px;
+  width: 64px;
+  height: 40px;
+  animation: race-idle-bob 1.4s ease-in-out infinite;
+}
+
+.party-race-car-flames {
+  position: absolute;
+  right: 100%;
+  top: 55%;
+  transform: translateY(-50%);
+  display: flex;
+  gap: 2px;
+}
+
+.party-race-flame {
+  width: 10px;
+  height: 8px;
+  border-radius: 2px 6px 6px 2px;
+  background: linear-gradient(90deg, #ffcf5c, #ff7a3c);
+  opacity: 0;
+  transform-origin: right center;
+}
+
+.party-race-root[data-boosting='true'] .party-race-flame {
+  animation: race-flame-flicker 0.18s ease-in-out infinite;
+}
+
+.party-race-flame-1 {
+  animation-delay: 0s;
+}
+
+.party-race-flame-2 {
+  width: 16px;
+  animation-delay: 0.06s;
+}
+
+.party-race-flame-3 {
+  width: 8px;
+  animation-delay: 0.12s;
+}
+
+.party-race-car-body {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform: rotate(calc(var(--race-speed) * -9deg));
+  transform-origin: 80% 100%;
+}
+
+.party-race-car-body::before {
+  /* 차체 — box-shadow 픽셀 아트 대신 단순 박스 형태로 구성, --car-color로 참가자별 재색칠 */
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 12px;
+  width: 100%;
+  height: 18px;
+  background: var(--car-color, #3b82f6);
+  border-radius: 4px 10px 4px 4px;
+  box-shadow: inset 0 -4px 0 rgba(0, 0, 0, 0.25);
+}
+
+.party-race-car-cabin {
+  position: absolute;
+  left: 32%;
+  bottom: 26px;
+  width: 46%;
+  height: 14px;
+  background: var(--car-color, #3b82f6);
+  border-top-left-radius: 10px;
+  border-top-right-radius: 4px;
+  box-shadow: inset 0 6px 0 rgba(255, 255, 255, 0.25);
+}
+
+.party-race-car-wheel {
+  /* 회전각(transform: rotate())은 각 게임 훅의 tick 루프가 매 프레임 누적 각도로 직접 쓴다 */
+  position: absolute;
+  bottom: 4px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: repeating-conic-gradient(#111 0deg 45deg, #444 45deg 90deg);
+  border: 2px solid #0b0d12;
+}
+
+.party-race-car-wheel-front {
+  right: 8px;
+}
+
+.party-race-car-wheel-back {
+  left: 4px;
+}
+
+.party-race-gauge {
+  width: 200px;
+  max-width: 60vw;
+}
+
+.party-race-gauge-track {
+  fill: none;
+  stroke: var(--border);
+  stroke-width: 14;
+  stroke-linecap: round;
+}
+
+.party-race-gauge-fill {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 14;
+  stroke-linecap: round;
+  stroke-dasharray: 100;
+  stroke-dashoffset: calc(100 - var(--race-speed) * 100);
+  transition: stroke 0.15s;
+}
+
+.party-race-root[data-maxspeed='true'] .party-race-gauge-fill {
+  stroke: var(--danger);
+}
+
+.party-race-gauge-needle-pivot {
+  transform-box: view-box;
+  transform-origin: 100px 100px;
+  transform: rotate(calc(-90deg + var(--race-speed) * 180deg));
+  transition: transform 0.05s linear;
+}
+
+.party-race-gauge-needle {
+  stroke: var(--danger);
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+
+.party-race-gauge-hub {
+  fill: var(--text-muted);
+}
+
+@keyframes race-idle-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-2px);
+  }
+}
+
+@keyframes race-flame-flicker {
+  0%,
+  100% {
+    opacity: 0.85;
+    transform: scaleX(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scaleX(1.2);
+  }
+}
+
+@keyframes race-camera-shake {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  25% {
+    transform: translate(-2px, 1px);
+  }
+  50% {
+    transform: translate(2px, -1px);
+  }
+  75% {
+    transform: translate(-1px, -2px);
+  }
+}

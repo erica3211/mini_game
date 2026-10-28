@@ -1,19 +1,16 @@
 import type { ReactNode } from 'react'
 import type { Socket } from 'socket.io-client'
 import { useLiarQuizRound } from './useLiarQuizRound'
+import { type ClientToServerEvents, type PlayerId, type PlayerInfo, type ServerToClientEvents } from '../../../shared/lib/partyProtocol'
 import {
   LIARQUIZ_GUESS_MS,
   LIARQUIZ_LIE_MAX_LENGTH,
   LIARQUIZ_WRITE_MS,
-  type ClientToServerEvents,
   type LiarQuizComposeSignal,
   type LiarQuizGuessSignal,
   type LiarQuizSpectatorChoice,
   type LiarQuizWriteSignal,
-  type PlayerId,
-  type PlayerInfo,
-  type ServerToClientEvents,
-} from '../../../shared/lib/partyProtocol'
+} from './protocol'
 import { LiarQuizComposeForm } from './LiarQuizComposeForm'
 import { LiarQuizQuestion, LiarQuizTurnCard } from './LiarQuizTurnCard'
 import { RemainingTime } from '../../../shared/components/RemainingTime'

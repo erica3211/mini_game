@@ -1,12 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { Socket } from 'socket.io-client'
-import {
-  MINORITY_SUB_ROUND_MS,
-  type ClientToServerEvents,
-  type MinorityStartSignal,
-  type MinoritySubRoundResult,
-  type ServerToClientEvents,
-} from '../../../shared/lib/partyProtocol'
+import { type ClientToServerEvents, type ServerToClientEvents } from '../../../shared/lib/partyProtocol'
+import { MINORITY_SUB_ROUND_MS, type MinorityStartSignal, type MinoritySubRoundResult } from './protocol'
 import { useMonotonicStartedAt } from '../../core/useMonotonicStartedAt'
 
 type PartySocket = Socket<ServerToClientEvents, ClientToServerEvents>

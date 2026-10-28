@@ -1,0 +1,118 @@
+/* 이어그려줘! 투표: 투표 마치기 / 기권 버튼 */
+.party-telestration-vote-actions {
+  display: flex;
+  justify-content: center;
+  gap: 0.6rem;
+}
+
+/* 이어그리기 */
+.party-telestration-instruction {
+  margin: 0;
+  font-weight: 600;
+  text-align: center;
+}
+
+.party-telestration-text {
+  margin: 0;
+  padding: 0.75rem 1rem;
+  width: 100%;
+  max-width: 420px;
+  text-align: center;
+  font-weight: 700;
+  font-size: 1.1rem;
+  overflow-wrap: anywhere;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.party-telestration-chain {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.party-telestration-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  max-width: 420px;
+}
+
+.party-telestration-card-header {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.party-telestration-nav {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+/* 새로 펼쳐지는 장면이 아래에서 부드럽게 나타난다 */
+.party-telestration-card-enter {
+  animation: party-telestration-card-in 0.35s ease-out;
+}
+
+@keyframes party-telestration-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .party-telestration-card-enter {
+    animation: none;
+  }
+}
+
+/* 제시어(체인) 하나를 다른 제시어와 구분하는 박스 */
+.party-telestration-box {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 0.75rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+/* 👍 + 받은 표 수 알약 버튼 — 눌러서 투표, 한 번 더 누르면 취소 */
+.party-telestration-vote {
+  align-self: flex-end;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.8rem;
+  min-height: 2rem;
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.party-telestration-vote-active {
+  background: var(--tint-info);
+  border-color: var(--accent);
+}
+
+.party-telestration-vote:disabled {
+  cursor: default;
+  opacity: 0.7;
+}

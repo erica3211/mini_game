@@ -1,0 +1,153 @@
+/* AI 캐치마인드 (혼자 하기) — 도화지·그리기 도구는 파티 캐치마인드(party-catchmind-*) 스타일을 그대로 쓰고,
+   AI 말풍선·결과표처럼 이 페이지에만 있는 요소만 여기서 정의한다 */
+.aicm-message {
+  text-align: center;
+  color: var(--text-muted);
+  margin: 1.5rem 0 1rem;
+}
+
+.aicm-message strong {
+  color: var(--accent);
+}
+
+.aicm-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.aicm-status {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 420px;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.aicm-status strong {
+  color: var(--accent);
+}
+
+.aicm-ai {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  width: 100%;
+  max-width: 420px;
+}
+
+.aicm-ai-avatar {
+  font-size: 1.8rem;
+  line-height: 1;
+}
+
+.aicm-ai-bubble {
+  flex: 1;
+  min-width: 0;
+  /* 추측이 바뀔 때마다 아래 툴바가 들썩이지 않게 높이를 확보해둔다 */
+  min-height: 4.5rem;
+  background: var(--tint-info);
+  border: 1px solid var(--border);
+  border-radius: 4px var(--radius) var(--radius) var(--radius);
+  padding: 0.6rem 0.8rem;
+}
+
+.aicm-ai-line {
+  margin: 0;
+  font-weight: 600;
+}
+
+.aicm-guesses {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.75rem;
+  margin: 0.35rem 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.aicm-guess-percent {
+  font-variant-numeric: tabular-nums;
+  color: var(--text-info);
+}
+
+/* 남은 시간 바 자리 — 판정 뒤 바가 사라져도 그림판이 올라오지 않게 높이를 유지한다 */
+.aicm-timer-slot {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+/* 그리는 동안엔 AI 말풍선·도구 모음, 판정 뒤엔 결과 배너가 들어가는 영역 */
+.aicm-controls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+}
+
+.aicm-giveup {
+  font-size: 0.85rem;
+  padding: 0.4rem 1rem;
+}
+
+.aicm-reveal {
+  width: 100%;
+  max-width: 420px;
+  margin: 0;
+}
+
+.aicm-results {
+  list-style: none;
+  margin: 0 auto 1rem;
+  padding: 0;
+  max-width: 360px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  text-align: left;
+}
+
+.aicm-results li {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.35rem 0.6rem;
+  background: var(--surface);
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+.aicm-results img {
+  width: 64px;
+  aspect-ratio: 4 / 3;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: #fff;
+  flex-shrink: 0;
+}
+
+.aicm-result-word {
+  flex: 1;
+  font-weight: 600;
+}
+
+.aicm-result-detail {
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.aicm-result-correct .aicm-result-word {
+  color: var(--text-success);
+}
+
+.aicm-result-wrong .aicm-result-word {
+  color: var(--text-danger);
+}

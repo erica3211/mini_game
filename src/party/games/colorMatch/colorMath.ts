@@ -1,6 +1,6 @@
 import type { RgbColor } from '../../../shared/lib/partyProtocol'
 
-// 세부 라운드별 채도 고정값 — 백엔드 games/colorMatch.ts의 ROUND_PROFILES와 반드시 같은 값을 유지해야 한다.
+// 세부 라운드별 채도 고정값 — 백엔드 party/games/colorMatch/index.ts의 ROUND_PROFILES와 반드시 같은 값을 유지해야 한다.
 // 정답도 이 채도로 생성되므로, 드래그 지도도 같은 채도를 써야 이론상 100% 일치에 도달할 수 있다
 export const COLOR_MATCH_SATURATION_BY_ROUND = [90, 30, 55]
 
@@ -25,7 +25,7 @@ export function rgbToCss({ r, g, b }: RgbColor): string {
   return `rgb(${r}, ${g}, ${b})`
 }
 
-// 백엔드 games/colorMatch.ts의 gradeOf와 같은 기준 — 결과 화면에서 matchPercent만으로 등급을 다시 계산해 보여줄 때 쓴다
+// 백엔드 party/games/colorMatch/index.ts의 gradeOf와 같은 기준 — 결과 화면에서 matchPercent만으로 등급을 다시 계산해 보여줄 때 쓴다
 export function colorMatchGradeOf(matchPercent: number): string {
   if (matchPercent >= 98) return '신이 내린 절대색감 👁️✨'
   if (matchPercent >= 90) return '인간 포토샵 스포이드 🧪'

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { Socket } from 'socket.io-client'
-import type { BalloonPopStatus, ClientToServerEvents, ServerToClientEvents } from '../../../shared/lib/partyProtocol'
+import type { ClientToServerEvents, ServerToClientEvents } from '../../../shared/lib/partyProtocol'
+import type { BalloonPopStatus } from './protocol'
 import { useMonotonicStartedAt } from '../../core/useMonotonicStartedAt'
 
 type PartySocket = Socket<ServerToClientEvents, ClientToServerEvents>

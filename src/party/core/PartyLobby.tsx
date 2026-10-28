@@ -4,7 +4,8 @@ import { CategoryPicker } from '../../shared/components/CategoryPicker'
 import { ConfirmModal } from '../../shared/components/ConfirmModal'
 import { Modal } from '../../shared/components/Modal'
 import { useWordChainCategories } from '../games/wordChain/useWordChainCategories'
-import { MIN_PLAYERS_TO_START, WORD_CHAIN_MIN_CANDIDATES, type GameId, type PlayerInfo } from '../../shared/lib/partyProtocol'
+import { MIN_PLAYERS_TO_START, type GameId, type PlayerInfo } from '../../shared/lib/partyProtocol'
+import { WORD_CHAIN_MIN_CANDIDATES } from '../games/wordChain/protocol'
 import type { GameSession } from './useGameSession'
 
 interface Props {

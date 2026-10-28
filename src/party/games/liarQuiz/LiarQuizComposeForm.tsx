@@ -1,14 +1,8 @@
 import { useRef } from 'react'
 import type { Socket } from 'socket.io-client'
 import { countBlanks, useLiarQuizCompose } from './useLiarQuizCompose'
-import {
-  LIARQUIZ_COMPOSE_MS,
-  LIARQUIZ_LIE_MAX_LENGTH,
-  LIARQUIZ_QUESTION_MAX_LENGTH,
-  type ClientToServerEvents,
-  type LiarQuizComposeSignal,
-  type ServerToClientEvents,
-} from '../../../shared/lib/partyProtocol'
+import { type ClientToServerEvents, type ServerToClientEvents } from '../../../shared/lib/partyProtocol'
+import { LIARQUIZ_COMPOSE_MS, LIARQUIZ_LIE_MAX_LENGTH, LIARQUIZ_QUESTION_MAX_LENGTH, type LiarQuizComposeSignal } from './protocol'
 import { LiarQuizQuestion } from './LiarQuizTurnCard'
 import { RemainingTime } from '../../../shared/components/RemainingTime'
 

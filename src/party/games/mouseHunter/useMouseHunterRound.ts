@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { Socket } from 'socket.io-client'
-import type { ClientToServerEvents, MouseHunterMouse, PlayerId, ServerToClientEvents } from '../../../shared/lib/partyProtocol'
+import type { ClientToServerEvents, PlayerId, ServerToClientEvents } from '../../../shared/lib/partyProtocol'
+import type { MouseHunterMouse } from './protocol'
 import { useMonotonicStartedAt } from '../../core/useMonotonicStartedAt'
 
 type PartySocket = Socket<ServerToClientEvents, ClientToServerEvents>

@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { drawFullBoard, fitCatchmindCanvas } from '../../../shared/drawing/catchmindDraw'
-import type { CatchmindStroke } from '../../../shared/lib/partyProtocol'
+import type { CatchmindStroke } from './protocol'
 
 interface Props {
   strokes: CatchmindStroke[]

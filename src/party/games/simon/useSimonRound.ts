@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { Socket } from 'socket.io-client'
-import type { ClientToServerEvents, ServerToClientEvents, SimonStageResult, SimonStartSignal } from '../../../shared/lib/partyProtocol'
+import type { ClientToServerEvents, ServerToClientEvents } from '../../../shared/lib/partyProtocol'
+import type { SimonStageResult, SimonStartSignal } from './protocol'
 import { inputOpensOffsetMs } from './simonRules'
 import { useMonotonicStartedAt } from '../../core/useMonotonicStartedAt'
 import { useSimonPlayback } from './useSimonPlayback'

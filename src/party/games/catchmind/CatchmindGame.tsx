@@ -2,14 +2,8 @@ import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react'
 import type { Socket } from 'socket.io-client'
 import { useCanvasPointerDrawing } from '../../../shared/drawing/useCanvasPointerDrawing'
 import { type CatchmindTurnStartSignal, type CatchmindWordSignal, useCatchmindRound } from './useCatchmindRound'
-import {
-  CATCHMIND_COLORS,
-  CATCHMIND_TURN_TIMEOUT_MS,
-  type ClientToServerEvents,
-  type PlayerId,
-  type PlayerInfo,
-  type ServerToClientEvents,
-} from '../../../shared/lib/partyProtocol'
+import { type ClientToServerEvents, type PlayerId, type PlayerInfo, type ServerToClientEvents } from '../../../shared/lib/partyProtocol'
+import { CATCHMIND_COLORS, CATCHMIND_TURN_TIMEOUT_MS } from './protocol'
 import { BRUSH_THIN, CatchmindToolbar } from '../../../shared/drawing/CatchmindToolbar'
 import { RemainingTime } from '../../../shared/components/RemainingTime'
 

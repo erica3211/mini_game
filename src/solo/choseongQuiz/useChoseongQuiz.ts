@@ -3,7 +3,7 @@ import {
   WORD_CHAIN_CATEGORY_REVEAL_MS,
   WORD_CHAIN_DEFINITION_REVEAL_MS,
   WORD_CHAIN_ROUND_TIMEOUT_MS,
-} from '../../shared/lib/partyProtocol'
+} from '../../party/games/wordChain/protocol'
 import { readBestScore, scoreForElapsed, writeBestScore } from '../shared/soloScore'
 
 export const CHOSEONG_QUIZ_QUESTION_COUNT = 10

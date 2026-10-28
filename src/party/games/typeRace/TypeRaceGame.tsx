@@ -1,7 +1,8 @@
 import type { CSSProperties } from 'react'
 import type { Socket } from 'socket.io-client'
 import { matchingPrefixLength, useTypeRaceRound, type TypeRaceStartSignal } from './useTypeRaceRound'
-import { TYPE_RACE_ROUND_TIMEOUT_MS, type ClientToServerEvents, type PlayerId, type PlayerInfo, type ServerToClientEvents } from '../../../shared/lib/partyProtocol'
+import { type ClientToServerEvents, type PlayerId, type PlayerInfo, type ServerToClientEvents } from '../../../shared/lib/partyProtocol'
+import { TYPE_RACE_ROUND_TIMEOUT_MS } from './protocol'
 import { RemainingTime } from '../../../shared/components/RemainingTime'
 
 interface Props {

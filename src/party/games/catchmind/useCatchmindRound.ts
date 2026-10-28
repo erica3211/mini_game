@@ -1,14 +1,8 @@
 import { useCallback, useEffect, useRef, useState, type RefObject } from 'react'
 import type { Socket } from 'socket.io-client'
 import { clearCatchmindCanvas, drawFullBoard, fitCatchmindCanvas, strokeSegment } from '../../../shared/drawing/catchmindDraw'
-import type {
-  CatchmindChatHistoryEntry,
-  CatchmindGuesserResult,
-  CatchmindStroke,
-  ClientToServerEvents,
-  PlayerId,
-  ServerToClientEvents,
-} from '../../../shared/lib/partyProtocol'
+import type { ClientToServerEvents, PlayerId, ServerToClientEvents } from '../../../shared/lib/partyProtocol'
+import type { CatchmindChatHistoryEntry, CatchmindGuesserResult, CatchmindStroke } from './protocol'
 import { useMonotonicStartedAt } from '../../core/useMonotonicStartedAt'
 
 type PartySocket = Socket<ServerToClientEvents, ClientToServerEvents>

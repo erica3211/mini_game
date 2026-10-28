@@ -6,18 +6,15 @@ import {
   type TelestrationTaskSignal,
   type TelestrationWordPromptSignal,
 } from './useTelestrationDrawing'
+import { type ClientToServerEvents, type PlayerId, type PlayerInfo, type ServerToClientEvents } from '../../../shared/lib/partyProtocol'
+import { CATCHMIND_COLORS } from '../catchmind/protocol'
 import {
-  CATCHMIND_COLORS,
   TELESTRATION_DRAW_TIMEOUT_MS,
   TELESTRATION_MAX_TEXT_LENGTH,
   TELESTRATION_MAX_WORD_LENGTH,
   TELESTRATION_WORD_TIMEOUT_MS,
   TELESTRATION_WRITE_TIMEOUT_MS,
-  type ClientToServerEvents,
-  type PlayerId,
-  type PlayerInfo,
-  type ServerToClientEvents,
-} from '../../../shared/lib/partyProtocol'
+} from './protocol'
 import { clearDraft, loadDraft, saveDraft } from '../../core/sessionDraft'
 import { BRUSH_THIN, CatchmindToolbar } from '../../../shared/drawing/CatchmindToolbar'
 import { CatchmindSnapshot } from '../catchmind/CatchmindSnapshot'

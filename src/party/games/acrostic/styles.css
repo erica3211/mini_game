@@ -1,0 +1,166 @@
+/* 막장 행시 */
+.party-acrostic-word {
+  display: flex;
+  gap: 0.4rem;
+  margin: 0;
+}
+
+.party-acrostic-word-char {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  background: var(--tint-info);
+  border: 2px solid var(--text-info);
+  border-radius: var(--radius);
+  font-size: 1.6rem;
+  font-weight: 800;
+}
+
+.party-acrostic-lines {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  width: 100%;
+  max-width: 420px;
+}
+
+.party-acrostic-line {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.party-acrostic-line-char {
+  flex-shrink: 0;
+  width: 2.2rem;
+  text-align: center;
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--accent);
+}
+
+.party-acrostic-line-input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.6rem 0.75rem;
+  background: var(--surface);
+  color: var(--text);
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  font: inherit;
+}
+
+.party-acrostic-line-input:focus {
+  outline: none;
+  border-color: var(--border-strong);
+}
+
+.party-acrostic-poems,
+.party-acrostic-reveal-poems {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+  max-width: 420px;
+}
+
+.party-acrostic-poem {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  width: 100%;
+  padding: 0.9rem 1rem;
+  background: var(--surface);
+  color: var(--text);
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.party-acrostic-poem:disabled {
+  cursor: default;
+}
+
+.party-acrostic-poem-selected {
+  background: var(--tint-info);
+  border-color: var(--text-info);
+}
+
+.party-acrostic-poem-mine {
+  opacity: 0.7;
+}
+
+.party-acrostic-poem-badge {
+  align-self: flex-end;
+  padding: 0.05rem 0.5rem;
+  border-radius: 999px;
+  background: var(--info);
+  color: var(--text);
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.party-acrostic-poem-line {
+  display: block;
+  overflow-wrap: anywhere;
+}
+
+.party-acrostic-poem-line strong {
+  color: var(--accent);
+}
+
+.party-acrostic-actions {
+  display: flex;
+  gap: 0.6rem;
+}
+
+.party-acrostic-reveal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  width: 100%;
+  margin: 0.5rem 0 2rem;
+}
+
+.party-acrostic-reveal-word {
+  margin: 0;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.party-acrostic-reveal-poem {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.75rem 1rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.party-acrostic-reveal-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.3rem;
+  font-weight: 700;
+}
+
+.party-acrostic-reveal-voters {
+  margin-top: 0.3rem;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+}

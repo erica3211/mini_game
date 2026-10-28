@@ -1,12 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { Socket } from 'socket.io-client'
-import {
-  AUCTION_ITEM_IDS,
-  AUCTION_ROUND_TIMEOUT_MS,
-  type AuctionItemId,
-  type ClientToServerEvents,
-  type ServerToClientEvents,
-} from '../../../shared/lib/partyProtocol'
+import { type ClientToServerEvents, type ServerToClientEvents } from '../../../shared/lib/partyProtocol'
+import { AUCTION_ITEM_IDS, AUCTION_ROUND_TIMEOUT_MS, type AuctionItemId } from './protocol'
 import { useMonotonicStartedAt } from '../../core/useMonotonicStartedAt'
 
 type PartySocket = Socket<ServerToClientEvents, ClientToServerEvents>

@@ -1,13 +1,8 @@
 import { useEffect } from 'react'
 import type { Socket } from 'socket.io-client'
 import { useSimonRound } from './useSimonRound'
-import {
-  SIMON_STAGES,
-  type ClientToServerEvents,
-  type PlayerInfo,
-  type ServerToClientEvents,
-  type SimonStartSignal,
-} from '../../../shared/lib/partyProtocol'
+import { type ClientToServerEvents, type PlayerInfo, type ServerToClientEvents } from '../../../shared/lib/partyProtocol'
+import { SIMON_STAGES, type SimonStartSignal } from './protocol'
 import { SIMON_CLIENT_TYPES } from './simonInputTypes'
 import { RemainingTime } from '../../../shared/components/RemainingTime'
 import { SimonChip, SimonPad } from './SimonPad'

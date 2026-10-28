@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState, type RefObject } from 'react'
 import { clearCatchmindCanvas, drawFullBoard, fitCatchmindCanvas, strokeSegment } from '../../shared/drawing/catchmindDraw'
 import { DOODLE_PROMPT_INDICES } from './doodleLabels'
 import { guessDoodle, preloadDoodleModel, type DoodleGuess } from './doodleNet'
-import { CATCHMIND_TURN_TIMEOUT_MS, type CatchmindStroke } from '../../shared/lib/partyProtocol'
+import { CATCHMIND_TURN_TIMEOUT_MS, type CatchmindStroke } from '../../party/games/catchmind/protocol'
 import { readBestScore, scoreForElapsed, writeBestScore } from '../shared/soloScore'
 
 export const AI_CATCHMIND_QUESTION_COUNT = 5

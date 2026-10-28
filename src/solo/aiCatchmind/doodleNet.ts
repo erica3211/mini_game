@@ -1,5 +1,5 @@
 import { CATCHMIND_CANVAS_HEIGHT, CATCHMIND_CANVAS_WIDTH } from '../../shared/drawing/catchmindDraw'
-import type { CatchmindStroke } from '../../shared/lib/partyProtocol'
+import type { CatchmindStroke } from '../../party/games/catchmind/protocol'
 
 // DoodleNet(ml5, MIT): Quick, Draw! 345종으로 학습된 28x28 흑백 낙서 분류기. public/models/doodlenet/에 함께 배포한다
 const MODEL_URL = '/models/doodlenet/model.json'

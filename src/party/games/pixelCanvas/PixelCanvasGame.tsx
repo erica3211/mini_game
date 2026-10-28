@@ -1,15 +1,8 @@
 import { useCallback, useEffect, useRef, type PointerEvent } from 'react'
 import type { Socket } from 'socket.io-client'
 import { usePixelCanvasRound } from './usePixelCanvasRound'
-import {
-  PIXEL_CANVAS_COLS,
-  PIXEL_CANVAS_ROUND_TIMEOUT_MS,
-  PIXEL_CANVAS_ROWS,
-  type ClientToServerEvents,
-  type PlayerId,
-  type PlayerInfo,
-  type ServerToClientEvents,
-} from '../../../shared/lib/partyProtocol'
+import { type ClientToServerEvents, type PlayerId, type PlayerInfo, type ServerToClientEvents } from '../../../shared/lib/partyProtocol'
+import { PIXEL_CANVAS_COLS, PIXEL_CANVAS_ROUND_TIMEOUT_MS, PIXEL_CANVAS_ROWS } from './protocol'
 import { RemainingTime } from '../../../shared/components/RemainingTime'
 
 interface Props {

@@ -4,13 +4,8 @@ import { useMouseHunterRound } from './useMouseHunterRound'
 import { MOUSE_HUNTER_ROOMS } from './mouseHunterRooms'
 import { MOUSE_HUNTER_SKIN_IMAGES } from './mouseHunterSkins'
 import { MOUSE_HUNTER_SPOT_POSITIONS } from './mouseHunterSpots'
-import {
-  MOUSE_HUNTER_ROUND_TIMEOUT_MS,
-  type ClientToServerEvents,
-  type MouseHunterMouse,
-  type PlayerInfo,
-  type ServerToClientEvents,
-} from '../../../shared/lib/partyProtocol'
+import { type ClientToServerEvents, type PlayerInfo, type ServerToClientEvents } from '../../../shared/lib/partyProtocol'
+import { MOUSE_HUNTER_ROUND_TIMEOUT_MS, type MouseHunterMouse } from './protocol'
 import { RemainingTime } from '../../../shared/components/RemainingTime'
 
 interface Props {

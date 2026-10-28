@@ -2,13 +2,8 @@ import { useCallback, useRef, type PointerEvent } from 'react'
 import type { Socket } from 'socket.io-client'
 import { useColorMatchRound } from './useColorMatchRound'
 import { rgbToCss } from './colorMath'
-import {
-  COLOR_MATCH_SUB_ROUND_MS,
-  COLOR_MATCH_SUB_ROUNDS,
-  type ClientToServerEvents,
-  type RgbColor,
-  type ServerToClientEvents,
-} from '../../../shared/lib/partyProtocol'
+import { type ClientToServerEvents, type RgbColor, type ServerToClientEvents } from '../../../shared/lib/partyProtocol'
+import { COLOR_MATCH_SUB_ROUND_MS, COLOR_MATCH_SUB_ROUNDS } from './protocol'
 import { RemainingTime } from '../../../shared/components/RemainingTime'
 
 interface Props {

@@ -1,13 +1,7 @@
 import type { Socket } from 'socket.io-client'
 import { useTelepathyRound } from './useTelepathyRound'
-import {
-  TELEPATHY_SUB_ROUND_MS,
-  TELEPATHY_SUB_ROUNDS,
-  type ClientToServerEvents,
-  type PlayerInfo,
-  type ServerToClientEvents,
-  type TelepathyStartSignal,
-} from '../../../shared/lib/partyProtocol'
+import { type ClientToServerEvents, type PlayerInfo, type ServerToClientEvents } from '../../../shared/lib/partyProtocol'
+import { TELEPATHY_SUB_ROUND_MS, TELEPATHY_SUB_ROUNDS, type TelepathyStartSignal } from './protocol'
 import { RemainingTime } from '../../../shared/components/RemainingTime'
 
 interface Props {

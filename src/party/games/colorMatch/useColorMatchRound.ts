@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { Socket } from 'socket.io-client'
 import { COLOR_MATCH_SATURATION_BY_ROUND, hslToRgb } from './colorMath'
-import { COLOR_MATCH_SUB_ROUND_MS, type ClientToServerEvents, type RgbColor, type ServerToClientEvents } from '../../../shared/lib/partyProtocol'
+import { type ClientToServerEvents, type RgbColor, type ServerToClientEvents } from '../../../shared/lib/partyProtocol'
+import { COLOR_MATCH_SUB_ROUND_MS } from './protocol'
 import { useMonotonicStartedAt } from '../../core/useMonotonicStartedAt'
 
 type PartySocket = Socket<ServerToClientEvents, ClientToServerEvents>

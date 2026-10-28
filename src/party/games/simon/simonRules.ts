@@ -1,8 +1,8 @@
-import type { SimonTiming } from '../../../shared/lib/partyProtocol'
+import type { SimonTiming } from './protocol'
 
 export type SimonPhase = 'intro' | 'flash' | 'input'
 
-// 마지막 점멸이 꺼지는(= 입력이 열리는) 시점까지의 단계 시작 기준 시간 — 서버 games/simon/engine.ts의 inputOpensOffsetMs와 같은 식이어야 한다
+// 마지막 점멸이 꺼지는(= 입력이 열리는) 시점까지의 단계 시작 기준 시간 — 서버 party/games/simon/engine.ts의 inputOpensOffsetMs와 같은 식이어야 한다
 export function inputOpensOffsetMs(length: number, timing: SimonTiming): number {
   return timing.introMs + (length - 1) * (timing.flashMs + timing.gapMs) + timing.flashMs
 }

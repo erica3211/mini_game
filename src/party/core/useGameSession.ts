@@ -1,23 +1,13 @@
 import { useCallback, useEffect, useState } from 'react'
-import type {
-  CatchmindChatHistoryEntry,
-  CatchmindStroke,
-  MouseHunterMouse,
-  PlayerId,
-  RgbColor,
-  RoomState,
-  ScavengerHuntRoundTarget,
-  ServerToClientEvents,
-  SessionConfig,
-  TelepathyStartSignal,
-  MinorityStartSignal,
-  AcrosticWriteSignal,
-  AcrosticVoteSignal,
-  LiarQuizWriteSignal,
-  LiarQuizGuessSignal,
-  LiarQuizComposeSignal,
-  SimonStartSignal,
-} from '../../shared/lib/partyProtocol'
+import type { PlayerId, RgbColor, RoomState, ServerToClientEvents, SessionConfig } from '../../shared/lib/partyProtocol'
+import type { AcrosticWriteSignal, AcrosticVoteSignal } from '../games/acrostic/protocol'
+import type { CatchmindChatHistoryEntry, CatchmindStroke } from '../games/catchmind/protocol'
+import type { LiarQuizWriteSignal, LiarQuizGuessSignal, LiarQuizComposeSignal } from '../games/liarQuiz/protocol'
+import type { MinorityStartSignal } from '../games/minority/protocol'
+import type { MouseHunterMouse } from '../games/mouseHunter/protocol'
+import type { ScavengerHuntRoundTarget } from '../games/scavengerHunt/protocol'
+import type { SimonStartSignal } from '../games/simon/protocol'
+import type { TelepathyStartSignal } from '../games/telepathy/protocol'
 import { clearAllDrafts } from './sessionDraft'
 import { useSocket } from './useSocket'
 import type {

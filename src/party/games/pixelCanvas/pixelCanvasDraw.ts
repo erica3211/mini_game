@@ -1,4 +1,4 @@
-import { PIXEL_CANVAS_COLS, PIXEL_CANVAS_ROWS } from '../../../shared/lib/partyProtocol'
+import { PIXEL_CANVAS_COLS, PIXEL_CANVAS_ROWS } from './protocol'
 
 /** 아직 아무도 칠하지 않은 칸의 색 — 빈 도화지처럼 흰색으로 둔다 */
 export const PIXEL_CANVAS_EMPTY_COLOR = '#ffffff'

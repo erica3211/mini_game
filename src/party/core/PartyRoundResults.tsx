@@ -3,24 +3,20 @@ import type { GameSession } from './useGameSession'
 import { formatWon, signClass } from '../games/auction/auctionFormat'
 import { pickAuctionFlavors } from '../games/auction/auctionItems'
 import { colorMatchGradeOf, rgbToCss } from '../games/colorMatch/colorMath'
-import {
-  auctionItemNumber,
-  SIMON_STAGES,
-  type AuctionRoundMeta,
-  type BalloonPopRoundMeta,
-  type CatchmindRoundMeta,
-  type ColorMatchRoundMeta,
-  type PixelCanvasRoundMeta,
-  type ScavengerHuntRoundMeta,
-  type AcrosticRoundMeta,
-  type LiarQuizRoundMeta,
-  type MinorityRoundMeta,
-  type SimonRoundMeta,
-  type TelepathyRoundMeta,
-  type TelestrationRoundMeta,
-  type TypeRaceRoundMeta,
-  type WordChainRoundMeta,
-} from '../../shared/lib/partyProtocol'
+import { type AcrosticRoundMeta } from '../games/acrostic/protocol'
+import { auctionItemNumber, type AuctionRoundMeta } from '../games/auction/protocol'
+import { type BalloonPopRoundMeta } from '../games/balloonPop/protocol'
+import { type CatchmindRoundMeta } from '../games/catchmind/protocol'
+import { type ColorMatchRoundMeta } from '../games/colorMatch/protocol'
+import { type LiarQuizRoundMeta } from '../games/liarQuiz/protocol'
+import { type MinorityRoundMeta } from '../games/minority/protocol'
+import { type PixelCanvasRoundMeta } from '../games/pixelCanvas/protocol'
+import { type ScavengerHuntRoundMeta } from '../games/scavengerHunt/protocol'
+import { SIMON_STAGES, type SimonRoundMeta } from '../games/simon/protocol'
+import { type TelepathyRoundMeta } from '../games/telepathy/protocol'
+import { type TelestrationRoundMeta } from '../games/telestration/protocol'
+import { type TypeRaceRoundMeta } from '../games/typeRace/protocol'
+import { type WordChainRoundMeta } from '../games/wordChain/protocol'
 import { CatchmindSnapshot } from '../games/catchmind/CatchmindSnapshot'
 import { LiarQuizTurnCard } from '../games/liarQuiz/LiarQuizTurnCard'
 import { PartyExitToLobbyButton } from './PartyExitToLobbyButton'

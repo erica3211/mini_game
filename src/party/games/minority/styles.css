@@ -1,0 +1,89 @@
+/* 소수의견 */
+.party-minority-round-label {
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.party-minority-options {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+  width: 100%;
+  max-width: 420px;
+}
+
+/* 두 카드의 높이가 항상 같도록, 칸(li)을 늘리고 버튼이 그 칸을 가득 채운다 */
+.party-minority-options li {
+  display: flex;
+}
+
+.party-minority-option {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  width: 100%;
+  min-height: 8rem;
+  padding: 0.75rem;
+  background: var(--surface);
+  color: var(--text);
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  font: inherit;
+  cursor: pointer;
+}
+
+.party-minority-option:disabled {
+  cursor: default;
+}
+
+.party-minority-option-selected {
+  background: var(--tint-info);
+  border-color: var(--text-info);
+}
+
+/* 공개 단계에서 오른쪽 하단 뱃지/닉네임 자리를 위해 아래 여백을 늘린다 (선택 중에는 글씨가 정중앙에 오도록 대칭 유지) */
+.party-minority-option-revealed {
+  padding-bottom: 1.5rem;
+}
+
+/* 공개 단계에서 소수 쪽 (점수를 받는 쪽) */
+.party-minority-option-winner {
+  background: var(--tint-strike);
+  border-color: var(--border-strike);
+}
+
+.party-minority-option-label {
+  font-size: 1.2rem;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.party-minority-option-pickers {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+}
+
+.party-minority-option-mine {
+  position: absolute;
+  right: 0.5rem;
+  bottom: 0.4rem;
+  padding: 0.05rem 0.4rem;
+  border-radius: 999px;
+  background: var(--info);
+  color: var(--text);
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.party-minority-result-score {
+  margin: 0;
+  font-weight: 700;
+  color: var(--accent);
+}

@@ -1,12 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { Socket } from 'socket.io-client'
-import {
-  TELEPATHY_SUB_ROUND_MS,
-  type ClientToServerEvents,
-  type ServerToClientEvents,
-  type TelepathyStartSignal,
-  type TelepathySubRoundResult,
-} from '../../../shared/lib/partyProtocol'
+import { type ClientToServerEvents, type ServerToClientEvents } from '../../../shared/lib/partyProtocol'
+import { TELEPATHY_SUB_ROUND_MS, type TelepathyStartSignal, type TelepathySubRoundResult } from './protocol'
 import { useMonotonicStartedAt } from '../../core/useMonotonicStartedAt'
 
 type PartySocket = Socket<ServerToClientEvents, ClientToServerEvents>

@@ -7,7 +7,7 @@ import {
   CHOSEONG_SINGLE_CATEGORY_MAX_SCORE,
   useChoseongQuiz,
 } from './useChoseongQuiz'
-import { WORD_CHAIN_ROUND_TIMEOUT_MS } from '../../shared/lib/partyProtocol'
+import { WORD_CHAIN_ROUND_TIMEOUT_MS } from '../../party/games/wordChain/protocol'
 
 const formatSeconds = (ms: number) => `${(ms / 1000).toFixed(1)}초`
 

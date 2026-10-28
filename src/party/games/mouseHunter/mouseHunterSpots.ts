@@ -1,4 +1,4 @@
-import type { MouseHunterRoomId } from '../../../shared/lib/partyProtocol'
+import type { MouseHunterRoomId } from './protocol'
 
 export interface SpotPosition {
   /** 방 이미지(500x500, 정사각형) 기준 백분율 좌표 — 쥐 스프라이트의 중심점이 여기에 온다 */

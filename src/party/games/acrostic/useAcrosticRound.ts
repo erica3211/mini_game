@@ -1,13 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { Socket } from 'socket.io-client'
-import {
-  ACROSTIC_VOTE_MS,
-  ACROSTIC_WRITE_MS,
-  type AcrosticVoteSignal,
-  type AcrosticWriteSignal,
-  type ClientToServerEvents,
-  type ServerToClientEvents,
-} from '../../../shared/lib/partyProtocol'
+import { type ClientToServerEvents, type ServerToClientEvents } from '../../../shared/lib/partyProtocol'
+import { ACROSTIC_VOTE_MS, ACROSTIC_WRITE_MS, type AcrosticVoteSignal, type AcrosticWriteSignal } from './protocol'
 import { clearDraft, loadDraft, saveDraft } from '../../core/sessionDraft'
 import { useMonotonicStartedAt } from '../../core/useMonotonicStartedAt'
 

@@ -1,0 +1,128 @@
+/* 타자 질주 — 제시 문장 + 실시간 입력 피드백(맞으면 초록, 틀리면 빨강+흔들림) */
+.party-typerace-prompt {
+  width: 100%;
+  max-width: 420px;
+  font-size: 1.15rem;
+  font-weight: 700;
+  line-height: 1.6;
+  letter-spacing: 0.01em;
+  word-break: keep-all;
+  text-align: center;
+}
+
+.party-typerace-char {
+  color: var(--text-muted);
+}
+
+.party-typerace-char-correct {
+  color: var(--text-success);
+}
+
+.party-typerace-char-wrong {
+  color: var(--text-danger);
+  animation: typerace-shake 0.18s ease-in-out;
+}
+
+.party-typerace-char-cursor {
+  color: var(--text);
+  border-bottom: 2px solid var(--accent);
+}
+
+.party-typerace-input {
+  width: 100%;
+  max-width: 420px;
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.6rem 0.9rem;
+  font-size: 1.1rem;
+}
+
+.party-typerace-input:focus {
+  outline: 2px solid var(--text-info);
+  border-color: transparent;
+}
+
+/* 관전 모드에서 상대방의 입력란을 그대로 보여줄 때 쓰는 변형 — <input>이 아니라 <div>라 포커스 스타일이
+   필요 없고, 내 입력란과 구분되도록 살짝 톤을 낮춘다 */
+.party-typerace-input-readonly {
+  background: var(--surface);
+  color: var(--text-muted);
+  min-height: 1.4em;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.party-typerace-cpm {
+  font-size: 1.4rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+
+.party-typerace-sentence-progress {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+@keyframes typerace-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-3px);
+  }
+  75% {
+    transform: translateX(3px);
+  }
+}
+
+/* 타자 질주 — 완주 후 관전 모드. 트랙의 상대방 색 점(.party-race-track-dot-clickable)을 누르면 이 패널이 뜬다 */
+.party-typerace-spectate {
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.85rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.party-typerace-spectate-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.party-typerace-spectate-nickname {
+  color: var(--text);
+}
+
+.party-typerace-spectate-close {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  cursor: pointer;
+  padding: 0.2rem 0.4rem;
+}
+
+.party-typerace-spectate-prompt {
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.6;
+  word-break: keep-all;
+}
+
+.party-typerace-waiting {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  text-align: center;
+}

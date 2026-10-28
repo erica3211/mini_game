@@ -1,4 +1,4 @@
-import { CATCHMIND_COLORS } from '../lib/partyProtocol'
+import { CATCHMIND_COLORS } from '../../party/games/catchmind/protocol'
 
 export const BRUSH_THIN = 4
 export const BRUSH_THICK = 10

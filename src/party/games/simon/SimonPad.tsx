@@ -1,4 +1,4 @@
-import type { SimonInputTypeId } from '../../../shared/lib/partyProtocol'
+import type { SimonInputTypeId } from './protocol'
 import { SIMON_CLIENT_TYPES } from './simonInputTypes'
 
 /** 피아노의 검은 건반 — 화면 장식이다. 실제 피아노처럼 도-레, 레-미, 파-솔, 솔-라, 라-시 사이에만 있고(미-파, 시-도 사이에는 없다),

@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import type { TelestrationStepRecord } from '../../../shared/lib/partyProtocol'
+import type { TelestrationStepRecord } from './protocol'
 import { CatchmindSnapshot } from '../catchmind/CatchmindSnapshot'
 
 interface Props {

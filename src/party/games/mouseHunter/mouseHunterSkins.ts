@@ -16,7 +16,7 @@ import swimmingFront from './assets/mouse/swimming_mouse_front.png'
 import swimmingSide from './assets/mouse/swimming_mouse_side.png'
 import teatimeFront from './assets/mouse/teatime_mouse_front.png'
 import teatimeSide from './assets/mouse/teatime_mouse_side.png'
-import type { MouseHunterSkin, MouseHunterVariant } from '../../../shared/lib/partyProtocol'
+import type { MouseHunterSkin, MouseHunterVariant } from './protocol'
 
 // side 원본 이미지는 전부 왼쪽을 바라보고 있다 — facing이 'right'면 컴포넌트에서 CSS로 좌우 반전해서 쓴다
 export const MOUSE_HUNTER_SKIN_IMAGES: Record<MouseHunterSkin, Record<MouseHunterVariant, string>> = {

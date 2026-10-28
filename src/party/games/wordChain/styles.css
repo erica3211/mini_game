@@ -1,0 +1,116 @@
+.party-wordchain-hints {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.party-wordchain-hints strong {
+  color: var(--text);
+  white-space: pre-line;
+}
+
+.party-wordchain-form {
+  display: flex;
+  gap: 0.5rem;
+  width: 100%;
+  max-width: 320px;
+}
+
+.party-wordchain-input {
+  flex: 1;
+  min-width: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.6rem 0.8rem;
+  color: var(--text);
+  font-size: 1rem;
+}
+
+.party-wordchain-input:focus-visible {
+  border-color: var(--text-info);
+}
+
+.party-wordchain-input-shake {
+  border-color: var(--danger);
+  animation: party-shake 0.3s;
+}
+
+.party-wordchain-answer {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.875rem 1rem;
+  text-align: center;
+  margin-top: 0.5rem;
+}
+
+.party-wordchain-answer strong {
+  color: var(--accent);
+}
+
+.party-wordchain-answer-definition {
+  white-space: pre-line;
+  margin: 0.35rem 0 0;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.party-wordchain-guesses {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.party-wordchain-guesses > li {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.party-wordchain-guesses-name {
+  font-weight: 600;
+}
+
+.party-wordchain-guesses ol {
+  list-style: none;
+  margin: 0.35rem 0 0;
+  padding: 0;
+  display: flex;
+  gap: 0.35rem;
+  /* 입력이 많아도 카드 높이가 늘지 않게 한 줄로 두고, 넘칠 때만 가로 스크롤이 생긴다 */
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
+}
+
+.party-wordchain-guesses ol li {
+  flex-shrink: 0;
+  white-space: nowrap;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.party-wordchain-guesses ol li.party-wordchain-guesses-correct {
+  color: var(--accent);
+  border-color: var(--accent);
+  font-weight: 600;
+}
+
+.party-wordchain-guesses-empty {
+  display: block;
+  margin-top: 0.25rem;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}

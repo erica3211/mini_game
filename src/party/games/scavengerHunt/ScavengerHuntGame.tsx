@@ -1,14 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { Socket } from 'socket.io-client'
 import { useScavengerHuntRound } from './useScavengerHuntRound'
+import { type ClientToServerEvents, type ServerToClientEvents } from '../../../shared/lib/partyProtocol'
 import {
   SCAVENGER_HUNT_SUB_ROUND_MS,
   SCAVENGER_HUNT_SUB_ROUNDS,
-  type ClientToServerEvents,
   type ScavengerHuntColorTarget,
   type ScavengerHuntRoundTarget,
-  type ServerToClientEvents,
-} from '../../../shared/lib/partyProtocol'
+} from './protocol'
 import { preloadCocoSsdModel, SCAVENGER_HUNT_GUIDE_FRAME_RATIO } from './scavengerHuntVision'
 import { RemainingTime } from '../../../shared/components/RemainingTime'
 

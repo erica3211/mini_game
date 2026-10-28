@@ -1,7 +1,7 @@
 import { MOUSE_HUNTER_ROOMS } from './mouseHunterRooms'
 import { MOUSE_HUNTER_SKIN_IMAGES } from './mouseHunterSkins'
 import { MOUSE_HUNTER_SPOT_POSITIONS } from './mouseHunterSpots'
-import type { MouseHunterRoomId } from '../../../shared/lib/partyProtocol'
+import type { MouseHunterRoomId } from './protocol'
 
 const defaultMouse = MOUSE_HUNTER_SKIN_IMAGES.default.front
 

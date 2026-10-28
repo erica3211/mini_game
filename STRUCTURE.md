@@ -21,7 +21,7 @@ mini_game_front/
 └── src/
     ├── main.tsx             # 진입점
     ├── App.tsx              # 헤더 + 라우팅
-    ├── index.css            # 전역 스타일 (4,800줄 단일 파일, 분리 예정)
+    ├── index.css            # 스타일 진입점 — 각 styles.css를 @import 하는 순서(=우선순위)만 담음
     ├── pages/
     │   └── Home.tsx         # 홈 (솔로/파티 진입 화면)
     ├── assets/              # 전역 에셋 (배경 패턴)
@@ -36,7 +36,7 @@ mini_game_front/
 |---|---|
 | `components/` | `Modal`, `ConfirmModal`, `RulesBox`, `CategoryPicker`, `RemainingTime`, `ThemeToggle` |
 | `hooks/` | `useTheme`(라이트/다크), `useVisualViewportTop`(모바일 키보드 대응) |
-| `lib/` | `partyProtocol.ts` — 서버와 주고받는 타입·상수·소켓 이벤트 시그니처 (백엔드 `src/types.ts`의 미러) |
+| `lib/` | `partyProtocol.ts` — 서버와 주고받는 **공통** 타입·소켓 이벤트 시그니처 (백엔드 `src/types.ts`의 미러). 게임 전용 타입·상수는 `party/games/<게임>/protocol.ts` |
 | `drawing/` | 캐치마인드 계열(솔로 AI 캐치마인드, 파티 캐치마인드, 텔레스트레이션)이 함께 쓰는 그리기 도구: `CatchmindToolbar`, `useCanvasPointerDrawing`, `catchmindDraw` |
 
 > `partyProtocol.ts`는 이름은 party지만 솔로 초성퀴즈·AI 캐치마인드도 상수를 가져다 쓰기 때문에 `shared/`에 있습니다.
@@ -94,6 +94,8 @@ party/
 party/games/simon/
 ├── SimonGame.tsx          # 게임 화면 (PartyRoundActive가 렌더)
 ├── useSimonRound.ts       # 라운드 상태·소켓 이벤트 훅
+├── protocol.ts            # 서버와 주고받는 이 게임 전용 타입·상수 (백엔드 types.ts의 미러)
+├── styles.css             # 이 게임 스타일
 ├── useSimonPlayback.ts    # (게임 전용 훅)
 ├── SimonPad.tsx, SimonStageReveal.tsx   # (게임 전용 컴포넌트)
 └── simonRules.ts, simonInputTypes.ts    # (게임 전용 로직)
@@ -145,7 +147,7 @@ party/games/A ──▶ party/games/B  (최소화. 예: telestration → catchmi
 ## 새 파티 게임을 추가하려면
 
 1. `src/party/games/<gameId>/`에 `XxxGame.tsx`, `useXxxRound.ts` 작성 (필요한 로직·에셋도 같은 폴더에)
-2. `shared/lib/partyProtocol.ts`에 타입·상수·이벤트 추가 (백엔드 `types.ts`와 동일하게 미러)
+2. 게임 전용 타입·상수는 `party/games/<gameId>/protocol.ts`에, 공통 이벤트 시그니처는 `shared/lib/partyProtocol.ts`에 추가 (백엔드 `types.ts`들과 동일하게 미러)
 3. `party/core/PartyRoundActive.tsx`의 `switch`에 `case` 추가
 4. 결과 화면에 게임 전용 표시가 필요하면 `party/core/PartyRoundResults.tsx` 수정
 5. 백엔드 쪽 작업은 `mini_game_backend/STRUCTURE.md` 참고
@@ -154,6 +156,25 @@ party/games/A ──▶ party/games/B  (최소화. 예: telestration → catchmi
 
 1. `src/solo/<게임>/`에 페이지, 훅, 로직을 함께 작성 (`SoloIntro`, `RulesBox` 재사용)
 2. `App.tsx`에 라우트 추가, `pages/Home.tsx`에 진입 카드 추가
+
+## 스타일 (CSS)
+
+스타일도 코드와 같은 기준으로 나뉘어 있고, 게임 폴더 안의 `styles.css`가 그 게임의 스타일입니다. `src/index.css`는 내용 없이 `@import`만 나열한 진입점입니다.
+
+```
+shared/styles/tokens.css       # 라이트/다크 테마 색 변수(:root), 배경 패턴
+shared/styles/layout.css       # 헤더, 페이지 제목, 홈 게임 카드
+shared/styles/components.css   # btn, badge, modal, 규칙 박스, 카테고리 선택, 입력 폼
+solo/shared/styles.css         # SoloIntro, 결과 배너 등 솔로 공용
+solo/<게임>/styles.css         # baseball(숫자·한글야구), blackjack, choseongQuiz, aiCatchmind
+party/core/styles.css          # 로비, 카운트다운, 결과, 점수 목록 등 파티 공통
+party/core/racing.css          # 샤우팅 질주·텍스트 레이스가 함께 쓰는 레이싱 화면
+party/games/<게임>/styles.css  # 파티 게임별 스타일
+```
+
+- **순서가 곧 우선순위입니다.** `index.css`의 `@import` 순서는 공용 → 솔로 → 파티 코어 → 파티 게임입니다. 같은 우선순위(클래스 하나)로 같은 속성을 쓰는 규칙은 나중에 불러온 쪽이 이깁니다. 새 파일을 추가할 때는 이 순서를 고려해서 `@import`를 넣으세요.
+- **게임 전용 스타일은 그 게임 클래스 접두사로 시작합니다** (`party-simon-*`, `bj-*`, `cq-*`, `aicm-*`). 접두사가 같으면 같은 파일에 있습니다.
+- **알려진 사항:** `party/core/styles.css`의 `.party-exit-to-lobby` 규칙은 `.btn`보다 먼저 로드돼야 하는 기존 순서를 보존하기 위해 `shared/styles/layout.css`에 두었습니다(파일 안에 주석 있음). 현재 이 규칙의 `padding`은 `.btn`에 덮여 적용되지 않습니다.
 
 ## 명령어
 
@@ -166,4 +187,3 @@ npm run build    # tsc && vite build
 
 - 환경변수는 `.env`(git 제외)에 둡니다: `VITE_SOCKET_URL`, `VITE_KOREAN_BASIC_DICTIONARY_API_SECRET_KEY`.
 - Windows는 대소문자를 구분하지 않으므로 같은 폴더에 대소문자만 다른 파일(`BlackJack.tsx` / `blackjack.ts`)을 두지 마세요.
-- 다음 정리 예정: `index.css`를 게임별 `styles.css`로 분리.

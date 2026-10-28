@@ -1,0 +1,203 @@
+/* 거짓말쟁이 퀴즈 — 옅은 배경은 --tint-*, 글자는 --text-* / --accent 잉크로 (라이트·다크 모두 토큰에 정의되어 있다) */
+.party-liar-turn-label {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.party-liar-question {
+  margin: 0.25rem 0;
+  max-width: 420px;
+  font-size: 1.15rem;
+  font-weight: 700;
+  line-height: 1.6;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.party-liar-blank,
+.party-liar-fill {
+  display: inline-block;
+  min-width: 2.2rem;
+  padding: 0 0.45rem;
+  margin: 0 0.15rem;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.party-liar-blank {
+  border-bottom: 3px solid var(--border-strong);
+  color: var(--text-muted);
+}
+
+.party-liar-fill {
+  background: var(--tint-info);
+  color: var(--text-info);
+}
+
+.party-liar-answer-hint {
+  margin: 0;
+  padding: 0.5rem 1rem;
+  background: var(--tint-strike);
+  border: 1px solid var(--border-strike);
+  border-radius: var(--radius);
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+
+.party-liar-answer-hint strong {
+  color: var(--text-success);
+}
+
+.party-liar-input {
+  width: 100%;
+  max-width: 420px;
+  padding: 0.7rem 0.9rem;
+  background: var(--surface);
+  color: var(--text);
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  font: inherit;
+}
+
+.party-liar-input:focus {
+  outline: none;
+  border-color: var(--border-strong);
+}
+
+/* 직접 문제 만들기 입력 화면 */
+.party-liar-compose {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  width: 100%;
+  max-width: 420px;
+}
+
+.party-liar-textarea {
+  resize: vertical;
+  min-height: 4.5rem;
+}
+
+.party-liar-compose-label {
+  margin: 0.4rem 0 0;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.party-liar-choices {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  width: 100%;
+  max-width: 420px;
+}
+
+.party-liar-choice {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.3rem 0.6rem;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: var(--surface);
+  color: var(--text);
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.party-liar-choice:disabled,
+.party-liar-choice-static {
+  cursor: default;
+}
+
+/* 맞히는 사람이 직접 누른 보기 */
+.party-liar-choice-selected {
+  background: var(--tint-info);
+  border-color: var(--text-info);
+}
+
+/* 구경하는 사람 화면에서 맞히는 사람이 고민 중인 보기 — 눈에 띄게 살짝 흔들어 실시간 선택임을 알린다 */
+.party-liar-choice-hovered {
+  background: var(--tint-danger);
+  border-color: var(--border-danger);
+  animation: party-liar-pulse 1.2s ease-in-out infinite;
+}
+
+.party-liar-choice-truth {
+  background: var(--tint-strike);
+  border-color: var(--border-strike);
+}
+
+.party-liar-choice-fooled {
+  background: var(--tint-danger);
+  border-color: var(--border-danger);
+}
+
+@keyframes party-liar-pulse {
+  50% {
+    transform: scale(1.02);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .party-liar-choice-hovered {
+    animation: none;
+  }
+}
+
+.party-liar-choice-text {
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.party-liar-author {
+  padding: 0.05rem 0.5rem;
+  border-radius: 999px;
+  background: var(--info);
+  color: var(--text);
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.party-liar-author-mine {
+  background: var(--lavender);
+}
+
+.party-liar-turn-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  width: 100%;
+}
+
+.party-liar-result {
+  margin: 0;
+  white-space: pre-line;
+  max-width: 420px;
+  font-weight: 700;
+  text-align: center;
+  color: var(--accent);
+  overflow-wrap: anywhere;
+}
+
+.party-liar-dropped {
+  margin: 0;
+  max-width: 420px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  text-align: center;
+  overflow-wrap: anywhere;
+}

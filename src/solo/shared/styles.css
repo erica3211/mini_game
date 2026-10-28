@@ -1,0 +1,85 @@
+.rules-example-title {
+  margin-bottom: 0.5rem;
+}
+
+.rules-example-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 0.5rem;
+}
+
+.rules-example-table th,
+.rules-example-table td {
+  border: 1px solid var(--border);
+  padding: 0.4rem 0.5rem;
+  text-align: center;
+}
+
+.rules-example-table td:last-child {
+  text-align: left;
+}
+
+.rules-example-table .badge {
+  margin-right: 0.35rem;
+}
+
+.rules-example-table th {
+  background: var(--surface-raised);
+  color: var(--text);
+}
+
+.banner {
+  border-radius: var(--radius);
+  padding: 1.25rem;
+  text-align: center;
+  margin: 1rem 0;
+}
+
+.banner-won {
+  background: var(--tint-strike);
+  border: 1px solid var(--border-strike);
+}
+
+.banner-lost {
+  background: var(--tint-danger);
+  border: 1px solid var(--border-danger);
+}
+
+.banner-title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin: 0 0 0.25rem;
+}
+
+.banner-answer {
+  margin: 0 0 1rem;
+  color: var(--text-muted);
+  white-space: pre-line;
+}
+
+.banner-answer strong {
+  color: var(--text);
+  letter-spacing: 0.15em;
+}
+
+/* 혼자 하는 게임 공용 시작 화면 (SoloIntro) */
+.solo-intro {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.solo-intro-message {
+  text-align: center;
+  color: var(--text-muted);
+  margin: 1.5rem 0 1rem;
+}
+
+.solo-intro-message strong {
+  color: var(--accent);
+}
+
+.solo-intro .btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
