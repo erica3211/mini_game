@@ -45,11 +45,8 @@ export type GameId =
   | 'liarQuiz'
   | 'simon'
 
-export interface ModeCategory {
-  id: 'INDIVIDUAL' | 'TEAM' | 'COOP'
-  name: string
-  icon: string
-}
+/** 방의 진행 방식 — backend/types.ts와 같아야 한다. /party는 개인전, /teamParty는 팀전 방이다 */
+export type RoomMode = 'individual' | 'team'
 
 export interface MechanismCategory {
   id: 'TIMING' | 'TAP' | 'DRAG' | 'TEXT' | 'VOTE' | 'VOICE' | 'CAMERA' | 'CLICK_SPEED'
@@ -67,7 +64,8 @@ export interface GameMeta {
   /** 사용법을 보여줄 gif/이미지 (아직 없으면 undefined) */
   howToPlayMediaUrl?: string
   playTimeSeconds: number
-  modeCategory: ModeCategory
+  /** 이 게임을 즐길 수 있는 방 모드 — 서버가 방 모드에 맞는 게임만 gameCatalog에 담아 보낸다 */
+  modes: RoomMode[]
   mechanismCategory: MechanismCategory
   comingSoon: boolean
   /** 이 게임을 고르는 데 필요한 최소 연결 인원 (없으면 MIN_PLAYERS_TO_START) */
@@ -125,6 +123,8 @@ export interface RoundResult {
 
 export interface RoomState {
   code: string
+  /** 방 모드 — gameCatalog에는 이 모드에서 할 수 있는 게임만 들어 있다 */
+  mode: RoomMode
   phase: RoomPhase
   players: PlayerInfo[]
   hostId: PlayerId

@@ -316,9 +316,6 @@ export function PartyLobby({ session }: Props) {
                   <span className="party-game-card-meta">
                     <span>⏱️ {game.playTimeSeconds}초 소요</span>
                     <span>
-                      {game.modeCategory.icon} {game.modeCategory.name}
-                    </span>
-                    <span>
                       {game.mechanismCategory.icon} {game.mechanismCategory.name}
                     </span>
                   </span>
