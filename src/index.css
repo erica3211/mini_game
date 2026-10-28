@@ -1231,6 +1231,10 @@ button {
   margin: 0.5rem 0;
 }
 
+.party-config-summary {
+  color: var(--text-muted);
+}
+
 .party-config-number {
   width: 4rem;
   background: var(--bg);

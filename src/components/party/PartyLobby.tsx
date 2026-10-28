@@ -55,6 +55,8 @@ export function PartyLobby({ session }: Props) {
   // comingSoon 게임과 인원이 모자란 게임은 카드 자체가 선택 불가능하니 "전체 선택"의 대상에서도 제외한다
   const playableGames = state.gameCatalog.filter((g) => !g.comingSoon && !needsMorePlayers(g))
   const allGamesSelected = playableGames.length > 0 && playableGames.every((g) => state.config.selectedGames.includes(g.id))
+  // 지금 선택돼 보이는 게임 수 — 카드의 선택 표시와 같은 기준이다 (인원이 모자란 게임은 세지 않는다)
+  const selectedGameCount = playableGames.filter((g) => state.config.selectedGames.includes(g.id)).length
   // 방장을 맨 위로, 그다음은 연결 끊긴 사람을 맨 뒤로
   const sortedPlayers = [...state.players].sort((a, b) => {
     if (a.isHost !== b.isHost) return Number(b.isHost) - Number(a.isHost)
@@ -228,6 +230,8 @@ export function PartyLobby({ session }: Props) {
           />
           무작위 순서
         </label>
+
+        <div className="party-config-row party-config-summary">현재 선택된 게임 : {selectedGameCount}개</div>
 
         <div className="party-game-list">
           {state.gameCatalog.map((game) => {
