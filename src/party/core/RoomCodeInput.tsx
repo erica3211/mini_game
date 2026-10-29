@@ -1,99 +1,62 @@
-import { useRef, useState, type ClipboardEvent, type KeyboardEvent } from 'react'
+import { useRef, useState } from 'react'
 
 interface Props {
   /** 방 번호 글자 수 */
   length: number
-  /** 칸에 들어 있는 글자를 이어붙인 값 (빈 칸이 있으면 length보다 짧다) */
+  /** 지금까지 입력한 방 번호 */
   onChange: (code: string) => void
 }
 
 // 방 번호는 영문 대문자와 숫자만 쓴다 — 그 밖의 글자는 지운다
 const normalize = (raw: string) => raw.toUpperCase().replace(/[^A-Z0-9]/g, '')
 
-/** 방 번호 입력 — 한글야구처럼 글자 하나씩 들어가는 칸. 입력하면 다음 칸으로 넘어가고, 지우면 앞 칸으로 돌아가며, 붙여넣으면 여러 칸에 나뉘어 들어간다 */
+/**
+ * 방 번호 입력 — 한글야구처럼 글자 하나씩 들어가는 칸으로 보이지만, 실제 입력창은 칸 위에 투명하게 겹쳐 놓은 **하나**뿐이다.
+ * 칸마다 입력창을 따로 두면 한 글자를 칠 때마다 포커스가 다음 입력창으로 옮겨지는데, 모바일 키보드는 그때마다 자판 모드를
+ * 처음 상태(한글)로 되돌려서 숫자를 치려고 숫자 자판으로 바꿔 둬도 매번 초기화된다. 입력창이 하나면 포커스가 그대로라 자판이 유지된다.
+ */
 export function RoomCodeInput({ length, onChange }: Props) {
-  const [slots, setSlots] = useState<string[]>(() => Array.from({ length }, () => ''))
-  const refs = useRef<(HTMLInputElement | null)[]>([])
+  const [value, setValue] = useState('')
+  const [focused, setFocused] = useState(false)
+  const inputRef = useRef<HTMLInputElement>(null)
 
-  const update = (next: string[]) => {
-    setSlots(next)
-    onChange(next.join(''))
+  const handleChange = (raw: string) => {
+    const next = normalize(raw).slice(0, length)
+    setValue(next)
+    onChange(next)
   }
 
-  const focusSlot = (index: number) => refs.current[Math.max(0, Math.min(length - 1, index))]?.focus()
-
-  /** index번 칸부터 chars를 한 글자씩 채우고, 채운 다음 칸으로 커서를 옮긴다 */
-  const fillFrom = (index: number, chars: string) => {
-    const next = [...slots]
-    chars.split('').forEach((char, offset) => {
-      if (index + offset < length) next[index + offset] = char
-    })
-    update(next)
-    focusSlot(index + chars.length)
-  }
-
-  const handleChange = (index: number, raw: string) => {
-    const chars = normalize(raw)
-    if (!chars) {
-      // 지웠거나 허용되지 않는 글자만 들어온 경우 — 이 칸만 비운다
-      const next = [...slots]
-      next[index] = ''
-      update(next)
-      return
-    }
-    const old = slots[index]
-    // 글자가 있는 칸에 한 글자를 더 쳐서 두 글자가 된 경우 — 새로 친 글자만 쓴다 (칸을 누르면 글자가 선택돼서 보통은 한 글자로 바뀐다)
-    if (old && chars.length === 2) {
-      fillFrom(index, chars.startsWith(old) ? chars[1] : chars[0])
-      return
-    }
-    // 세 글자 이상이 한 번에 들어오면(붙여넣기·자동완성) 이 칸부터 나눠 채운다
-    fillFrom(index, chars)
-  }
-
-  const handleKeyDown = (index: number, e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Backspace' && !slots[index] && index > 0) {
-      e.preventDefault()
-      const next = [...slots]
-      next[index - 1] = ''
-      update(next)
-      focusSlot(index - 1)
-    } else if (e.key === 'ArrowLeft') {
-      focusSlot(index - 1)
-    } else if (e.key === 'ArrowRight') {
-      focusSlot(index + 1)
-    }
-  }
-
-  const handlePaste = (index: number, e: ClipboardEvent<HTMLInputElement>) => {
-    e.preventDefault()
-    const chars = normalize(e.clipboardData.getData('text'))
-    if (chars) fillFrom(index, chars)
-  }
+  // 지금 입력 중인 칸 (다 채웠으면 없음)
+  const activeIndex = value.length < length ? value.length : -1
 
   return (
-    <div className="party-code-slots" role="group" aria-label="방 번호">
-      {slots.map((char, index) => (
-        <input
-          // 칸은 고정된 4개라 순서가 곧 식별자다
-          // eslint-disable-next-line react/no-array-index-key
+    <div className="party-code-slots" onClick={() => inputRef.current?.focus()}>
+      {Array.from({ length }, (_, index) => (
+        <span
+          // 칸은 고정된 개수라 순서가 곧 식별자다
           key={index}
-          ref={(el) => {
-            refs.current[index] = el
-          }}
-          className={`party-code-slot${char ? ' party-code-slot-filled' : ''}`}
-          value={char}
-          onChange={(e) => handleChange(index, e.target.value)}
-          onKeyDown={(e) => handleKeyDown(index, e)}
-          onPaste={(e) => handlePaste(index, e)}
-          onFocus={(e) => e.target.select()}
-          aria-label={`방 번호 ${index + 1}번째 글자`}
-          autoCapitalize="characters"
-          autoComplete="off"
-          spellCheck={false}
-          autoFocus={index === 0}
-        />
+          className={`party-code-slot${value[index] ? ' party-code-slot-filled' : ''}${focused && index === activeIndex ? ' party-code-slot-active' : ''}`}
+          aria-hidden="true"
+        >
+          {value[index] ?? ''}
+        </span>
       ))}
+      <input
+        ref={inputRef}
+        className="party-code-hidden-input"
+        value={value}
+        onChange={(e) => handleChange(e.target.value)}
+        onFocus={() => setFocused(true)}
+        onBlur={() => setFocused(false)}
+        aria-label="방 번호"
+        inputMode="text"
+        lang="en"
+        autoCapitalize="characters"
+        autoComplete="off"
+        autoCorrect="off"
+        spellCheck={false}
+        autoFocus
+      />
     </div>
   )
 }

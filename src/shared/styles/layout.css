@@ -156,24 +156,24 @@
 }
 
 .party-code-slots {
+  position: relative;
   display: flex;
   gap: 0.4rem;
+  cursor: text;
 }
 
 .party-code-slot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 2.8rem;
   height: 3.3rem;
-  padding: 0;
   background: var(--surface);
   color: var(--text);
   border: 2px solid var(--border);
   border-radius: 10px;
-  font: inherit;
   font-size: 1.5rem;
   font-weight: 700;
-  text-align: center;
-  text-transform: uppercase;
-  caret-color: transparent;
   transition: border-color 0.15s, background 0.15s;
 }
 
@@ -181,10 +181,24 @@
   border-color: var(--border-strong);
 }
 
-.party-code-slot:focus {
-  outline: none;
+.party-code-slot-active {
   border-color: var(--text-info);
   background: var(--tint-info);
+}
+
+/* 실제로 글자를 받는 입력창 — 칸 전체 위에 투명하게 겹쳐 놓는다 (글자 크기 16px 이상이어야 iOS가 확대하지 않는다) */
+.party-code-hidden-input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: transparent;
+  caret-color: transparent;
+  font-size: 16px;
+  opacity: 0;
 }
 
 .party-mode-option:hover:not(:disabled) {
