@@ -4,40 +4,6 @@
   width: 100%;
 }
 
-/* 준비 단계: 내 역할 확인 + 출발 카운트다운 */
-.party-maze-ready {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.6rem;
-  width: 100%;
-  max-width: 420px;
-  text-align: center;
-}
-
-.party-maze-ready-title {
-  margin: 0;
-  font-weight: 700;
-  color: var(--text-muted);
-}
-
-.party-maze-ready-arrows {
-  margin: 0;
-  padding: 0.3rem 1.4rem;
-  background: var(--tint-warn);
-  border-radius: var(--radius);
-  font-size: 3rem;
-  line-height: 1.2;
-  letter-spacing: 0.15em;
-}
-
-.party-maze-countdown {
-  margin: 0.25rem 0 0;
-  font-size: 3.4rem;
-  font-weight: 800;
-  line-height: 1;
-}
-
 /* 우리 팀 역할표 */
 .party-maze-roles {
   list-style: none;
@@ -131,14 +97,12 @@
   scroll-margin-top: 0.5rem;
 }
 
-/* 미로 그림 — 낮은 화면(모바일)에서도 팀 진행률 + 미로 + 방향 버튼이 한 화면에 들어오도록 화면 높이에 맞춰 줄인다 (최소 14rem).
-   높이는 dvh가 아니라 svh(브라우저 주소창·하단 바가 보일 때의 작은 화면 높이)로 잡는다 — dvh는 스크롤할 때마다 바가 나타났다 사라지면서
-   값이 계속 변해서 미로 크기가 들쭉날쭉해진다. svh는 바 상태와 상관없이 고정이다 (svh를 모르는 오래된 브라우저는 vh로 대신한다).
+/* 미로 그림 — 크기의 상한(--maze-max)은 MazeEscapeGame이 화면 높이에 맞춰 정한다. vh·dvh·svh 같은 CSS 단위는 쓰지 않는다:
+   모바일 브라우저(특히 인앱 웹뷰)에서는 스크롤할 때마다 하단 바가 나타났다 사라지면서 이 단위들이 바뀌어 미로 크기가 들쭉날쭉해진다.
    미로에는 누르는 동작이 없으니 터치 드래그가 그대로 화면 스크롤이 된다 */
 .party-maze-board {
   display: block;
-  width: min(100%, 420px, max(14rem, calc(100vh - 24rem)));
-  width: min(100%, 420px, max(14rem, calc(100svh - 24rem)));
+  width: min(100%, var(--maze-max, 420px));
   aspect-ratio: 1;
   background: var(--surface);
   border: 2px solid var(--border);
@@ -235,6 +199,24 @@
   cursor: not-allowed;
 }
 
+/* 시작 직후 몇 초 동안 내 담당 안내를 반짝인다 (크기가 변하지 않는 투명도·색 변화만 쓴다) */
+@keyframes party-maze-role-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    color: var(--text);
+  }
+  50% {
+    opacity: 0.35;
+    color: var(--accent);
+  }
+}
+
+.party-maze-pad-role-pulse {
+  font-weight: 800;
+  animation: party-maze-role-pulse 0.7s ease-in-out infinite;
+}
+
 .party-maze-pad-role {
   grid-column: 1 / -1;
   text-align: center;
@@ -281,6 +263,3 @@
   text-align: left;
 }
 
-.party-maze-chat-log {
-  height: 140px;
-}

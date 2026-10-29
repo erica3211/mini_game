@@ -19,7 +19,6 @@ import type { MinorityStartSignal, MinoritySubRoundResult } from '../../party/ga
 import type { MouseHunterMouse } from '../../party/games/mouseHunter/protocol'
 import type { ScavengerHuntRoundTarget } from '../../party/games/scavengerHunt/protocol'
 import type {
-  MazeChatEntry,
   MazeDirection,
   MazeEndSignal,
   MazePoint,
@@ -332,8 +331,6 @@ export interface ClientToServerEvents {
   'characterDescribe:guess': (data: { text: string }) => void
   /** 미로 탈출: 내 담당 방향으로 팀 캐릭터를 한 칸 움직이려고 한다 (내 방향이 아니거나 벽이 있거나 너무 빠르면 서버가 무시한다) */
   'mazeEscape:move': (data: { dir: MazeDirection }) => void
-  /** 미로 탈출: 팀 채팅 한 줄 (같은 팀에게만 보인다) */
-  'mazeEscape:chat': (data: { text: string }) => void
 }
 
 /** Server -> Client */
@@ -541,14 +538,10 @@ export interface ServerToClientEvents {
   'characterDescribe:end': (data: CharacterEndSignal) => void
   /** 미로 탈출 시작(재접속·담당 방향이 바뀔 때도 다시 보낸다) — 내 팀 기준으로 개인화되어 있다 */
   'mazeEscape:start': (data: MazeStartSignal) => void
-  /** 준비 시간이 끝나고 출발 */
-  'mazeEscape:go': (data: Record<string, never>) => void
   /** 팀 캐릭터가 움직일 때마다 같은 팀에게만 오는 새 위치 */
   'mazeEscape:pos': (data: MazePoint) => void
   /** 팀별 진행률(%)과 탈출한 팀의 걸린 시간 — 다른 팀의 위치는 알려주지 않는다 */
   'mazeEscape:progress': (data: MazeProgressSignal) => void
-  /** 팀 채팅 (같은 팀에게만) */
-  'mazeEscape:chat': (data: MazeChatEntry) => void
   /** 탈출을 끝낸 팀에게만 — 다른 팀의 위치와 지나온 길을 구경용으로 보낸다 */
   'mazeEscape:watch': (data: MazeWatchSignal) => void
   /** 끝났을 때 팀별 결과 */

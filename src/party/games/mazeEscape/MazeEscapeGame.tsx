@@ -1,11 +1,10 @@
-import { useEffect, useMemo, useRef, useState, type CSSProperties, type FormEvent } from 'react'
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import type { Socket } from 'socket.io-client'
 import { MazeBoard } from './MazeBoard'
+import { useStableViewportHeight } from './useStableViewportHeight'
 import {
-  MAZE_CHAT_MAX_LENGTH,
   MAZE_DIRECTION_ARROW,
   MAZE_DIRECTION_LABEL,
-  MAZE_READY_MS,
   MAZE_REPEAT_MS,
   MAZE_RUN_MS,
   type MazeDirection,
@@ -45,6 +44,9 @@ const KEY_DIRECTION: Record<string, MazeDirection> = {
 
 // 십자 모양 버튼의 그리는 순서 (자리는 CSS grid-area가 정한다)
 const MAZE_DIRECTIONS_ORDER: MazeDirection[] = ['up', 'left', 'right', 'down']
+
+// 시작 직후 내 담당 방향 안내를 반짝이는 시간
+const ROLE_PULSE_MS = 5_000
 
 const arrowsOf = (directions: MazeDirection[]) => directions.map((dir) => MAZE_DIRECTION_ARROW[dir]).join('')
 
@@ -92,17 +94,20 @@ function PadButton({ dir, enabled, onMove }: PadButtonProps) {
 export function MazeEscapeGame({ socket, roundKey, state, playerId, players, teams }: Props) {
   const nicknameOf = (id: string) => players.find((p) => p.id === id)?.nickname ?? '???'
   const start = state?.start ?? null
-  const phase = start?.phase ?? 'ready'
+  const phase = start?.phase ?? 'run'
+  // 미로 크기 — 팀 진행률 + 미로 + 방향 버튼이 한 화면에 들어오도록 화면 높이에서 나머지 부분의 높이를 뺀 만큼으로 하되 (너무 작아지지 않게 224px 이상, 420px 이하),
+  // 스크롤할 때 하단 바가 나타났다 사라져도 크기가 흔들리지 않게 "지금까지 본 가장 작은 화면 높이"로 잰다
+  const viewportHeight = useStableViewportHeight()
+  const boardMax = Math.min(420, Math.max(224, viewportHeight - (384 + Math.max(0, teams.length - 2) * 36)))
   const phaseSignal = useMemo(() => (start ? { elapsedMs: start.phaseElapsedMs } : null), [start])
   const startedAt = useMonotonicStartedAt(`${roundKey}-${phase}`, phaseSignal, phase === 'ended' ? 'finished' : 'running')
 
-  // 출발 카운트다운 — 준비 시간이 끝날 때까지 남은 시간을 0.1초마다 갱신한다
-  const [now, setNow] = useState(() => performance.now())
+  // 시작하고 몇 초 동안은 내 담당 방향 안내를 반짝여서 눈에 띄게 한다 — 자리가 바뀌지 않도록 크기는 그대로 두고 깜빡임만 준다
+  const [rolePulse, setRolePulse] = useState(true)
   useEffect(() => {
-    if (phase !== 'ready') return
-    const timer = window.setInterval(() => setNow(performance.now()), 100)
-    return () => window.clearInterval(timer)
-  }, [phase])
+    const timer = window.setTimeout(() => setRolePulse(false), ROLE_PULSE_MS)
+    return () => window.clearTimeout(timer)
+  }, [])
 
   const myDirections = useMemo(() => start?.myDirections ?? [], [start])
   const running = phase === 'run'
@@ -139,15 +144,8 @@ export function MazeEscapeGame({ socket, roundKey, state, playerId, players, tea
     return () => window.removeEventListener('keydown', onKeyDown)
   }, [running, myDirections])
 
-  const [text, setText] = useState('')
   // 탈출한 뒤 구경 중인 다른 팀 (없으면 우리 팀 화면)
   const [watchingId, setWatchingId] = useState<number | null>(null)
-  const chatLogRef = useRef<HTMLUListElement>(null)
-  const chat = state?.chat ?? []
-  useEffect(() => {
-    const el = chatLogRef.current
-    if (el) el.scrollTop = el.scrollHeight
-  }, [chat.length])
 
   if (!state || !start || !state.pos) {
     return (
@@ -157,15 +155,6 @@ export function MazeEscapeGame({ socket, roundKey, state, playerId, players, tea
     )
   }
 
-  const submitChat = (event: FormEvent) => {
-    event.preventDefault()
-    const value = text.trim()
-    if (!value || phase === 'ended') return
-    socket.emit('mazeEscape:chat', { text: value })
-    setText('')
-  }
-
-  const secondsLeft = startedAt === null ? Math.ceil(MAZE_READY_MS / 1000) : Math.max(0, Math.ceil((MAZE_READY_MS - (now - startedAt)) / 1000))
   const myTeamFinished = state.finished[start.teamId] !== undefined
   const teamNameOf = (teamId: number) => teams.find((team) => team.id === teamId)?.name ?? '팀'
   const myTeam = teams.find((team) => team.id === start.teamId)
@@ -188,88 +177,74 @@ export function MazeEscapeGame({ socket, roundKey, state, playerId, players, tea
 
   return (
     <div className="party-round-stage party-maze-stage">
-      {phase === 'ready' && (
-        <div className="party-maze-ready">
-          <p className="party-maze-ready-title">나는 이 방향을 맡았어요!</p>
-          <p className="party-maze-ready-arrows">{arrowsOf(myDirections) || '—'}</p>
-          <p className="party-round-hint">
-            {myDirections.map((dir) => MAZE_DIRECTION_LABEL[dir]).join(' · ')} 버튼만 누를 수 있어요. 팀원과 맞춰서 출구(🏁)까지 가세요!
-          </p>
-          {rolesPanel}
-          <p className="party-maze-countdown">{secondsLeft <= 3 ? (secondsLeft > 0 ? secondsLeft : '출발!') : '준비...'}</p>
-        </div>
-      )}
+      <div ref={playRef} className="party-maze-play" style={{ '--maze-max': `${boardMax}px` } as CSSProperties}>
+        {phase === 'run' && startedAt !== null && <RemainingTime startedAt={startedAt} timeoutMs={MAZE_RUN_MS} />}
 
-      {phase !== 'ready' && (
-        <div ref={playRef} className="party-maze-play">
-          {phase === 'run' && startedAt !== null && <RemainingTime startedAt={startedAt} timeoutMs={MAZE_RUN_MS} />}
-
-          <ul className="party-maze-lanes">
-            {teams.map((team) => {
-              const finishedMs = state.finished[team.id]
-              const progress = finishedMs !== undefined ? 100 : (state.progress[team.id] ?? 0)
-              // 우리 팀이 탈출한 뒤에는 다른 팀 막대를 눌러 그 팀이 달리는 모습을 구경할 수 있다
-              const watchable = myTeamFinished && phase === 'run' && team.id !== start.teamId && state.watch[team.id] !== undefined
-              return (
-                <li
-                  key={team.id}
-                  className={`party-maze-lane${team.id === start.teamId ? ' party-maze-lane-mine' : ''}${watchable ? ' party-maze-lane-clickable' : ''}${watchingId === team.id ? ' party-maze-lane-watching' : ''}`}
-                  role={watchable ? 'button' : undefined}
-                  tabIndex={watchable ? 0 : undefined}
-                  onClick={watchable ? () => setWatchingId(watchingId === team.id ? null : team.id) : undefined}
-                  onKeyDown={watchable ? (event) => event.key === 'Enter' && setWatchingId(watchingId === team.id ? null : team.id) : undefined}
-                >
-                  <span className="party-maze-lane-name">
-                    {teamEmoji(team.id)} {team.name}
-                  </span>
-                  <div className="party-race-track-bar party-maze-lane-bar">
-                    <div
-                      className="party-race-track-dot party-race-track-dot-me"
-                      style={{ left: `${progress}%`, '--dot-color': `rgb(${teamRgb(team.id)})` } as CSSProperties}
-                    >
-                      <span className="party-race-track-dot-mark" />
-                    </div>
-                  </div>
-                  <span className="party-maze-lane-value">{finishedMs !== undefined ? `🏁 ${(finishedMs / 1000).toFixed(1)}초` : `${progress}%`}</span>
-                </li>
-              )
-            })}
-          </ul>
-
-          {watched && watchingId !== null ? (
-            <div className="party-maze-spectate">
-              <div className="party-maze-spectate-header">
-                <span>
-                  👀 {teamNameOf(watchingId)}이 달리는 중 ({state.finished[watchingId] !== undefined ? '탈출 완료' : `${state.progress[watchingId] ?? 0}%`})
+        <ul className="party-maze-lanes">
+          {teams.map((team) => {
+            const finishedMs = state.finished[team.id]
+            const progress = finishedMs !== undefined ? 100 : (state.progress[team.id] ?? 0)
+            // 우리 팀이 탈출한 뒤에는 다른 팀 막대를 눌러 그 팀이 달리는 모습을 구경할 수 있다
+            const watchable = myTeamFinished && phase === 'run' && team.id !== start.teamId && state.watch[team.id] !== undefined
+            return (
+              <li
+                key={team.id}
+                className={`party-maze-lane${team.id === start.teamId ? ' party-maze-lane-mine' : ''}${watchable ? ' party-maze-lane-clickable' : ''}${watchingId === team.id ? ' party-maze-lane-watching' : ''}`}
+                role={watchable ? 'button' : undefined}
+                tabIndex={watchable ? 0 : undefined}
+                onClick={watchable ? () => setWatchingId(watchingId === team.id ? null : team.id) : undefined}
+                onKeyDown={watchable ? (event) => event.key === 'Enter' && setWatchingId(watchingId === team.id ? null : team.id) : undefined}
+              >
+                <span className="party-maze-lane-name">
+                  {teamEmoji(team.id)} {team.name}
                 </span>
-                <button type="button" className="party-typerace-spectate-close" onClick={() => setWatchingId(null)}>
-                  닫기
-                </button>
-              </div>
-              <MazeBoard maze={start.maze} pos={watched.pos} visited={watched.visited} teamId={watchingId} />
-            </div>
-          ) : (
-            <MazeBoard maze={start.maze} pos={state.pos} visited={state.visited} teamId={start.teamId} />
-          )}
-
-          {myTeamFinished && phase === 'run' ? (
-            <>
-              <p className="party-race-finished">🏁 탈출 성공! 다른 팀을 기다리는 중...</p>
-              {watchingId === null && <p className="party-typerace-waiting">위 막대에서 다른 팀을 눌러 달리는 모습을 구경해 보세요.</p>}
-            </>
-          ) : (
-            phase === 'run' && (
-              <div className="party-maze-pad" aria-label="방향 버튼">
-                {MAZE_DIRECTIONS_ORDER.map((dir) => (
-                  <PadButton key={dir} dir={dir} enabled={myDirections.includes(dir)} onMove={move} />
-                ))}
-                <span className="party-maze-pad-role">내 담당 {arrowsOf(myDirections) || '—'}</span>
-              </div>
+                <div className="party-race-track-bar party-maze-lane-bar">
+                  <div
+                    className="party-race-track-dot party-race-track-dot-me"
+                    style={{ left: `${progress}%`, '--dot-color': `rgb(${teamRgb(team.id)})` } as CSSProperties}
+                  >
+                    <span className="party-race-track-dot-mark" />
+                  </div>
+                </div>
+                <span className="party-maze-lane-value">{finishedMs !== undefined ? `🏁 ${(finishedMs / 1000).toFixed(1)}초` : `${progress}%`}</span>
+              </li>
             )
-          )}
-          {phase === 'run' && rolesPanel}
-        </div>
-      )}
+          })}
+        </ul>
+
+        {watched && watchingId !== null ? (
+          <div className="party-maze-spectate">
+            <div className="party-maze-spectate-header">
+              <span>
+                👀 {teamNameOf(watchingId)}이 달리는 중 ({state.finished[watchingId] !== undefined ? '탈출 완료' : `${state.progress[watchingId] ?? 0}%`})
+              </span>
+              <button type="button" className="party-typerace-spectate-close" onClick={() => setWatchingId(null)}>
+                닫기
+              </button>
+            </div>
+            <MazeBoard maze={start.maze} pos={watched.pos} visited={watched.visited} teamId={watchingId} />
+          </div>
+        ) : (
+          <MazeBoard maze={start.maze} pos={state.pos} visited={state.visited} teamId={start.teamId} />
+        )}
+
+        {myTeamFinished && phase === 'run' ? (
+          <>
+            <p className="party-race-finished">🏁 탈출 성공! 다른 팀을 기다리는 중...</p>
+            {watchingId === null && <p className="party-typerace-waiting">위 막대에서 다른 팀을 눌러 달리는 모습을 구경해 보세요.</p>}
+          </>
+        ) : (
+          phase === 'run' && (
+            <div className="party-maze-pad" aria-label="방향 버튼">
+              {MAZE_DIRECTIONS_ORDER.map((dir) => (
+                <PadButton key={dir} dir={dir} enabled={myDirections.includes(dir)} onMove={move} />
+              ))}
+              <span className={`party-maze-pad-role${rolePulse ? ' party-maze-pad-role-pulse' : ''}`}>내 담당 {arrowsOf(myDirections) || '—'}</span>
+            </div>
+          )
+        )}
+        {phase === 'run' && rolesPanel}
+      </div>
 
       {phase === 'ended' && state.end && (
         <div className="party-maze-end">
@@ -289,32 +264,6 @@ export function MazeEscapeGame({ socket, roundKey, state, playerId, players, tea
         </div>
       )}
 
-      <div className="party-catchmind-chat">
-        <ul ref={chatLogRef} className="party-catchmind-chat-log party-maze-chat-log">
-          <li className="party-catchmind-chat-line party-catchmind-chat-system">우리 팀 채팅이에요. 다른 팀에게는 보이지 않아요.</li>
-          {chat.map((entry) => (
-            <li key={entry.id} className="party-catchmind-chat-line">
-              <strong>{nicknameOf(entry.playerId)}</strong>: {entry.text}
-            </li>
-          ))}
-        </ul>
-        {phase !== 'ended' && (
-          <form className="party-wordchain-form" onSubmit={submitChat}>
-            <input
-              type="text"
-              className="party-wordchain-input"
-              value={text}
-              onChange={(event) => setText(event.target.value)}
-              placeholder="팀원에게 길을 알려 주세요 (예: 위로!)"
-              maxLength={MAZE_CHAT_MAX_LENGTH}
-              autoComplete="off"
-            />
-            <button type="submit" className="btn btn-primary" disabled={text.trim().length === 0}>
-              전송
-            </button>
-          </form>
-        )}
-      </div>
     </div>
   )
 }
