@@ -15,6 +15,7 @@ import { PartyTeamBanner } from './PartyTeamBanner'
 import { PixelCanvasGame } from '../games/pixelCanvas/PixelCanvasGame'
 import { ScavengerHuntGame } from '../games/scavengerHunt/ScavengerHuntGame'
 import { ShoutRaceGame } from '../games/shoutRace/ShoutRaceGame'
+import { FourCharsGame } from '../games/fourChars/FourCharsGame'
 import { SimonGame } from '../games/simon/SimonGame'
 import { TelepathyGame } from '../games/telepathy/TelepathyGame'
 import { TelestrationGame } from '../games/telestration/TelestrationGame'
@@ -182,6 +183,17 @@ function renderGame(session: GameSession, roundKey: string) {
           startSignal={session.simonStart}
           playerId={session.playerId}
           players={state.players}
+        />
+      )
+    case 'fourChars':
+      return (
+        <FourCharsGame
+          socket={session.socket}
+          roundKey={roundKey}
+          turnSignal={session.fourCharsTurn}
+          playerId={session.playerId}
+          players={state.players}
+          teams={state.teams}
         />
       )
     default:

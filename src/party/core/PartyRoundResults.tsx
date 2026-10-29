@@ -27,6 +27,8 @@ import { PartySubRoundCarousel } from './PartySubRoundCarousel'
 import { PartySubRoundPager } from './PartySubRoundPager'
 import { PixelCanvasSnapshot } from '../games/pixelCanvas/PixelCanvasSnapshot'
 import { SimonStageReveal } from '../games/simon/SimonStageReveal'
+import { FourCharsRecap } from '../games/fourChars/FourCharsRecap'
+import type { FourCharsRoundMeta } from '../games/fourChars/protocol'
 import { TelestrationStepCard } from '../games/telestration/TelestrationStepCard'
 
 interface Props {
@@ -63,6 +65,7 @@ export function PartyRoundResults({ session }: Props) {
   const liarQuizMeta = lastRound.gameId === 'liarQuiz' ? (lastRound.meta as LiarQuizRoundMeta | undefined) : undefined
   const minorityMeta = lastRound.gameId === 'minority' ? (lastRound.meta as MinorityRoundMeta | undefined) : undefined
   const simonMeta = lastRound.gameId === 'simon' ? (lastRound.meta as SimonRoundMeta | undefined) : undefined
+  const fourCharsMeta = lastRound.gameId === 'fourChars' ? (lastRound.meta as FourCharsRoundMeta | undefined) : undefined
   const catchmindMeta = lastRound.gameId === 'catchmind' ? (lastRound.meta as CatchmindRoundMeta | undefined) : undefined
   const typeRaceMeta = lastRound.gameId === 'typeRace' ? (lastRound.meta as TypeRaceRoundMeta | undefined) : undefined
   const telestrationMeta =
@@ -119,6 +122,9 @@ export function PartyRoundResults({ session }: Props) {
     }
     if (lastRound.gameId === 'simon' && entry.value !== undefined) {
       return ` (${simonMeta?.stages.length ?? SIMON_STAGES}단계 합산 ${entry.value}점)`
+    }
+    if (lastRound.gameId === 'fourChars' && entry.value !== undefined) {
+      return ` (정답 ${entry.value}개)`
     }
     if (lastRound.gameId === 'catchmind' && entry.value !== undefined) {
       return ` (전체 턴 합산 ${entry.value}점)`
@@ -455,6 +461,10 @@ export function PartyRoundResults({ session }: Props) {
             ))}
           </PartySubRoundCarousel>
         </div>
+      )}
+
+      {fourCharsMeta && fourCharsMeta.turns.length > 0 && (
+        <FourCharsRecap meta={fourCharsMeta} teams={roundTeams} nicknameOf={plainNicknameOf} />
       )}
 
       {catchmindMeta?.teamTurns && (

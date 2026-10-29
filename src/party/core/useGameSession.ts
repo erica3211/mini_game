@@ -6,6 +6,7 @@ import type { LiarQuizWriteSignal, LiarQuizGuessSignal, LiarQuizComposeSignal } 
 import type { MinorityStartSignal } from '../games/minority/protocol'
 import type { MouseHunterMouse } from '../games/mouseHunter/protocol'
 import type { ScavengerHuntRoundTarget } from '../games/scavengerHunt/protocol'
+import type { FourCharsTurnSignal } from '../games/fourChars/protocol'
 import type { SimonStartSignal } from '../games/simon/protocol'
 import type { TelepathyStartSignal } from '../games/telepathy/protocol'
 import { clearAllDrafts } from './sessionDraft'
@@ -148,6 +149,8 @@ export function useGameSession(roomCodeFromUrl?: string) {
   const [liarQuizWrite, setLiarQuizWrite] = useState<LiarQuizWriteSignal | null>(null)
   const [liarQuizGuess, setLiarQuizGuess] = useState<LiarQuizGuessSignal | null>(null)
   const [simonStart, setSimonStart] = useState<SimonStartSignal | null>(null)
+  // 턴 시작·힌트·결과를 하나의 신호로 합쳐 둔다 — 화면이 뜨기 전에(예: 새로고침 후 재접속) 와도 놓치지 않도록 세션에서 항상 받아둔다
+  const [fourCharsTurn, setFourCharsTurn] = useState<FourCharsTurnSignal | null>(null)
   const [telestrationTask, setTelestrationTask] = useState<TelestrationTaskSignal | null>(null)
   const [telestrationReveal, setTelestrationReveal] = useState<TelestrationRevealSignal | null>(null)
   const [telestrationWordPrompt, setTelestrationWordPrompt] = useState<TelestrationWordPromptSignal | null>(null)
@@ -197,6 +200,7 @@ export function useGameSession(roomCodeFromUrl?: string) {
         setLiarQuizWrite(null)
         setLiarQuizGuess(null)
         setSimonStart(null)
+        setFourCharsTurn(null)
         setTelestrationTask(null)
         setTelestrationReveal(null)
         setTelestrationWordPrompt(null)
@@ -270,6 +274,11 @@ export function useGameSession(roomCodeFromUrl?: string) {
     const onLiarQuizTurnResult = (data: ServerSignal<'liarQuiz:turnResult'>) =>
       setLiarQuizGuess((prev) => (prev && prev.turnIndex === data.turnIndex ? { ...prev, reveal: data } : prev))
     const onSimonStart = (data: SimonStartSignal) => setSimonStart(data)
+    const onFourCharsTurn = (data: FourCharsTurnSignal) => setFourCharsTurn(data)
+    const onFourCharsHint = (data: { turnIndex: number; category: string }) =>
+      setFourCharsTurn((prev) => (prev && prev.turnIndex === data.turnIndex ? { ...prev, category: data.category } : prev))
+    const onFourCharsTurnResult = (data: ServerSignal<'fourChars:turnResult'>) =>
+      setFourCharsTurn((prev) => (prev && prev.turnIndex === data.turnIndex ? { ...prev, teamStates: data.teamStates, result: data } : prev))
     const onTelestrationTask = (data: TelestrationTaskSignal) => setTelestrationTask(data)
     const onTelestrationReveal = (data: TelestrationRevealSignal) => setTelestrationReveal(data)
     const onTelestrationWordPrompt = (data: TelestrationWordPromptSignal) => setTelestrationWordPrompt(data)
@@ -305,6 +314,9 @@ export function useGameSession(roomCodeFromUrl?: string) {
     socket.on('liarQuiz:picked', onLiarQuizPicked)
     socket.on('liarQuiz:turnResult', onLiarQuizTurnResult)
     socket.on('simon:stageStart', onSimonStart)
+    socket.on('fourChars:turn', onFourCharsTurn)
+    socket.on('fourChars:hint', onFourCharsHint)
+    socket.on('fourChars:turnResult', onFourCharsTurnResult)
     socket.on('telestration:task', onTelestrationTask)
     socket.on('telestration:reveal', onTelestrationReveal)
     socket.on('telestration:wordPrompt', onTelestrationWordPrompt)
@@ -341,6 +353,9 @@ export function useGameSession(roomCodeFromUrl?: string) {
       socket.off('liarQuiz:picked', onLiarQuizPicked)
       socket.off('liarQuiz:turnResult', onLiarQuizTurnResult)
       socket.off('simon:stageStart', onSimonStart)
+      socket.off('fourChars:turn', onFourCharsTurn)
+      socket.off('fourChars:hint', onFourCharsHint)
+      socket.off('fourChars:turnResult', onFourCharsTurnResult)
       socket.off('telestration:task', onTelestrationTask)
       socket.off('telestration:reveal', onTelestrationReveal)
       socket.off('telestration:wordPrompt', onTelestrationWordPrompt)
@@ -497,6 +512,7 @@ export function useGameSession(roomCodeFromUrl?: string) {
     liarQuizWrite,
     liarQuizGuess,
     simonStart,
+    fourCharsTurn,
     telestrationTask,
     telestrationReveal,
     telestrationWordPrompt,

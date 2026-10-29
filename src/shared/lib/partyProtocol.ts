@@ -18,6 +18,7 @@ import type {
 import type { MinorityStartSignal, MinoritySubRoundResult } from '../../party/games/minority/protocol'
 import type { MouseHunterMouse } from '../../party/games/mouseHunter/protocol'
 import type { ScavengerHuntRoundTarget } from '../../party/games/scavengerHunt/protocol'
+import type { FourCharsTurnResult, FourCharsTurnSignal } from '../../party/games/fourChars/protocol'
 import type { SimonStageResult, SimonStartSignal } from '../../party/games/simon/protocol'
 import type { TelepathyStartSignal, TelepathySubRoundResult } from '../../party/games/telepathy/protocol'
 import type {
@@ -49,6 +50,7 @@ export type GameId =
   | 'acrostic'
   | 'liarQuiz'
   | 'simon'
+  | 'fourChars'
 
 /** 방의 진행 방식 — backend/types.ts와 같아야 한다. /party는 개인전, /teamParty는 팀전 방이다 */
 export type RoomMode = 'individual' | 'team'
@@ -285,6 +287,8 @@ export interface ClientToServerEvents {
   'liarQuiz:pick': (data: { turnIndex: number; choiceId: number; confirm: boolean }) => void
   /** 기억력 시퀀스 답 제출. answer는 alphabet의 심볼을 입력 순서대로 담은 배열 */
   'simon:submit': (data: { stageIndex: number; answer: string[] }) => void
+  /** 네글자 퀴즈 답 제출 — 지금 답할 차례인 사람만 낼 수 있고, 한 턴에 한 번뿐이다 */
+  'fourChars:submit': (data: { text: string }) => void
 }
 
 /** Server -> Client */
@@ -460,6 +464,12 @@ export interface ServerToClientEvents {
   'simon:stageStart': (data: SimonStartSignal) => void
   /** 단계가 끝났을 때 전원에게 방송하는 정답과 참가자별 채점 결과 */
   'simon:stageResult': (data: SimonStageResult) => void
+  /** 네글자 퀴즈 턴 시작(재접속 시 재전송, 답할 사람이 바뀔 때도 다시 보낸다). 문제는 전원에게 똑같이 보인다 */
+  'fourChars:turn': (data: FourCharsTurnSignal) => void
+  /** 제한 시간이 10초 남았을 때 열리는 힌트 — 문제의 분류 */
+  'fourChars:hint': (data: { turnIndex: number; category: string }) => void
+  /** 턴이 끝났을 때 전원에게 방송하는 정답과 결과 */
+  'fourChars:turnResult': (data: FourCharsTurnResult) => void
   /** 소수의견 서브라운드 시작(재접속 시 재전송). options는 플레이어마다 순서가 섞여 있고, myChoice는 이미 골랐던 쪽(없으면 null) */
   'minority:roundStart': (data: MinorityStartSignal) => void
   /** 서브라운드가 끝났을 때 전원에게 방송하는 선택 공개 */

@@ -1,0 +1,190 @@
+/* 네글자 퀴즈 */
+.party-fourchars-stage {
+  gap: 1rem;
+  width: 100%;
+}
+
+.party-fourchars-cycle {
+  margin: 0;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.party-fourchars-cycle-max {
+  font-weight: 400;
+  font-size: 0.85rem;
+}
+
+/* 팀 현황판 — 색은 .party-team-color-N이 정한다 */
+.party-fourchars-teams {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.party-fourchars-team {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 6.5rem;
+  padding: 0.4rem 0.75rem;
+  border-width: 2px;
+  border-style: solid;
+  border-radius: var(--radius);
+  color: var(--text);
+  font-size: 0.9rem;
+  font-weight: 700;
+  transition: box-shadow 0.15s, opacity 0.15s;
+}
+
+.party-fourchars-team-current {
+  box-shadow: 0 0 0 3px var(--text);
+}
+
+.party-fourchars-team-out {
+  opacity: 0.45;
+  text-decoration: line-through;
+}
+
+.party-fourchars-turn {
+  margin: 0;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.party-fourchars-category-locked {
+  background: transparent;
+  border: 1px dashed var(--border);
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+.party-fourchars-category {
+  padding: 0.15rem 0.7rem;
+  background: var(--tint-info);
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+/* 네 글자 칸 — 가려진 두 칸은 점선, 결과가 나오면 맞았는지에 따라 색이 바뀐다 */
+.party-fourchars-chars {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.party-fourchars-char {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: clamp(3.2rem, 17vw, 4.4rem);
+  aspect-ratio: 1;
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  font-size: clamp(1.8rem, 8vw, 2.6rem);
+  font-weight: 800;
+}
+
+.party-fourchars-char-blank {
+  border-style: dashed;
+  color: var(--text-muted);
+}
+
+.party-fourchars-char-right {
+  border-style: solid;
+  border-color: var(--text-success);
+  background: var(--tint-strike);
+  color: var(--text);
+}
+
+.party-fourchars-char-wrong {
+  border-style: solid;
+  border-color: var(--border-danger);
+  background: var(--tint-danger);
+  color: var(--text);
+}
+
+.party-fourchars-meaning {
+  margin: 0.35rem 0 0;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  overflow-wrap: anywhere;
+}
+
+.party-fourchars-form {
+  display: flex;
+  gap: 0.5rem;
+  width: 100%;
+  max-width: 320px;
+}
+
+.party-fourchars-input {
+  flex: 1;
+  min-width: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.6rem 0.8rem;
+  color: var(--text);
+  font-size: 1rem;
+}
+
+.party-fourchars-input:focus-visible {
+  border-color: var(--text-info);
+}
+
+.party-fourchars-result {
+  width: 100%;
+  max-width: 420px;
+  padding: 0.75rem 1rem;
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  text-align: center;
+}
+
+.party-fourchars-result p {
+  margin: 0.2rem 0;
+}
+
+.party-fourchars-result-right {
+  border-color: var(--text-success);
+  background: var(--tint-strike);
+}
+
+.party-fourchars-result-wrong {
+  border-color: var(--border-danger);
+  background: var(--tint-danger);
+}
+
+.party-fourchars-result-title {
+  font-size: 1.25rem;
+  font-weight: 800;
+}
+
+/* 결과 화면: 이번 라운드의 문제와 답변 기록 */
+.party-fourchars-recap {
+  list-style: none;
+  margin: 0.75rem 0;
+  padding: 0;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.party-fourchars-recap-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.4rem 0.7rem;
+  border-width: 2px;
+  border-style: solid;
+  border-radius: var(--radius);
+  color: var(--text);
+  font-size: 0.9rem;
+}
