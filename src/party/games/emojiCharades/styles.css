@@ -1,0 +1,282 @@
+/* 이모티콘 퀴즈 */
+.party-emojichar-stage {
+  gap: 0.9rem;
+  width: 100%;
+}
+
+/* 표현자 정하기 팝업 */
+.party-emojichar-select-text {
+  margin: 0 0 0.75rem;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.party-emojichar-volunteer {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.85rem 1rem;
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  font-weight: 700;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.party-emojichar-volunteer input {
+  width: 1.4rem;
+  height: 1.4rem;
+}
+
+.party-emojichar-volunteer-on {
+  border-color: var(--text-success);
+  background: var(--tint-strike);
+}
+
+.party-emojichar-select-timer {
+  display: flex;
+  justify-content: center;
+  margin-top: 0.75rem;
+  min-height: 1.6rem;
+}
+
+/* 팀 현황 — 색은 .party-team-color-N이 정한다 */
+.party-emojichar-teams {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.party-emojichar-team {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 7rem;
+  padding: 0.4rem 0.75rem;
+  border-width: 2px;
+  border-style: solid;
+  border-radius: var(--radius);
+  color: var(--text);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.party-emojichar-team-mine {
+  box-shadow: 0 0 0 3px var(--text);
+}
+
+.party-emojichar-team-expresser {
+  font-size: 0.8rem;
+  font-weight: 400;
+}
+
+.party-emojichar-hints {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.4rem;
+}
+
+.party-emojichar-chip {
+  padding: 0.15rem 0.7rem;
+  background: var(--tint-info);
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.party-emojichar-word {
+  text-align: center;
+}
+
+.party-emojichar-word p {
+  margin: 0 0 0.25rem;
+}
+
+.party-emojichar-word strong {
+  display: inline-block;
+  padding: 0.3rem 1rem;
+  background: var(--tint-warn);
+  border-radius: var(--radius);
+  font-size: 1.6rem;
+  overflow-wrap: anywhere;
+}
+
+/* 이모티콘을 쌓는 줄 — 12칸을 미리 잡아 두어 쓸 때마다 화면이 밀리지 않는다 */
+.party-emojichar-line {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 0.35rem;
+  width: 100%;
+  max-width: 420px;
+}
+
+.party-emojichar-slot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1;
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  font-size: clamp(1.6rem, 8vw, 2.2rem);
+  line-height: 1;
+}
+
+.party-emojichar-slot-empty {
+  border-style: dashed;
+  opacity: 0.5;
+}
+
+.party-emojichar-count {
+  margin: -0.5rem 0 0;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.party-emojichar-tools {
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* 이모티콘 고르기 창 */
+.party-emojipicker {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  width: 100%;
+  max-width: 420px;
+}
+
+.party-emojipicker-search {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.party-emojipicker-tabs {
+  display: flex;
+  gap: 0.25rem;
+  overflow-x: auto;
+}
+
+.party-emojipicker-tab {
+  flex: 1 0 auto;
+  min-width: 2.6rem;
+  min-height: 2.6rem;
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 1.3rem;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.party-emojipicker-tab-active {
+  border-color: var(--text-info);
+  background: var(--tint-info);
+}
+
+.party-emojipicker-caption {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+/* 고정 높이 + 안에서 스크롤 — 이모티콘이 많아도 화면 전체가 길어지지 않는다 */
+.party-emojipicker-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(2.7rem, 1fr));
+  gap: 0.15rem;
+  height: 240px;
+  overflow-y: auto;
+  align-content: start;
+  padding: 0.35rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.party-emojipicker-grid > p {
+  grid-column: 1 / -1;
+  margin: 0.5rem;
+}
+
+.party-emojipicker-item {
+  min-height: 2.7rem;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.6rem;
+  line-height: 1;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.party-emojipicker-item:hover:not(:disabled),
+.party-emojipicker-item:active:not(:disabled) {
+  background: var(--tint-info);
+}
+
+.party-emojipicker-item:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* 결과: 정답과 팀별 이모티콘 */
+.party-emojichar-end {
+  width: 100%;
+  max-width: 420px;
+  padding: 0.75rem 1rem;
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  text-align: center;
+}
+
+.party-emojichar-end p {
+  margin: 0.2rem 0;
+}
+
+.party-emojichar-end-solved {
+  border-color: var(--text-success);
+  background: var(--tint-strike);
+}
+
+.party-emojichar-end-title {
+  font-size: 1.2rem;
+  font-weight: 800;
+}
+
+.party-emojichar-end-teams {
+  list-style: none;
+  margin: 0.5rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0.4rem;
+}
+
+.party-emojichar-end-team {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.5rem 0.75rem;
+  border-width: 2px;
+  border-style: solid;
+  border-radius: var(--radius);
+  color: var(--text);
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-align: left;
+}
+
+.party-emojichar-end-emojis {
+  font-size: 1.6rem;
+  font-weight: 400;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}

@@ -18,6 +18,12 @@ import type {
 import type { MinorityStartSignal, MinoritySubRoundResult } from '../../party/games/minority/protocol'
 import type { MouseHunterMouse } from '../../party/games/mouseHunter/protocol'
 import type { ScavengerHuntRoundTarget } from '../../party/games/scavengerHunt/protocol'
+import type {
+  EmojiCharadesChatEntry,
+  EmojiCharadesEndSignal,
+  EmojiCharadesSelectSignal,
+  EmojiCharadesStartSignal,
+} from '../../party/games/emojiCharades/protocol'
 import type { FourCharsTurnResult, FourCharsTurnSignal } from '../../party/games/fourChars/protocol'
 import type { SimonStageResult, SimonStartSignal } from '../../party/games/simon/protocol'
 import type { TelepathyStartSignal, TelepathySubRoundResult } from '../../party/games/telepathy/protocol'
@@ -51,6 +57,7 @@ export type GameId =
   | 'liarQuiz'
   | 'simon'
   | 'fourChars'
+  | 'emojiCharades'
 
 /** 방의 진행 방식 — backend/types.ts와 같아야 한다. /party는 개인전, /teamParty는 팀전 방이다 */
 export type RoomMode = 'individual' | 'team'
@@ -289,6 +296,16 @@ export interface ClientToServerEvents {
   'simon:submit': (data: { stageIndex: number; answer: string[] }) => void
   /** 네글자 퀴즈 답 제출 — 지금 답할 차례인 사람만 낼 수 있고, 한 턴에 한 번뿐이다 */
   'fourChars:submit': (data: { text: string }) => void
+  /** 이모티콘 퀴즈: 표현자 지원 단계(5초)에서 "내가 이모티콘으로 표현하고 싶다"를 체크하거나 해제한다 */
+  'emojiCharades:volunteer': (data: { want: boolean }) => void
+  /** 표현자가 이모티콘 하나를 맨 뒤에 붙인다 (최대 12개) */
+  'emojiCharades:add': (data: { emoji: string }) => void
+  /** 표현자가 마지막 이모티콘을 지운다 */
+  'emojiCharades:undo': () => void
+  /** 표현자가 이모티콘을 모두 지운다 */
+  'emojiCharades:clear': () => void
+  /** 표현자가 아닌 사람이 정답을 채팅으로 입력한다 */
+  'emojiCharades:guess': (data: { text: string }) => void
 }
 
 /** Server -> Client */
@@ -470,6 +487,18 @@ export interface ServerToClientEvents {
   'fourChars:hint': (data: { turnIndex: number; category: string }) => void
   /** 턴이 끝났을 때 전원에게 방송하는 정답과 결과 */
   'fourChars:turnResult': (data: FourCharsTurnResult) => void
+  /** 이모티콘 퀴즈 표현자 지원 단계(재접속 시 재전송) */
+  'emojiCharades:select': (data: EmojiCharadesSelectSignal) => void
+  /** 이모티콘 퀴즈 표현 단계 시작(재접속·표현자가 바뀔 때도 다시 보낸다). word는 표현자에게만 담긴다 */
+  'emojiCharades:start': (data: EmojiCharadesStartSignal) => void
+  /** 표현자가 이모티콘을 바꿀 때마다 같은 팀에게만 오는 최신 이모티콘 목록 */
+  'emojiCharades:emojis': (data: { emojis: string[] }) => void
+  /** 오답 채팅 — 모든 팀이 함께 본다 */
+  'emojiCharades:chat': (data: EmojiCharadesChatEntry) => void
+  /** 시간이 지나 열리는 힌트(글자 수 또는 초성) */
+  'emojiCharades:hint': (data: { lengthHint?: number; chosungHint?: string }) => void
+  /** 정답이 나오거나 시간이 끝났을 때 — 정답과 팀별 이모티콘 공개 */
+  'emojiCharades:end': (data: EmojiCharadesEndSignal) => void
   /** 소수의견 서브라운드 시작(재접속 시 재전송). options는 플레이어마다 순서가 섞여 있고, myChoice는 이미 골랐던 쪽(없으면 null) */
   'minority:roundStart': (data: MinorityStartSignal) => void
   /** 서브라운드가 끝났을 때 전원에게 방송하는 선택 공개 */

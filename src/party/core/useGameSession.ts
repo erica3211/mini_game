@@ -6,6 +6,7 @@ import type { LiarQuizWriteSignal, LiarQuizGuessSignal, LiarQuizComposeSignal } 
 import type { MinorityStartSignal } from '../games/minority/protocol'
 import type { MouseHunterMouse } from '../games/mouseHunter/protocol'
 import type { ScavengerHuntRoundTarget } from '../games/scavengerHunt/protocol'
+import { reduceEmojiCharades, type EmojiCharadesAction, type EmojiCharadesViewState } from '../games/emojiCharades/protocol'
 import type { FourCharsTurnSignal } from '../games/fourChars/protocol'
 import type { SimonStartSignal } from '../games/simon/protocol'
 import type { TelepathyStartSignal } from '../games/telepathy/protocol'
@@ -151,6 +152,8 @@ export function useGameSession(roomCodeFromUrl?: string) {
   const [simonStart, setSimonStart] = useState<SimonStartSignal | null>(null)
   // 턴 시작·힌트·결과를 하나의 신호로 합쳐 둔다 — 화면이 뜨기 전에(예: 새로고침 후 재접속) 와도 놓치지 않도록 세션에서 항상 받아둔다
   const [fourCharsTurn, setFourCharsTurn] = useState<FourCharsTurnSignal | null>(null)
+  // 이모티콘 퀴즈는 신호가 여러 종류라 하나의 상태로 합쳐 둔다 — 지원 팝업 신호가 화면보다 먼저 와도 놓치지 않도록 세션에서 항상 받아둔다
+  const [emojiCharades, setEmojiCharades] = useState<EmojiCharadesViewState | null>(null)
   const [telestrationTask, setTelestrationTask] = useState<TelestrationTaskSignal | null>(null)
   const [telestrationReveal, setTelestrationReveal] = useState<TelestrationRevealSignal | null>(null)
   const [telestrationWordPrompt, setTelestrationWordPrompt] = useState<TelestrationWordPromptSignal | null>(null)
@@ -201,6 +204,7 @@ export function useGameSession(roomCodeFromUrl?: string) {
         setLiarQuizGuess(null)
         setSimonStart(null)
         setFourCharsTurn(null)
+        setEmojiCharades(null)
         setTelestrationTask(null)
         setTelestrationReveal(null)
         setTelestrationWordPrompt(null)
@@ -275,6 +279,13 @@ export function useGameSession(roomCodeFromUrl?: string) {
       setLiarQuizGuess((prev) => (prev && prev.turnIndex === data.turnIndex ? { ...prev, reveal: data } : prev))
     const onSimonStart = (data: SimonStartSignal) => setSimonStart(data)
     const onFourCharsTurn = (data: FourCharsTurnSignal) => setFourCharsTurn(data)
+    const emojiCharadesDispatch = (action: EmojiCharadesAction) => setEmojiCharades((prev) => reduceEmojiCharades(prev, action))
+    const onEmojiSelect = (data: ServerSignal<'emojiCharades:select'>) => emojiCharadesDispatch({ type: 'select', data })
+    const onEmojiStart = (data: ServerSignal<'emojiCharades:start'>) => emojiCharadesDispatch({ type: 'start', data })
+    const onEmojiEmojis = (data: { emojis: string[] }) => emojiCharadesDispatch({ type: 'emojis', emojis: data.emojis })
+    const onEmojiChat = (entry: ServerSignal<'emojiCharades:chat'>) => emojiCharadesDispatch({ type: 'chat', entry })
+    const onEmojiHint = (data: { lengthHint?: number; chosungHint?: string }) => emojiCharadesDispatch({ type: 'hint', data })
+    const onEmojiEnd = (data: ServerSignal<'emojiCharades:end'>) => emojiCharadesDispatch({ type: 'end', data })
     const onFourCharsHint = (data: { turnIndex: number; category: string }) =>
       setFourCharsTurn((prev) => (prev && prev.turnIndex === data.turnIndex ? { ...prev, category: data.category } : prev))
     const onFourCharsTurnResult = (data: ServerSignal<'fourChars:turnResult'>) =>
@@ -316,6 +327,12 @@ export function useGameSession(roomCodeFromUrl?: string) {
     socket.on('simon:stageStart', onSimonStart)
     socket.on('fourChars:turn', onFourCharsTurn)
     socket.on('fourChars:hint', onFourCharsHint)
+    socket.on('emojiCharades:select', onEmojiSelect)
+    socket.on('emojiCharades:start', onEmojiStart)
+    socket.on('emojiCharades:emojis', onEmojiEmojis)
+    socket.on('emojiCharades:chat', onEmojiChat)
+    socket.on('emojiCharades:hint', onEmojiHint)
+    socket.on('emojiCharades:end', onEmojiEnd)
     socket.on('fourChars:turnResult', onFourCharsTurnResult)
     socket.on('telestration:task', onTelestrationTask)
     socket.on('telestration:reveal', onTelestrationReveal)
@@ -355,6 +372,12 @@ export function useGameSession(roomCodeFromUrl?: string) {
       socket.off('simon:stageStart', onSimonStart)
       socket.off('fourChars:turn', onFourCharsTurn)
       socket.off('fourChars:hint', onFourCharsHint)
+      socket.off('emojiCharades:select', onEmojiSelect)
+      socket.off('emojiCharades:start', onEmojiStart)
+      socket.off('emojiCharades:emojis', onEmojiEmojis)
+      socket.off('emojiCharades:chat', onEmojiChat)
+      socket.off('emojiCharades:hint', onEmojiHint)
+      socket.off('emojiCharades:end', onEmojiEnd)
       socket.off('fourChars:turnResult', onFourCharsTurnResult)
       socket.off('telestration:task', onTelestrationTask)
       socket.off('telestration:reveal', onTelestrationReveal)
@@ -513,6 +536,7 @@ export function useGameSession(roomCodeFromUrl?: string) {
     liarQuizGuess,
     simonStart,
     fourCharsTurn,
+    emojiCharades,
     telestrationTask,
     telestrationReveal,
     telestrationWordPrompt,

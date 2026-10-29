@@ -12,6 +12,7 @@
     "@tensorflow-models/coco-ssd": "^2.2.3",
     "@tensorflow/tfjs": "^4.22.0",
     "@vercel/analytics": "^2.0.1",
+    "emojibase-data": "^18.0.0",
     "matter-js": "^0.20.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
