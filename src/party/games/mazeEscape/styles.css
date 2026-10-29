@@ -1,0 +1,275 @@
+/* 미로 탈출 */
+.party-maze-stage {
+  gap: 0.9rem;
+  width: 100%;
+}
+
+/* 준비 단계: 내 역할 확인 + 출발 카운트다운 */
+.party-maze-ready {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  width: 100%;
+  max-width: 420px;
+  text-align: center;
+}
+
+.party-maze-ready-title {
+  margin: 0;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.party-maze-ready-arrows {
+  margin: 0;
+  padding: 0.3rem 1.4rem;
+  background: var(--tint-warn);
+  border-radius: var(--radius);
+  font-size: 3rem;
+  line-height: 1.2;
+  letter-spacing: 0.15em;
+}
+
+.party-maze-countdown {
+  margin: 0.25rem 0 0;
+  font-size: 3.4rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+/* 우리 팀 역할표 */
+.party-maze-roles {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.3rem;
+  width: 100%;
+  max-width: 420px;
+}
+
+.party-maze-roles li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.3rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 0.9rem;
+}
+
+.party-maze-role-me {
+  border-color: var(--text-info) !important;
+  background: var(--tint-info);
+}
+
+.party-maze-roles strong {
+  font-size: 1.1rem;
+  letter-spacing: 0.1em;
+}
+
+/* 팀별 진행률 — 트랙 막대는 레이싱 게임 공통(racing.css)을 쓴다 */
+.party-maze-lanes {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.35rem;
+  width: 100%;
+  max-width: 420px;
+}
+
+.party-maze-lane {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.2rem 0.4rem;
+  border-radius: var(--radius);
+}
+
+.party-maze-lane-clickable {
+  cursor: pointer;
+}
+
+.party-maze-lane-clickable:hover,
+.party-maze-lane-watching {
+  background: var(--tint-warn);
+}
+
+.party-maze-lane-mine {
+  background: var(--tint-info);
+}
+
+.party-maze-lane-name {
+  flex-shrink: 0;
+  min-width: 4.6rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.party-maze-lane-bar {
+  height: 1.4rem;
+}
+
+.party-maze-lane-value {
+  flex-shrink: 0;
+  min-width: 3.6rem;
+  text-align: right;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+/* 미로 그림 */
+.party-maze-board {
+  display: block;
+  width: 100%;
+  max-width: 420px;
+  aspect-ratio: 1;
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  touch-action: none;
+  user-select: none;
+}
+
+.party-maze-walls {
+  stroke: var(--text);
+}
+
+.party-maze-exit {
+  fill: var(--tint-strike);
+}
+
+.party-maze-flag {
+  font-size: 13px;
+}
+
+/* 캐릭터는 칸 사이를 부드럽게 미끄러진다 (서버의 이동 간격 90ms보다 약간 짧게) */
+.party-maze-token {
+  transition: transform 0.08s linear;
+}
+
+/* 탈출한 뒤 다른 팀을 구경하는 화면 */
+.party-maze-spectate {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  width: 100%;
+  max-width: 420px;
+}
+
+.party-maze-spectate-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+/* 방향 버튼 — 십자 배치, 내 담당이 아닌 버튼은 흐리게 막힌다 */
+.party-maze-pad {
+  display: grid;
+  grid-template-columns: repeat(3, 4.6rem);
+  grid-template-rows: repeat(2, 4.6rem);
+  grid-template-areas:
+    '. up .'
+    'left down right';
+  gap: 0.4rem;
+  justify-content: center;
+  touch-action: none;
+  user-select: none;
+}
+
+.party-maze-pad-up {
+  grid-area: up;
+}
+
+.party-maze-pad-down {
+  grid-area: down;
+}
+
+.party-maze-pad-left {
+  grid-area: left;
+}
+
+.party-maze-pad-right {
+  grid-area: right;
+}
+
+.party-maze-pad-btn {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius);
+  font-size: 2rem;
+  line-height: 1;
+  cursor: pointer;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.06s;
+}
+
+.party-maze-pad-btn:active:not(:disabled) {
+  transform: scale(0.93);
+}
+
+.party-maze-pad-btn-off {
+  background: var(--surface);
+  color: var(--text-muted);
+  border: 2px dashed var(--border);
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.party-maze-pad-role {
+  grid-column: 1 / -1;
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+/* 끝났을 때 팀별 결과 */
+.party-maze-end {
+  width: 100%;
+  max-width: 420px;
+  padding: 0.75rem 1rem;
+  border: 2px solid var(--text-success);
+  border-radius: var(--radius);
+  background: var(--tint-strike);
+  text-align: center;
+}
+
+.party-maze-end-title {
+  margin: 0 0 0.4rem;
+  font-size: 1.2rem;
+  font-weight: 800;
+}
+
+.party-maze-end-list {
+  list-style: none;
+  margin: 0.5rem 0;
+  padding: 0;
+  display: grid;
+  gap: 0.4rem;
+}
+
+.party-maze-end-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border-width: 2px;
+  border-style: solid;
+  border-radius: var(--radius);
+  color: var(--text);
+  font-size: 0.9rem;
+  text-align: left;
+}
+
+.party-maze-chat-log {
+  height: 140px;
+}

@@ -19,6 +19,15 @@ import type { MinorityStartSignal, MinoritySubRoundResult } from '../../party/ga
 import type { MouseHunterMouse } from '../../party/games/mouseHunter/protocol'
 import type { ScavengerHuntRoundTarget } from '../../party/games/scavengerHunt/protocol'
 import type {
+  MazeChatEntry,
+  MazeDirection,
+  MazeEndSignal,
+  MazePoint,
+  MazeProgressSignal,
+  MazeStartSignal,
+  MazeWatchSignal,
+} from '../../party/games/mazeEscape/protocol'
+import type {
   CharacterChatEntry,
   CharacterEndSignal,
   CharacterRejected,
@@ -66,6 +75,7 @@ export type GameId =
   | 'fourChars'
   | 'emojiCharades'
   | 'characterDescribe'
+  | 'mazeEscape'
 
 /** 방의 진행 방식 — backend/types.ts와 같아야 한다. /party는 개인전, /teamParty는 팀전 방이다 */
 export type RoomMode = 'individual' | 'team'
@@ -320,6 +330,10 @@ export interface ClientToServerEvents {
   'characterDescribe:describe': (data: { text: string }) => void
   /** 캐릭터 설명: 설명자가 아닌 사람이 이름을 채팅으로 맞힌다 */
   'characterDescribe:guess': (data: { text: string }) => void
+  /** 미로 탈출: 내 담당 방향으로 팀 캐릭터를 한 칸 움직이려고 한다 (내 방향이 아니거나 벽이 있거나 너무 빠르면 서버가 무시한다) */
+  'mazeEscape:move': (data: { dir: MazeDirection }) => void
+  /** 미로 탈출: 팀 채팅 한 줄 (같은 팀에게만 보인다) */
+  'mazeEscape:chat': (data: { text: string }) => void
 }
 
 /** Server -> Client */
@@ -525,6 +539,20 @@ export interface ServerToClientEvents {
   'characterDescribe:rejected': (data: CharacterRejected) => void
   /** 정답이 나오거나 시간이 끝났을 때 — 정답과 팀별 설명 공개 */
   'characterDescribe:end': (data: CharacterEndSignal) => void
+  /** 미로 탈출 시작(재접속·담당 방향이 바뀔 때도 다시 보낸다) — 내 팀 기준으로 개인화되어 있다 */
+  'mazeEscape:start': (data: MazeStartSignal) => void
+  /** 준비 시간이 끝나고 출발 */
+  'mazeEscape:go': (data: Record<string, never>) => void
+  /** 팀 캐릭터가 움직일 때마다 같은 팀에게만 오는 새 위치 */
+  'mazeEscape:pos': (data: MazePoint) => void
+  /** 팀별 진행률(%)과 탈출한 팀의 걸린 시간 — 다른 팀의 위치는 알려주지 않는다 */
+  'mazeEscape:progress': (data: MazeProgressSignal) => void
+  /** 팀 채팅 (같은 팀에게만) */
+  'mazeEscape:chat': (data: MazeChatEntry) => void
+  /** 탈출을 끝낸 팀에게만 — 다른 팀의 위치와 지나온 길을 구경용으로 보낸다 */
+  'mazeEscape:watch': (data: MazeWatchSignal) => void
+  /** 끝났을 때 팀별 결과 */
+  'mazeEscape:end': (data: MazeEndSignal) => void
   /** 소수의견 서브라운드 시작(재접속 시 재전송). options는 플레이어마다 순서가 섞여 있고, myChoice는 이미 골랐던 쪽(없으면 null) */
   'minority:roundStart': (data: MinorityStartSignal) => void
   /** 서브라운드가 끝났을 때 전원에게 방송하는 선택 공개 */

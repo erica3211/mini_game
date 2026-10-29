@@ -28,6 +28,8 @@ import { PartySubRoundPager } from './PartySubRoundPager'
 import { PixelCanvasSnapshot } from '../games/pixelCanvas/PixelCanvasSnapshot'
 import { SimonStageReveal } from '../games/simon/SimonStageReveal'
 import { CharacterDescribeRecap } from '../games/characterDescribe/CharacterDescribeRecap'
+import { MazeRecap } from '../games/mazeEscape/MazeRecap'
+import type { MazeRoundMeta } from '../games/mazeEscape/protocol'
 import type { CharacterRoundMeta } from '../games/characterDescribe/protocol'
 import { EmojiCharadesRecap } from '../games/emojiCharades/EmojiCharadesRecap'
 import type { EmojiCharadesRoundMeta } from '../games/emojiCharades/protocol'
@@ -69,6 +71,7 @@ export function PartyRoundResults({ session }: Props) {
   const liarQuizMeta = lastRound.gameId === 'liarQuiz' ? (lastRound.meta as LiarQuizRoundMeta | undefined) : undefined
   const minorityMeta = lastRound.gameId === 'minority' ? (lastRound.meta as MinorityRoundMeta | undefined) : undefined
   const simonMeta = lastRound.gameId === 'simon' ? (lastRound.meta as SimonRoundMeta | undefined) : undefined
+  const mazeMeta = lastRound.gameId === 'mazeEscape' ? (lastRound.meta as MazeRoundMeta | undefined) : undefined
   const characterDescribeMeta =
     lastRound.gameId === 'characterDescribe' ? (lastRound.meta as CharacterRoundMeta | undefined) : undefined
   const emojiCharadesMeta =
@@ -86,6 +89,9 @@ export function PartyRoundResults({ session }: Props) {
     }
     if (lastRound.gameId === 'shoutRace' && entry.value !== undefined) {
       return entry.dnf ? ` (${entry.value}% 도달)` : ` (${(entry.value / 1000).toFixed(2)}초 만에 완주)`
+    }
+    if (lastRound.gameId === 'mazeEscape' && entry.value !== undefined) {
+      return entry.dnf ? ` (${entry.value}%까지 도착)` : ` (${(entry.value / 1000).toFixed(1)}초에 탈출)`
     }
     if (lastRound.gameId === 'typeRace' && entry.value !== undefined) {
       const avgCpm = typeRaceMeta?.avgCpm[entry.playerId]
@@ -169,11 +175,23 @@ export function PartyRoundResults({ session }: Props) {
   const teamStandings = roundTeams
     .map((team) => {
       const entry = lastRound.ranking.find((e) => team.memberIds.includes(e.playerId))
-      return { team, rank: entry?.rank ?? roundTeams.length, score: entry?.value ?? 0, points: entry?.points ?? 0 }
+      return { team, rank: entry?.rank ?? roundTeams.length, score: entry?.value ?? 0, points: entry?.points ?? 0, dnf: entry?.dnf ?? false }
     })
     .sort((a, b) => a.rank - b.rank || a.team.id - b.team.id)
     // 개인 등수(4명 중 3위 등)가 아니라 팀끼리의 등수로 다시 매긴다 — 같은 점수는 공동 등수
     .map((row, _index, rows) => ({ ...row, rank: rows.findIndex((other) => other.rank === row.rank) + 1 }))
+
+  const standingDetailOf = (row: { score: number; dnf: boolean }) => {
+    if (lastRound.gameId === 'mazeEscape') return row.dnf ? `${row.score}%까지 도착` : `${(row.score / 1000).toFixed(1)}초에 탈출`
+    if (lastRound.gameId === 'emojiCharades' || lastRound.gameId === 'characterDescribe') return row.score ? '정답을 맞혔어요' : '못 맞혔어요'
+    return `합산 ${row.score}점`
+  }
+  const standingNote =
+    lastRound.gameId === 'mazeEscape'
+      ? '먼저 탈출한 팀이 1등이고, 못 나간 팀은 출구에 가까이 갔던 순서예요. 순위에 따라 받는 점수(초록색)가 누적 점수에 더해져요.'
+      : lastRound.gameId === 'emojiCharades' || lastRound.gameId === 'characterDescribe'
+        ? '정답을 먼저 맞힌 팀이 1등이에요. 순위에 따라 받는 점수(초록색)가 누적 점수에 더해져요.'
+        : '합산 점수로 팀 순위가 정해지고, 순위에 따라 받는 점수(초록색)가 누적 점수에 더해져요.'
 
   // 팀전은 팀이 유지되니 누적 점수도 팀 단위로 보여준다
   const showTeamCumulative = roundTeams.length > 0
@@ -477,6 +495,8 @@ export function PartyRoundResults({ session }: Props) {
         </div>
       )}
 
+      {mazeMeta && <MazeRecap meta={mazeMeta} teams={roundTeams} />}
+
       {characterDescribeMeta && <CharacterDescribeRecap meta={characterDescribeMeta} teams={roundTeams} nicknameOf={plainNicknameOf} />}
 
       {emojiCharadesMeta && <EmojiCharadesRecap meta={emojiCharadesMeta} teams={roundTeams} nicknameOf={plainNicknameOf} />}
@@ -594,17 +614,17 @@ export function PartyRoundResults({ session }: Props) {
       ) : (
         <>
           <h2 className="party-section-title">이번 라운드 점수</h2>
-          <p className="party-team-note">합산 점수로 팀 순위가 정해지고, 순위에 따라 받는 점수(초록색)가 누적 점수에 더해져요.</p>
+          <p className="party-team-note">{standingNote}</p>
           {teamStandings.length > 0 && (
             <ul className="party-team-standings">
-              {teamStandings.map(({ team, rank, score, points }) => (
+              {teamStandings.map(({ team, rank, score, points, dnf }) => (
                 <li
                   key={team.id}
                   className={`party-team-standing ${teamColorClass(team.id)}${team.memberIds.includes(session.playerId ?? '') ? ' party-team-standing-mine' : ''}`}
                 >
                   <div className="party-team-standing-head">
                     <span>
-                      {rank}위 {teamEmoji(team.id)} {team.name} · 합산 {score}점
+                      {rank}위 {teamEmoji(team.id)} {team.name} · {standingDetailOf({ score, dnf })}
                     </span>
                     <span className="badge badge-strike">{points}점</span>
                   </div>

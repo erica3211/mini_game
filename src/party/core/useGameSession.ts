@@ -6,6 +6,7 @@ import type { LiarQuizWriteSignal, LiarQuizGuessSignal, LiarQuizComposeSignal } 
 import type { MinorityStartSignal } from '../games/minority/protocol'
 import type { MouseHunterMouse } from '../games/mouseHunter/protocol'
 import type { ScavengerHuntRoundTarget } from '../games/scavengerHunt/protocol'
+import { reduceMaze, type MazeAction, type MazeViewState } from '../games/mazeEscape/protocol'
 import { reduceCharacter, type CharacterAction, type CharacterViewState } from '../games/characterDescribe/protocol'
 import { reduceEmojiCharades, type EmojiCharadesAction, type EmojiCharadesViewState } from '../games/emojiCharades/protocol'
 import type { FourCharsTurnSignal } from '../games/fourChars/protocol'
@@ -157,6 +158,8 @@ export function useGameSession(roomCodeFromUrl?: string) {
   const [emojiCharades, setEmojiCharades] = useState<EmojiCharadesViewState | null>(null)
   // 캐릭터 설명도 신호가 여러 종류라 하나의 상태로 합쳐 둔다
   const [characterDescribe, setCharacterDescribe] = useState<CharacterViewState | null>(null)
+  // 미로 탈출도 신호가 여러 종류라 하나의 상태로 합쳐 둔다
+  const [mazeEscape, setMazeEscape] = useState<MazeViewState | null>(null)
   const [telestrationTask, setTelestrationTask] = useState<TelestrationTaskSignal | null>(null)
   const [telestrationReveal, setTelestrationReveal] = useState<TelestrationRevealSignal | null>(null)
   const [telestrationWordPrompt, setTelestrationWordPrompt] = useState<TelestrationWordPromptSignal | null>(null)
@@ -209,6 +212,7 @@ export function useGameSession(roomCodeFromUrl?: string) {
         setFourCharsTurn(null)
         setEmojiCharades(null)
         setCharacterDescribe(null)
+        setMazeEscape(null)
         setTelestrationTask(null)
         setTelestrationReveal(null)
         setTelestrationWordPrompt(null)
@@ -297,6 +301,14 @@ export function useGameSession(roomCodeFromUrl?: string) {
     const onCharacterHint = (data: { lengthHint?: number; chosungHint?: string }) => characterDispatch({ type: 'hint', data })
     const onCharacterRejected = (data: ServerSignal<'characterDescribe:rejected'>) => characterDispatch({ type: 'rejected', data })
     const onCharacterEnd = (data: ServerSignal<'characterDescribe:end'>) => characterDispatch({ type: 'end', data })
+    const mazeDispatch = (action: MazeAction) => setMazeEscape((prev) => reduceMaze(prev, action))
+    const onMazeStart = (data: ServerSignal<'mazeEscape:start'>) => mazeDispatch({ type: 'start', data })
+    const onMazeGo = () => mazeDispatch({ type: 'go' })
+    const onMazePos = (pos: ServerSignal<'mazeEscape:pos'>) => mazeDispatch({ type: 'pos', pos })
+    const onMazeProgress = (data: ServerSignal<'mazeEscape:progress'>) => mazeDispatch({ type: 'progress', data })
+    const onMazeChat = (entry: ServerSignal<'mazeEscape:chat'>) => mazeDispatch({ type: 'chat', entry })
+    const onMazeWatch = (data: ServerSignal<'mazeEscape:watch'>) => mazeDispatch({ type: 'watch', data })
+    const onMazeEnd = (data: ServerSignal<'mazeEscape:end'>) => mazeDispatch({ type: 'end', data })
     const onFourCharsHint = (data: { turnIndex: number; category: string }) =>
       setFourCharsTurn((prev) => (prev && prev.turnIndex === data.turnIndex ? { ...prev, category: data.category } : prev))
     const onFourCharsTurnResult = (data: ServerSignal<'fourChars:turnResult'>) =>
@@ -338,6 +350,13 @@ export function useGameSession(roomCodeFromUrl?: string) {
     socket.on('simon:stageStart', onSimonStart)
     socket.on('fourChars:turn', onFourCharsTurn)
     socket.on('fourChars:hint', onFourCharsHint)
+    socket.on('mazeEscape:start', onMazeStart)
+    socket.on('mazeEscape:go', onMazeGo)
+    socket.on('mazeEscape:pos', onMazePos)
+    socket.on('mazeEscape:progress', onMazeProgress)
+    socket.on('mazeEscape:chat', onMazeChat)
+    socket.on('mazeEscape:watch', onMazeWatch)
+    socket.on('mazeEscape:end', onMazeEnd)
     socket.on('characterDescribe:select', onCharacterSelect)
     socket.on('characterDescribe:start', onCharacterStart)
     socket.on('characterDescribe:chat', onCharacterChat)
@@ -389,6 +408,13 @@ export function useGameSession(roomCodeFromUrl?: string) {
       socket.off('simon:stageStart', onSimonStart)
       socket.off('fourChars:turn', onFourCharsTurn)
       socket.off('fourChars:hint', onFourCharsHint)
+      socket.off('mazeEscape:start', onMazeStart)
+      socket.off('mazeEscape:go', onMazeGo)
+      socket.off('mazeEscape:pos', onMazePos)
+      socket.off('mazeEscape:progress', onMazeProgress)
+      socket.off('mazeEscape:chat', onMazeChat)
+      socket.off('mazeEscape:watch', onMazeWatch)
+      socket.off('mazeEscape:end', onMazeEnd)
       socket.off('characterDescribe:select', onCharacterSelect)
       socket.off('characterDescribe:start', onCharacterStart)
       socket.off('characterDescribe:chat', onCharacterChat)
@@ -561,6 +587,7 @@ export function useGameSession(roomCodeFromUrl?: string) {
     fourCharsTurn,
     emojiCharades,
     characterDescribe,
+    mazeEscape,
     telestrationTask,
     telestrationReveal,
     telestrationWordPrompt,
