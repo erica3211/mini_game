@@ -39,7 +39,18 @@ export function RoomCodeInput({ length, onChange, inputRef: externalRef, replace
   const activeIndex = value.length < length ? value.length : -1
 
   return (
-    <div className="party-code-slots" onClick={() => inputRef.current?.focus()}>
+    <div
+      className="party-code-slots"
+      onClick={() => {
+        // 틀린 번호로 입장에 실패한 직후에는 칸을 누르는 순간 번호를 비운다 — Enter로 제출하면 입력창이 포커스를 유지하고 있어서
+        // 포커스 이벤트가 오지 않으므로, 누르기(클릭)로도 초기화한다. 정상 입력 중에 칸을 눌러도 지워지지 않는다
+        if (replaceOnNextInput && value) {
+          setValue('')
+          onChange('')
+        }
+        inputRef.current?.focus()
+      }}
+    >
       {Array.from({ length }, (_, index) => (
         <span
           // 칸은 고정된 개수라 순서가 곧 식별자다
