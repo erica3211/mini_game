@@ -5,11 +5,13 @@ interface Props {
   title: string
   onClose: () => void
   doneLabel?: string
+  /** 닫기 버튼 앞에 같은 줄로 놓을 버튼들 (예: 입장하기). 있으면 닫기는 보조 버튼 모양이 된다 */
+  actions?: ReactNode
   children: ReactNode
 }
 
 /** 설정 같은 내용을 담는 팝업. 배경 클릭/Esc/닫기 버튼으로 닫는다 (확인용 ConfirmModal과 달리 안에 아무 내용이나 넣을 수 있다) */
-export function Modal({ open, title, onClose, doneLabel = '완료', children }: Props) {
+export function Modal({ open, title, onClose, doneLabel = '완료', actions, children }: Props) {
   useEffect(() => {
     if (!open) return
     const onKeyDown = (e: KeyboardEvent) => {
@@ -31,8 +33,9 @@ export function Modal({ open, title, onClose, doneLabel = '완료', children }: 
           </button>
         </div>
         {children}
-        <div className="modal-footer">
-          <button type="button" className="btn btn-primary" onClick={onClose}>
+        <div className={`modal-footer${actions ? ' modal-footer-split' : ''}`}>
+          {actions}
+          <button type="button" className={`btn ${actions ? 'btn-secondary' : 'btn-primary'}`} onClick={onClose}>
             {doneLabel}
           </button>
         </div>

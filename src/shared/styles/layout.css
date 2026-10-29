@@ -129,6 +129,64 @@
   transition: border-color 0.15s, background 0.15s;
 }
 
+/* 참가하기 팝업: 선택된 방 종류 */
+.party-mode-option-selected {
+  border-color: var(--text-info);
+  background: var(--tint-info);
+}
+
+/* 참가하기 팝업: 방 종류 + 방 번호 + 입장 버튼 */
+.party-join-form {
+  display: grid;
+  gap: 0.75rem;
+}
+
+/* "방 번호 :  [ ][ ][ ][ ]" — 글자 하나씩 들어가는 칸 (한글야구 입력 칸과 같은 모양) */
+.party-join-code-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+}
+
+.party-join-code-label {
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.party-code-slots {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.party-code-slot {
+  width: 2.8rem;
+  height: 3.3rem;
+  padding: 0;
+  background: var(--surface);
+  color: var(--text);
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  font: inherit;
+  font-size: 1.5rem;
+  font-weight: 700;
+  text-align: center;
+  text-transform: uppercase;
+  caret-color: transparent;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.party-code-slot-filled {
+  border-color: var(--border-strong);
+}
+
+.party-code-slot:focus {
+  outline: none;
+  border-color: var(--text-info);
+  background: var(--tint-info);
+}
+
 .party-mode-option:hover:not(:disabled) {
   border-color: var(--text-info);
   background: var(--tint-info);

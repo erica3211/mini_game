@@ -1,16 +1,25 @@
-import { useState, type FormEvent } from 'react'
-import { useParams } from 'react-router-dom'
+import { useEffect, useState, type FormEvent } from 'react'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { PartyFinalResults } from './PartyFinalResults'
 import { PartyLoading } from './PartyLoading'
 import { PartyLobby } from './PartyLobby'
 import { PartyRoundActive } from './PartyRoundActive'
 import { PartyRoundCountdown } from './PartyRoundCountdown'
 import { PartyRoundResults } from './PartyRoundResults'
+import { partyBasePath } from './partyPaths'
 import { useGameSession } from './useGameSession'
 
 export function PartyRoom() {
   const { roomCode = '' } = useParams()
   const session = useGameSession(roomCode)
+  const navigate = useNavigate()
+  const { pathname } = useLocation()
+
+  // 방 종류와 다른 주소(/party로 팀전 방에 들어온 경우 등)로 들어왔다면, 방 정보를 받는 대로 맞는 주소로 바로잡는다
+  const roomMode = session.roomState?.mode
+  useEffect(() => {
+    if (roomMode && !pathname.startsWith(partyBasePath(roomMode))) navigate(`${partyBasePath(roomMode)}/${roomCode}`, { replace: true })
+  }, [roomMode, pathname, roomCode, navigate])
   const [nickname, setNickname] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [joinError, setJoinError] = useState<string | null>(null)
