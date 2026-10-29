@@ -114,3 +114,10 @@
   color: var(--text-muted);
   font-size: 0.9rem;
 }
+
+/* 입력창에 포커스를 줄 때 타이머·초성이 화면 위쪽에 오도록 스크롤 위치를 맞춘다. 키보드가 뜨기 전에는 페이지가 짧아 스크롤할 여유가 없으니
+   아래에 여백을 두어 처음부터 스크롤이 되게 한다 (그래야 모바일 브라우저가 입력창을 키보드 위로 올리려고 초성까지 밀어내지 않는다) */
+.party-wordchain-stage {
+  scroll-margin-top: 1.5rem;
+  padding-bottom: 60vh;
+}

@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react'
 import type { Socket } from 'socket.io-client'
 import { useWordChainRound } from './useWordChainRound'
 import { type ClientToServerEvents, type PlayerInfo, type ServerToClientEvents } from '../../../shared/lib/partyProtocol'
@@ -21,8 +22,22 @@ export function WordChainGame({ socket, roundKey, startSignal, category, definit
   )
   const nicknameOf = (playerId: string) => players.find((p) => p.id === playerId)?.nickname ?? '???'
 
+  const inputRef = useRef<HTMLInputElement>(null)
+  const stageRef = useRef<HTMLDivElement>(null)
+  // 라운드마다 처음 한 번만 입력창에 포커스를 주고 화면 위치를 맞춘다
+  const focusedRoundRef = useRef<string | null>(null)
+
+  // 입력창이 나타나면 포커스를 준다. 브라우저가 알아서 입력창을 화면 가운데로 끌어올리면 키보드가 올라오면서 초성이 위로 밀려
+  // 안 보이게 되므로, 자동 스크롤은 끄고(preventScroll) 타이머·초성이 화면 맨 위에 오도록 직접 맞춘다 — 입력창은 그 아래, 키보드 위에 보인다
+  useEffect(() => {
+    if (status !== 'running' || focusedRoundRef.current === roundKey) return
+    focusedRoundRef.current = roundKey
+    inputRef.current?.focus({ preventScroll: true })
+    stageRef.current?.scrollIntoView({ block: 'start' })
+  }, [status, roundKey])
+
   return (
-    <div className="party-round-stage">
+    <div ref={stageRef} className="party-round-stage party-wordchain-stage">
       {toasts.length > 0 && (
         <div className="party-wordchain-toasts">
           {toasts.map((t) => (
@@ -62,15 +77,18 @@ export function WordChainGame({ socket, roundKey, startSignal, category, definit
               onSubmit={(e) => {
                 e.preventDefault()
                 submit()
+                // 제출 버튼을 누르면 모바일에서 입력창이 포커스를 잃고 키보드가 내려가므로, 누른 바로 그 순간에 다시 포커스를 줘서 키보드를 유지한다
+                // (오답이면 계속 입력해야 하고, 정답이면 이 폼이 사라진다)
+                inputRef.current?.focus({ preventScroll: true })
               }}
             >
               <input
+                ref={inputRef}
                 type="text"
                 className={`party-wordchain-input${isWrong ? ' party-wordchain-input-shake' : ''}`}
                 value={guess}
                 onChange={(e) => setGuess(e.target.value)}
                 placeholder="정답을 입력하세요"
-                autoFocus
               />
               <button type="submit" className="btn btn-primary">
                 제출
