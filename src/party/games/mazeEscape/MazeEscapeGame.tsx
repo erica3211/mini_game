@@ -110,10 +110,19 @@ export function MazeEscapeGame({ socket, roundKey, state, playerId, players, tea
   const move = (dir: MazeDirection) => {
     if (running && myDirections.includes(dir)) socket.emit('mazeEscape:move', { dir })
   }
+  const playRef = useRef<HTMLDivElement>(null)
   const moveRef = useRef(move)
   useEffect(() => {
     moveRef.current = move
   })
+
+  // 손가락으로 쓰는 기기(모바일)에서는 달리기가 시작될 때 시간·팀 진행률·미로·방향 버튼이 한 화면에 보이도록 위치를 맞춘다.
+  // 움직임을 줄이는 설정을 켠 사람에게는 애니메이션 없이 바로 옮긴다
+  useEffect(() => {
+    if (phase !== 'run' || !window.matchMedia('(pointer: coarse)').matches) return
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    playRef.current?.scrollIntoView({ block: 'start', behavior: reduceMotion ? 'auto' : 'smooth' })
+  }, [phase])
 
   // 키보드: 내가 맡은 방향의 키만 반응하고, 채팅 입력 중에는 건드리지 않는다
   useEffect(() => {
@@ -192,7 +201,7 @@ export function MazeEscapeGame({ socket, roundKey, state, playerId, players, tea
       )}
 
       {phase !== 'ready' && (
-        <>
+        <div ref={playRef} className="party-maze-play">
           {phase === 'run' && startedAt !== null && <RemainingTime startedAt={startedAt} timeoutMs={MAZE_RUN_MS} />}
 
           <ul className="party-maze-lanes">
@@ -259,7 +268,7 @@ export function MazeEscapeGame({ socket, roundKey, state, playerId, players, tea
             )
           )}
           {phase === 'run' && rolesPanel}
-        </>
+        </div>
       )}
 
       {phase === 'ended' && state.end && (

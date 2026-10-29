@@ -121,16 +121,26 @@
   font-weight: 700;
 }
 
-/* 미로 그림 */
+/* 달리는 화면 묶음 — 모바일에서 달리기가 시작되면 이 위쪽이 화면 맨 위에 오도록 스크롤한다 */
+.party-maze-play {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.9rem;
+  width: 100%;
+  scroll-margin-top: 0.5rem;
+}
+
+/* 미로 그림 — 낮은 화면(모바일)에서도 팀 진행률 + 미로 + 방향 버튼이 한 화면에 들어오도록 화면 높이에 맞춰 줄인다 (최소 14rem).
+   미로에는 누르는 동작이 없으니 터치 드래그가 그대로 화면 스크롤이 된다 */
 .party-maze-board {
   display: block;
-  width: 100%;
-  max-width: 420px;
+  width: min(100%, 420px, max(14rem, calc(100vh - 24rem)));
+  width: min(100%, 420px, max(14rem, calc(100dvh - 24rem)));
   aspect-ratio: 1;
   background: var(--surface);
   border: 2px solid var(--border);
   border-radius: var(--radius);
-  touch-action: none;
   user-select: none;
 }
 
@@ -179,7 +189,6 @@
     'left down right';
   gap: 0.4rem;
   justify-content: center;
-  touch-action: none;
   user-select: none;
 }
 
