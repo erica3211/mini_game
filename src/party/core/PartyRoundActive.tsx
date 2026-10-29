@@ -15,6 +15,7 @@ import { PartyTeamBanner } from './PartyTeamBanner'
 import { PixelCanvasGame } from '../games/pixelCanvas/PixelCanvasGame'
 import { ScavengerHuntGame } from '../games/scavengerHunt/ScavengerHuntGame'
 import { ShoutRaceGame } from '../games/shoutRace/ShoutRaceGame'
+import { CharacterDescribeGame } from '../games/characterDescribe/CharacterDescribeGame'
 import { EmojiCharadesGame } from '../games/emojiCharades/EmojiCharadesGame'
 import { FourCharsGame } from '../games/fourChars/FourCharsGame'
 import { SimonGame } from '../games/simon/SimonGame'
@@ -203,6 +204,17 @@ function renderGame(session: GameSession, roundKey: string) {
           socket={session.socket}
           roundKey={roundKey}
           state={session.emojiCharades}
+          playerId={session.playerId}
+          players={state.players}
+          teams={state.teams}
+        />
+      )
+    case 'characterDescribe':
+      return (
+        <CharacterDescribeGame
+          socket={session.socket}
+          roundKey={roundKey}
+          state={session.characterDescribe}
           playerId={session.playerId}
           players={state.players}
           teams={state.teams}

@@ -19,6 +19,13 @@ import type { MinorityStartSignal, MinoritySubRoundResult } from '../../party/ga
 import type { MouseHunterMouse } from '../../party/games/mouseHunter/protocol'
 import type { ScavengerHuntRoundTarget } from '../../party/games/scavengerHunt/protocol'
 import type {
+  CharacterChatEntry,
+  CharacterEndSignal,
+  CharacterRejected,
+  CharacterSelectSignal,
+  CharacterStartSignal,
+} from '../../party/games/characterDescribe/protocol'
+import type {
   EmojiCharadesChatEntry,
   EmojiCharadesEndSignal,
   EmojiCharadesSelectSignal,
@@ -58,6 +65,7 @@ export type GameId =
   | 'simon'
   | 'fourChars'
   | 'emojiCharades'
+  | 'characterDescribe'
 
 /** 방의 진행 방식 — backend/types.ts와 같아야 한다. /party는 개인전, /teamParty는 팀전 방이다 */
 export type RoomMode = 'individual' | 'team'
@@ -306,6 +314,12 @@ export interface ClientToServerEvents {
   'emojiCharades:clear': () => void
   /** 표현자가 아닌 사람이 정답을 채팅으로 입력한다 */
   'emojiCharades:guess': (data: { text: string }) => void
+  /** 캐릭터 설명: 설명자 지원 단계(5초)에서 "내가 설명하고 싶다"를 체크하거나 해제한다 */
+  'characterDescribe:volunteer': (data: { want: boolean }) => void
+  /** 캐릭터 설명: 설명자가 캐릭터의 생김새·성격·특징을 한 줄 설명한다 (이름·작품 이름이 들어 있거나 너무 빨리 보내면 서버가 거절한다) */
+  'characterDescribe:describe': (data: { text: string }) => void
+  /** 캐릭터 설명: 설명자가 아닌 사람이 이름을 채팅으로 맞힌다 */
+  'characterDescribe:guess': (data: { text: string }) => void
 }
 
 /** Server -> Client */
@@ -499,6 +513,18 @@ export interface ServerToClientEvents {
   'emojiCharades:hint': (data: { lengthHint?: number; chosungHint?: string }) => void
   /** 정답이 나오거나 시간이 끝났을 때 — 정답과 팀별 이모티콘 공개 */
   'emojiCharades:end': (data: EmojiCharadesEndSignal) => void
+  /** 캐릭터 설명 설명자 지원 단계(재접속 시 재전송) */
+  'characterDescribe:select': (data: CharacterSelectSignal) => void
+  /** 캐릭터 설명 설명 단계 시작(재접속·설명자가 바뀔 때도 다시 보낸다). word는 설명자에게만 담긴다 */
+  'characterDescribe:start': (data: CharacterStartSignal) => void
+  /** 설명(같은 팀에게만) · 오답 채팅(모든 팀) */
+  'characterDescribe:chat': (data: CharacterChatEntry) => void
+  /** 시간이 지나 열리는 힌트(글자 수 또는 초성) */
+  'characterDescribe:hint': (data: { lengthHint?: number; chosungHint?: string }) => void
+  /** 설명이 막혔을 때 설명자에게만 오는 이유 */
+  'characterDescribe:rejected': (data: CharacterRejected) => void
+  /** 정답이 나오거나 시간이 끝났을 때 — 정답과 팀별 설명 공개 */
+  'characterDescribe:end': (data: CharacterEndSignal) => void
   /** 소수의견 서브라운드 시작(재접속 시 재전송). options는 플레이어마다 순서가 섞여 있고, myChoice는 이미 골랐던 쪽(없으면 null) */
   'minority:roundStart': (data: MinorityStartSignal) => void
   /** 서브라운드가 끝났을 때 전원에게 방송하는 선택 공개 */

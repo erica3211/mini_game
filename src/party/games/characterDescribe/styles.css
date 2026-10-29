@@ -1,0 +1,177 @@
+/* 캐릭터 설명 */
+.party-chardesc-stage {
+  gap: 0.9rem;
+  width: 100%;
+}
+
+/* 설명자 정하기 팝업 */
+.party-chardesc-select-text {
+  margin: 0 0 0.75rem;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.party-chardesc-volunteer {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.85rem 1rem;
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  font-weight: 700;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.party-chardesc-volunteer input {
+  width: 1.4rem;
+  height: 1.4rem;
+}
+
+.party-chardesc-volunteer-on {
+  border-color: var(--text-success);
+  background: var(--tint-strike);
+}
+
+.party-chardesc-select-timer {
+  display: flex;
+  justify-content: center;
+  margin-top: 0.75rem;
+  min-height: 1.6rem;
+}
+
+/* 팀 현황 — 색은 .party-team-color-N이 정한다 */
+.party-chardesc-teams {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.party-chardesc-team {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 7.5rem;
+  padding: 0.4rem 0.75rem;
+  border-width: 2px;
+  border-style: solid;
+  border-radius: var(--radius);
+  color: var(--text);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.party-chardesc-team-mine {
+  box-shadow: 0 0 0 3px var(--text);
+}
+
+.party-chardesc-team-describer {
+  font-size: 0.8rem;
+  font-weight: 400;
+}
+
+.party-chardesc-hints {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.4rem;
+}
+
+.party-chardesc-chip {
+  padding: 0.15rem 0.7rem;
+  background: var(--tint-info);
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.party-chardesc-word {
+  text-align: center;
+}
+
+.party-chardesc-word p {
+  margin: 0 0 0.25rem;
+}
+
+.party-chardesc-word strong {
+  display: inline-block;
+  padding: 0.3rem 1rem;
+  background: var(--tint-warn);
+  border-radius: var(--radius);
+  font-size: 1.6rem;
+  overflow-wrap: anywhere;
+}
+
+/* 정답 공개 / 결과 화면 */
+.party-chardesc-result {
+  width: 100%;
+  max-width: 420px;
+  padding: 0.75rem 1rem;
+  border: 2px solid var(--text-success);
+  border-radius: var(--radius);
+  background: var(--tint-strike);
+  text-align: center;
+}
+
+.party-chardesc-result-none {
+  border-color: var(--border);
+  background: transparent;
+}
+
+.party-chardesc-result p {
+  margin: 0.2rem 0;
+}
+
+.party-chardesc-result-title {
+  font-size: 1.2rem;
+  font-weight: 800;
+}
+
+.party-chardesc-result-teams {
+  list-style: none;
+  margin: 0.5rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0.4rem;
+}
+
+.party-chardesc-result-team {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.5rem 0.75rem;
+  border-width: 2px;
+  border-style: solid;
+  border-radius: var(--radius);
+  color: var(--text);
+  font-size: 0.9rem;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+
+/* 설명이 쌓이므로 채팅 칸을 조금 더 높게 */
+.party-chardesc-chat-log {
+  height: 220px;
+}
+
+.party-chardesc-line-desc {
+  padding: 0.2rem 0.5rem;
+  background: var(--tint-warn);
+  border-radius: 8px;
+}
+
+.party-chardesc-notice {
+  margin: 0;
+  padding: 0.4rem 0.7rem;
+  background: var(--tint-danger);
+  border: 1px solid var(--border-danger);
+  border-radius: var(--radius);
+  color: var(--text-danger);
+  font-size: 0.85rem;
+  overflow-wrap: anywhere;
+}

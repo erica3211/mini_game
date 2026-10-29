@@ -27,6 +27,8 @@ import { PartySubRoundCarousel } from './PartySubRoundCarousel'
 import { PartySubRoundPager } from './PartySubRoundPager'
 import { PixelCanvasSnapshot } from '../games/pixelCanvas/PixelCanvasSnapshot'
 import { SimonStageReveal } from '../games/simon/SimonStageReveal'
+import { CharacterDescribeRecap } from '../games/characterDescribe/CharacterDescribeRecap'
+import type { CharacterRoundMeta } from '../games/characterDescribe/protocol'
 import { EmojiCharadesRecap } from '../games/emojiCharades/EmojiCharadesRecap'
 import type { EmojiCharadesRoundMeta } from '../games/emojiCharades/protocol'
 import { FourCharsRecap } from '../games/fourChars/FourCharsRecap'
@@ -67,6 +69,8 @@ export function PartyRoundResults({ session }: Props) {
   const liarQuizMeta = lastRound.gameId === 'liarQuiz' ? (lastRound.meta as LiarQuizRoundMeta | undefined) : undefined
   const minorityMeta = lastRound.gameId === 'minority' ? (lastRound.meta as MinorityRoundMeta | undefined) : undefined
   const simonMeta = lastRound.gameId === 'simon' ? (lastRound.meta as SimonRoundMeta | undefined) : undefined
+  const characterDescribeMeta =
+    lastRound.gameId === 'characterDescribe' ? (lastRound.meta as CharacterRoundMeta | undefined) : undefined
   const emojiCharadesMeta =
     lastRound.gameId === 'emojiCharades' ? (lastRound.meta as EmojiCharadesRoundMeta | undefined) : undefined
   const fourCharsMeta = lastRound.gameId === 'fourChars' ? (lastRound.meta as FourCharsRoundMeta | undefined) : undefined
@@ -126,6 +130,9 @@ export function PartyRoundResults({ session }: Props) {
     }
     if (lastRound.gameId === 'simon' && entry.value !== undefined) {
       return ` (${simonMeta?.stages.length ?? SIMON_STAGES}단계 합산 ${entry.value}점)`
+    }
+    if (lastRound.gameId === 'characterDescribe') {
+      return entry.value ? ' (정답을 맞혔어요!)' : ''
     }
     if (lastRound.gameId === 'emojiCharades') {
       return entry.value ? ' (정답을 맞혔어요!)' : ''
@@ -469,6 +476,8 @@ export function PartyRoundResults({ session }: Props) {
           </PartySubRoundCarousel>
         </div>
       )}
+
+      {characterDescribeMeta && <CharacterDescribeRecap meta={characterDescribeMeta} teams={roundTeams} nicknameOf={plainNicknameOf} />}
 
       {emojiCharadesMeta && <EmojiCharadesRecap meta={emojiCharadesMeta} teams={roundTeams} nicknameOf={plainNicknameOf} />}
 

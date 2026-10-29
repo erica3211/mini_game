@@ -26,6 +26,7 @@
 @import './party/games/simon/styles.css';
 @import './party/games/fourChars/styles.css';
 @import './party/games/emojiCharades/styles.css';
+@import './party/games/characterDescribe/styles.css';
 @import './party/games/telepathy/styles.css';
 @import './party/games/telestration/styles.css';
 @import './party/games/typeRace/styles.css';

@@ -6,6 +6,7 @@ import type { LiarQuizWriteSignal, LiarQuizGuessSignal, LiarQuizComposeSignal } 
 import type { MinorityStartSignal } from '../games/minority/protocol'
 import type { MouseHunterMouse } from '../games/mouseHunter/protocol'
 import type { ScavengerHuntRoundTarget } from '../games/scavengerHunt/protocol'
+import { reduceCharacter, type CharacterAction, type CharacterViewState } from '../games/characterDescribe/protocol'
 import { reduceEmojiCharades, type EmojiCharadesAction, type EmojiCharadesViewState } from '../games/emojiCharades/protocol'
 import type { FourCharsTurnSignal } from '../games/fourChars/protocol'
 import type { SimonStartSignal } from '../games/simon/protocol'
@@ -154,6 +155,8 @@ export function useGameSession(roomCodeFromUrl?: string) {
   const [fourCharsTurn, setFourCharsTurn] = useState<FourCharsTurnSignal | null>(null)
   // 이모티콘 퀴즈는 신호가 여러 종류라 하나의 상태로 합쳐 둔다 — 지원 팝업 신호가 화면보다 먼저 와도 놓치지 않도록 세션에서 항상 받아둔다
   const [emojiCharades, setEmojiCharades] = useState<EmojiCharadesViewState | null>(null)
+  // 캐릭터 설명도 신호가 여러 종류라 하나의 상태로 합쳐 둔다
+  const [characterDescribe, setCharacterDescribe] = useState<CharacterViewState | null>(null)
   const [telestrationTask, setTelestrationTask] = useState<TelestrationTaskSignal | null>(null)
   const [telestrationReveal, setTelestrationReveal] = useState<TelestrationRevealSignal | null>(null)
   const [telestrationWordPrompt, setTelestrationWordPrompt] = useState<TelestrationWordPromptSignal | null>(null)
@@ -205,6 +208,7 @@ export function useGameSession(roomCodeFromUrl?: string) {
         setSimonStart(null)
         setFourCharsTurn(null)
         setEmojiCharades(null)
+        setCharacterDescribe(null)
         setTelestrationTask(null)
         setTelestrationReveal(null)
         setTelestrationWordPrompt(null)
@@ -286,6 +290,13 @@ export function useGameSession(roomCodeFromUrl?: string) {
     const onEmojiChat = (entry: ServerSignal<'emojiCharades:chat'>) => emojiCharadesDispatch({ type: 'chat', entry })
     const onEmojiHint = (data: { lengthHint?: number; chosungHint?: string }) => emojiCharadesDispatch({ type: 'hint', data })
     const onEmojiEnd = (data: ServerSignal<'emojiCharades:end'>) => emojiCharadesDispatch({ type: 'end', data })
+    const characterDispatch = (action: CharacterAction) => setCharacterDescribe((prev) => reduceCharacter(prev, action))
+    const onCharacterSelect = (data: ServerSignal<'characterDescribe:select'>) => characterDispatch({ type: 'select', data })
+    const onCharacterStart = (data: ServerSignal<'characterDescribe:start'>) => characterDispatch({ type: 'start', data })
+    const onCharacterChat = (entry: ServerSignal<'characterDescribe:chat'>) => characterDispatch({ type: 'chat', entry })
+    const onCharacterHint = (data: { lengthHint?: number; chosungHint?: string }) => characterDispatch({ type: 'hint', data })
+    const onCharacterRejected = (data: ServerSignal<'characterDescribe:rejected'>) => characterDispatch({ type: 'rejected', data })
+    const onCharacterEnd = (data: ServerSignal<'characterDescribe:end'>) => characterDispatch({ type: 'end', data })
     const onFourCharsHint = (data: { turnIndex: number; category: string }) =>
       setFourCharsTurn((prev) => (prev && prev.turnIndex === data.turnIndex ? { ...prev, category: data.category } : prev))
     const onFourCharsTurnResult = (data: ServerSignal<'fourChars:turnResult'>) =>
@@ -327,6 +338,12 @@ export function useGameSession(roomCodeFromUrl?: string) {
     socket.on('simon:stageStart', onSimonStart)
     socket.on('fourChars:turn', onFourCharsTurn)
     socket.on('fourChars:hint', onFourCharsHint)
+    socket.on('characterDescribe:select', onCharacterSelect)
+    socket.on('characterDescribe:start', onCharacterStart)
+    socket.on('characterDescribe:chat', onCharacterChat)
+    socket.on('characterDescribe:hint', onCharacterHint)
+    socket.on('characterDescribe:rejected', onCharacterRejected)
+    socket.on('characterDescribe:end', onCharacterEnd)
     socket.on('emojiCharades:select', onEmojiSelect)
     socket.on('emojiCharades:start', onEmojiStart)
     socket.on('emojiCharades:emojis', onEmojiEmojis)
@@ -372,6 +389,12 @@ export function useGameSession(roomCodeFromUrl?: string) {
       socket.off('simon:stageStart', onSimonStart)
       socket.off('fourChars:turn', onFourCharsTurn)
       socket.off('fourChars:hint', onFourCharsHint)
+      socket.off('characterDescribe:select', onCharacterSelect)
+      socket.off('characterDescribe:start', onCharacterStart)
+      socket.off('characterDescribe:chat', onCharacterChat)
+      socket.off('characterDescribe:hint', onCharacterHint)
+      socket.off('characterDescribe:rejected', onCharacterRejected)
+      socket.off('characterDescribe:end', onCharacterEnd)
       socket.off('emojiCharades:select', onEmojiSelect)
       socket.off('emojiCharades:start', onEmojiStart)
       socket.off('emojiCharades:emojis', onEmojiEmojis)
@@ -537,6 +560,7 @@ export function useGameSession(roomCodeFromUrl?: string) {
     simonStart,
     fourCharsTurn,
     emojiCharades,
+    characterDescribe,
     telestrationTask,
     telestrationReveal,
     telestrationWordPrompt,
