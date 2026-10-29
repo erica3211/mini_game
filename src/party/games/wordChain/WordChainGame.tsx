@@ -28,12 +28,17 @@ export function WordChainGame({ socket, roundKey, startSignal, category, definit
   const focusedRoundRef = useRef<string | null>(null)
 
   // 입력창이 나타나면 포커스를 준다. 브라우저가 알아서 입력창을 화면 가운데로 끌어올리면 키보드가 올라오면서 초성이 위로 밀려
-  // 안 보이게 되므로, 자동 스크롤은 끄고(preventScroll) 타이머·초성이 화면 맨 위에 오도록 직접 맞춘다 — 입력창은 그 아래, 키보드 위에 보인다
+  // 안 보이게 되므로(모바일), 자동 스크롤은 끄고(preventScroll) 타이머·초성이 화면 위쪽에 오도록 직접 부드럽게 맞춘다 — 입력창은 그 아래, 키보드 위에 보인다
   useEffect(() => {
     if (status !== 'running' || focusedRoundRef.current === roundKey) return
     focusedRoundRef.current = roundKey
     inputRef.current?.focus({ preventScroll: true })
-    stageRef.current?.scrollIntoView({ block: 'start' })
+    // 스크롤은 손가락으로 쓰는 기기(모바일)에서만 한다 — 마우스로 쓰는 웹에서는 키보드가 화면을 가리지 않아서 굳이 움직이지 않는다.
+    // 움직임을 줄이는 설정을 켠 사람에게는 애니메이션 없이 바로 옮긴다
+    if (window.matchMedia('(pointer: coarse)').matches) {
+      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      stageRef.current?.scrollIntoView({ block: 'start', behavior: reduceMotion ? 'auto' : 'smooth' })
+    }
   }, [status, roundKey])
 
   return (
