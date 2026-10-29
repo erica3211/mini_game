@@ -1,10 +1,12 @@
-import { useRef, useState } from 'react'
+import { useRef, useState, type RefObject } from 'react'
 
 interface Props {
   /** 방 번호 글자 수 */
   length: number
   /** 지금까지 입력한 방 번호 */
   onChange: (code: string) => void
+  /** 글자를 받는 입력창 — 부모가 사용자가 누른 순간에 바로 포커스를 줄 수 있게 열어 둔다 */
+  inputRef?: RefObject<HTMLInputElement | null>
 }
 
 // 방 번호는 영문 대문자와 숫자만 쓴다 — 그 밖의 글자는 지운다
@@ -15,10 +17,11 @@ const normalize = (raw: string) => raw.toUpperCase().replace(/[^A-Z0-9]/g, '')
  * 칸마다 입력창을 따로 두면 한 글자를 칠 때마다 포커스가 다음 입력창으로 옮겨지는데, 모바일 키보드는 그때마다 자판 모드를
  * 처음 상태(한글)로 되돌려서 숫자를 치려고 숫자 자판으로 바꿔 둬도 매번 초기화된다. 입력창이 하나면 포커스가 그대로라 자판이 유지된다.
  */
-export function RoomCodeInput({ length, onChange }: Props) {
+export function RoomCodeInput({ length, onChange, inputRef: externalRef }: Props) {
   const [value, setValue] = useState('')
   const [focused, setFocused] = useState(false)
-  const inputRef = useRef<HTMLInputElement>(null)
+  const ownRef = useRef<HTMLInputElement>(null)
+  const inputRef = externalRef ?? ownRef
 
   const handleChange = (raw: string) => {
     const next = normalize(raw).slice(0, length)
@@ -55,7 +58,6 @@ export function RoomCodeInput({ length, onChange }: Props) {
         autoComplete="off"
         autoCorrect="off"
         spellCheck={false}
-        autoFocus
       />
     </div>
   )

@@ -1,4 +1,5 @@
-import { useState, type FormEvent } from 'react'
+import { useRef, useState, type FormEvent } from 'react'
+import { flushSync } from 'react-dom'
 import { Link, useNavigate } from 'react-router-dom'
 import { Modal } from '../shared/components/Modal'
 import type { RoomMode } from '../shared/lib/partyProtocol'
@@ -55,8 +56,20 @@ export function Home() {
   const [joinModalOpen, setJoinModalOpen] = useState(false)
   const [joinMode, setJoinMode] = useState<RoomMode>('individual')
   const [joinCode, setJoinCode] = useState('')
+  const codeInputRef = useRef<HTMLInputElement>(null)
   const [joinError, setJoinError] = useState<string | null>(null)
   const [joining, setJoining] = useState(false)
+
+  // 참가하기 카드를 누르는 바로 그 순간에 팝업을 그리고 첫 칸에 포커스를 준다 — 모바일 브라우저는 사용자가 누른 순간이 아닌 때의
+  // 포커스(autoFocus 등)를 막는 경우가 많아서, 막히면 키보드도 안 올라오고 화면도 스크롤되지 않는다
+  const openJoinModal = () => {
+    flushSync(() => {
+      setJoinCode('')
+      setJoinError(null)
+      setJoinModalOpen(true)
+    })
+    codeInputRef.current?.focus()
+  }
 
   // 입장하기: 방이 있는지 서버에 먼저 물어보고, 없으면 그 자리에서 알려준다. 있으면 그 방의 실제 종류(개인전/팀전) 주소로 들어간다
   const handleJoin = async (event: FormEvent) => {
@@ -103,11 +116,7 @@ export function Home() {
           <span className="game-title">파티게임 방 만들기</span>
           <span className="game-description">여러 라운드를 돌며 최종 점수로 우승자를 가려요.</span>
         </button>
-        <button type="button" className="game-card game-card-button" onClick={() => {
-            setJoinCode('')
-            setJoinError(null)
-            setJoinModalOpen(true)
-          }}>
+        <button type="button" className="game-card game-card-button" onClick={openJoinModal}>
           <span className="game-emoji">🚪</span>
           <span className="game-title">파티게임 참가하기</span>
           <span className="game-description">친구가 만든 방 번호를 입력해서 들어가요.</span>
@@ -149,6 +158,7 @@ export function Home() {
           <div className="party-join-code-row">
             <span className="party-join-code-label">방 번호 :</span>
             <RoomCodeInput
+              inputRef={codeInputRef}
               length={ROOM_CODE_LENGTH}
               onChange={(code) => {
                 setJoinCode(code)
