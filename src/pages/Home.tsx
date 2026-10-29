@@ -161,6 +161,7 @@ export function Home() {
             <span className="party-join-code-label">방 번호 :</span>
             <RoomCodeInput
               inputRef={codeInputRef}
+              replaceOnNextInput={joinError !== null}
               length={ROOM_CODE_LENGTH}
               onChange={(code) => {
                 setJoinCode(code)
