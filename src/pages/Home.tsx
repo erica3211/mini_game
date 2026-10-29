@@ -68,7 +68,8 @@ export function Home() {
       setJoinError(null)
       setJoinModalOpen(true)
     })
-    codeInputRef.current?.focus()
+    // 포커스가 브라우저 자동 스크롤을 일으키지 않게 한다 — 팝업은 화면에 고정돼 있어서 위치는 팝업 스타일(topOnTouch)이 정한다
+    codeInputRef.current?.focus({ preventScroll: true })
   }
 
   // 입장하기: 방이 있는지 서버에 먼저 물어보고, 없으면 그 자리에서 알려준다. 있으면 그 방의 실제 종류(개인전/팀전) 주소로 들어간다
@@ -125,6 +126,7 @@ export function Home() {
 
       <Modal
         open={joinModalOpen}
+        topOnTouch
         title="파티게임 참가하기"
         doneLabel="닫기"
         onClose={() => setJoinModalOpen(false)}

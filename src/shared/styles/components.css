@@ -108,6 +108,15 @@
   z-index: 100;
 }
 
+/* 모바일(터치)에서 입력창이 있는 팝업: 가운데가 아니라 위쪽에 붙여서 올라오는 키보드에 가려지지 않게 한다 (웹에서는 가운데 그대로) */
+@media (pointer: coarse) {
+  .modal-backdrop-top-on-touch {
+    align-items: flex-start;
+    padding-top: clamp(0.75rem, 8vh, 4rem);
+    overflow-y: auto;
+  }
+}
+
 .modal-card {
   background: var(--surface);
   border: 1px solid var(--border);
