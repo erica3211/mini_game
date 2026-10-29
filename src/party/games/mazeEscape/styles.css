@@ -132,11 +132,13 @@
 }
 
 /* 미로 그림 — 낮은 화면(모바일)에서도 팀 진행률 + 미로 + 방향 버튼이 한 화면에 들어오도록 화면 높이에 맞춰 줄인다 (최소 14rem).
+   높이는 dvh가 아니라 svh(브라우저 주소창·하단 바가 보일 때의 작은 화면 높이)로 잡는다 — dvh는 스크롤할 때마다 바가 나타났다 사라지면서
+   값이 계속 변해서 미로 크기가 들쭉날쭉해진다. svh는 바 상태와 상관없이 고정이다 (svh를 모르는 오래된 브라우저는 vh로 대신한다).
    미로에는 누르는 동작이 없으니 터치 드래그가 그대로 화면 스크롤이 된다 */
 .party-maze-board {
   display: block;
   width: min(100%, 420px, max(14rem, calc(100vh - 24rem)));
-  width: min(100%, 420px, max(14rem, calc(100dvh - 24rem)));
+  width: min(100%, 420px, max(14rem, calc(100svh - 24rem)));
   aspect-ratio: 1;
   background: var(--surface);
   border: 2px solid var(--border);
