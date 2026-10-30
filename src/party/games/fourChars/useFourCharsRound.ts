@@ -25,7 +25,9 @@ export function useFourCharsRound(socket: PartySocket, roundKey: string, signal:
   const turnKey = `${roundKey}-${signal?.turnIndex ?? 'none'}`
   const startedAt = useMonotonicStartedAt(turnKey, signal, signal?.result ? 'finished' : 'running')
 
-  const canAnswer = signal !== null && signal.result === null && signal.answererId === playerId && submittedKey !== turnKey
+  // 개인전(everyone)은 모두가 동시에 푸니 누구나 답할 수 있고, 팀전은 이번 답변자만 답할 수 있다
+  const canAnswer =
+    signal !== null && signal.result === null && (signal.everyone === true || signal.answererId === playerId) && submittedKey !== turnKey
 
   useEffect(() => {
     const onTyping = (data: { turnIndex: number; text: string }) => setLiveTyping({ turnIndex: data.turnIndex, text: data.text })
@@ -48,7 +50,8 @@ export function useFourCharsRound(socket: PartySocket, roundKey: string, signal:
   const changeText = useCallback(
     (value: string) => {
       setText(value)
-      if (!canAnswer) return
+      // 개인전에서는 쓰는 글자를 다른 사람에게 보여주지 않는다 (보이면 베끼기가 된다)
+      if (!canAnswer || signal?.everyone) return
       pendingText.current = value
       if (typingTimer.current !== null) return
       typingTimer.current = window.setTimeout(() => {
@@ -57,7 +60,7 @@ export function useFourCharsRound(socket: PartySocket, roundKey: string, signal:
         pendingText.current = null
       }, TYPING_FLUSH_MS)
     },
-    [socket, canAnswer],
+    [socket, canAnswer, signal?.everyone],
   )
 
   const submit = useCallback(() => {

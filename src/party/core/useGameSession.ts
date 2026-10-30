@@ -309,8 +309,12 @@ export function useGameSession(roomCodeFromUrl?: string) {
     const onMazeEnd = (data: ServerSignal<'mazeEscape:end'>) => mazeDispatch({ type: 'end', data })
     const onFourCharsHint = (data: { turnIndex: number; category: string }) =>
       setFourCharsTurn((prev) => (prev && prev.turnIndex === data.turnIndex ? { ...prev, category: data.category } : prev))
+    const onFourCharsProgress = (data: { turnIndex: number; submitted: number; total: number }) =>
+      setFourCharsTurn((prev) =>
+        prev && prev.turnIndex === data.turnIndex ? { ...prev, progress: { submitted: data.submitted, total: data.total } } : prev,
+      )
     const onFourCharsTurnResult = (data: ServerSignal<'fourChars:turnResult'>) =>
-      setFourCharsTurn((prev) => (prev && prev.turnIndex === data.turnIndex ? { ...prev, teamStates: data.teamStates, result: data } : prev))
+      setFourCharsTurn((prev) => (prev && prev.turnIndex === data.turnIndex ? { ...prev, teamStates: data.teamStates, scores: data.scores, result: data } : prev))
     const onTelestrationTask = (data: TelestrationTaskSignal) => setTelestrationTask(data)
     const onTelestrationReveal = (data: TelestrationRevealSignal) => setTelestrationReveal(data)
     const onTelestrationWordPrompt = (data: TelestrationWordPromptSignal) => setTelestrationWordPrompt(data)
@@ -348,6 +352,7 @@ export function useGameSession(roomCodeFromUrl?: string) {
     socket.on('simon:stageStart', onSimonStart)
     socket.on('fourChars:turn', onFourCharsTurn)
     socket.on('fourChars:hint', onFourCharsHint)
+    socket.on('fourChars:progress', onFourCharsProgress)
     socket.on('mazeEscape:start', onMazeStart)
     socket.on('mazeEscape:pos', onMazePos)
     socket.on('mazeEscape:progress', onMazeProgress)
@@ -404,6 +409,7 @@ export function useGameSession(roomCodeFromUrl?: string) {
       socket.off('simon:stageStart', onSimonStart)
       socket.off('fourChars:turn', onFourCharsTurn)
       socket.off('fourChars:hint', onFourCharsHint)
+      socket.off('fourChars:progress', onFourCharsProgress)
       socket.off('mazeEscape:start', onMazeStart)
       socket.off('mazeEscape:pos', onMazePos)
       socket.off('mazeEscape:progress', onMazeProgress)

@@ -224,3 +224,38 @@
   text-align: center;
   vertical-align: bottom;
 }
+
+/* 개인전 현황판 — 팀 색이 없으니 기본 테두리로 보여준다 */
+.party-fourchars-player {
+  border: 1px solid var(--border);
+}
+
+/* 개인전 결과: 사람마다 낸 답 */
+.party-fourchars-answers {
+  list-style: none;
+  margin: 0.6rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0.25rem;
+  text-align: left;
+}
+
+.party-fourchars-answers li {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius);
+  font-size: 0.9rem;
+  overflow-wrap: anywhere;
+}
+
+.party-fourchars-answer-me {
+  background: var(--tint-info);
+  font-weight: 700;
+}
+
+.party-fourchars-recap-everyone {
+  flex-wrap: wrap;
+  border-color: var(--border);
+}

@@ -516,6 +516,8 @@ export interface ServerToClientEvents {
   'fourChars:turn': (data: FourCharsTurnSignal) => void
   /** 제한 시간이 10초 남았을 때 열리는 힌트 — 문제의 분류 */
   'fourChars:hint': (data: { turnIndex: number; category: string }) => void
+  /** 개인전에서 답을 낸 사람 수가 바뀔 때 전원에게 알린다 */
+  'fourChars:progress': (data: { turnIndex: number; submitted: number; total: number }) => void
   /** 답할 사람이 지금 쓰고 있는 글자 — 답할 사람 본인을 뺀 모두에게 중계한다 */
   'fourChars:typing': (data: { turnIndex: number; text: string }) => void
   /** 턴이 끝났을 때 전원에게 방송하는 정답과 결과 */

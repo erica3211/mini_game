@@ -17,7 +17,7 @@ interface Props {
   turnSignal: FourCharsTurnSignal | null
   playerId: string | null
   players: PlayerInfo[]
-  /** 이번 라운드의 팀 배정 */
+  /** 팀전이면 이번 라운드의 팀 배정 (개인전이면 빈 배열) */
   teams: TeamInfo[]
 }
 
@@ -51,21 +51,31 @@ export function FourCharsGame({ socket, roundKey, turnSignal, playerId, players,
   }
 
   const { result } = turnSignal
+  const isTeamGame = teams.length > 0
+  // 개인전: 모두가 같은 문제를 동시에 풀고, 낸 답은 다 같이 공개될 때까지 서로 보이지 않는다
+  const isEveryone = turnSignal.everyone === true
   const turnTeam = teams.find((team) => team.id === turnSignal.teamId)
   const myTeam = teamOf(teams, playerId)
   const isMyTeamTurn = myTeam?.id === turnSignal.teamId
   const isAnswerer = turnSignal.answererId === playerId
   const myTeamState = turnSignal.teamStates.find((state) => state.teamId === myTeam?.id)
-  // 결과가 나오면 가려진 칸을 채운다 — 맞혔다면 팀이 쓴 답을, 아니면 대표 정답을 보여준다
+  const myAnswer = result?.answers?.find((answer) => answer.playerId === playerId)
+  // 내가 맞혔는지 — 팀전은 이번 턴의 결과, 개인전은 내 답의 채점 결과
+  const iWasRight = isEveryone ? (myAnswer?.correct ?? false) : (result?.correct ?? false)
+  // 결과가 나오면 가려진 칸을 채운다 — 맞혔다면 낸 답을, 아니면 대표 정답을 보여준다
   const filledAnswer = (() => {
     if (!result) return []
-    const typed = result.correct && result.submitted ? [...result.submitted] : []
+    const mine = isEveryone ? (myAnswer?.submitted ?? null) : result.submitted
+    const typed = iWasRight && mine ? [...mine] : []
     if (typed.length === 4) return turnSignal.chars[0] === null ? typed.slice(0, 2) : typed.slice(2)
     return typed.length === 2 ? typed : [...result.answer]
   })()
 
   const guide = (() => {
     if (result) return null
+    if (isEveryone) {
+      return hasSubmitted ? '제출했어요! 다른 사람들을 기다리는 중...' : '가려진 두 글자를 입력하세요. 답은 한 번만 낼 수 있어요.'
+    }
     if (isAnswerer) return hasSubmitted ? '제출했어요! 결과를 기다리는 중...' : '내 차례예요! 가려진 두 글자를 입력하세요. 답은 한 번만 낼 수 있어요.'
     if (isMyTeamTurn) return `${nicknameOf(turnSignal.answererId)}님이 답을 입력해요. 같이 의논해서 도와주세요!`
     return `${turnTeam?.name ?? '다른 팀'}이 푸는 중이에요. 우리 차례를 준비하세요!`
@@ -74,38 +84,70 @@ export function FourCharsGame({ socket, roundKey, turnSignal, playerId, players,
   return (
     <div className="party-round-stage party-fourchars-stage">
       <p className="party-fourchars-cycle">
-        {turnSignal.cycle + 1}바퀴째 <span className="party-fourchars-cycle-max">(최대 {turnSignal.maxCycles}바퀴)</span>
+        {isEveryone ? (
+          <>
+            문제 {turnSignal.turnIndex + 1} <span className="party-fourchars-cycle-max">/ {turnSignal.maxCycles}</span>
+          </>
+        ) : (
+          <>
+            {turnSignal.cycle + 1}바퀴째 <span className="party-fourchars-cycle-max">(최대 {turnSignal.maxCycles}바퀴)</span>
+          </>
+        )}
       </p>
 
-      <ul className="party-fourchars-teams">
-        {turnSignal.teamStates.map((state) => {
-          const team = teams.find((t) => t.id === state.teamId)
-          const isCurrent = state.teamId === turnSignal.teamId
-          return (
-            <li
-              key={state.teamId}
-              className={[
-                'party-fourchars-team',
-                teamColorClass(state.teamId),
-                isCurrent && !result ? 'party-fourchars-team-current' : '',
-                state.alive ? '' : 'party-fourchars-team-out',
-              ].join(' ')}
-            >
+      {!isTeamGame && (
+        <ul className="party-fourchars-teams">
+          {(turnSignal.scores ?? []).map((score) => (
+            <li key={score.playerId} className="party-fourchars-team party-fourchars-player">
               <span>
-                {teamEmoji(state.teamId)} {team?.name ?? '팀'}
+                {nicknameOf(score.playerId)}
+                {score.playerId === playerId && ' (나)'}
               </span>
-              <span>{state.alive ? `정답 ${state.correct}개` : '탈락'}</span>
+              <span>정답 {score.correct}개</span>
             </li>
-          )
-        })}
-      </ul>
+          ))}
+        </ul>
+      )}
+
+      {isTeamGame && (
+        <ul className="party-fourchars-teams">
+          {turnSignal.teamStates.map((state) => {
+            const team = teams.find((t) => t.id === state.teamId)
+            const isCurrent = state.teamId === turnSignal.teamId
+            return (
+              <li
+                key={state.teamId}
+                className={[
+                  'party-fourchars-team',
+                  teamColorClass(state.teamId),
+                  isCurrent && !result ? 'party-fourchars-team-current' : '',
+                  state.alive ? '' : 'party-fourchars-team-out',
+                ].join(' ')}
+              >
+                <span>
+                  {teamEmoji(state.teamId)} {team?.name ?? '팀'}
+                </span>
+                <span>{state.alive ? `정답 ${state.correct}개` : '탈락'}</span>
+              </li>
+            )
+          })}
+        </ul>
+      )}
 
       <p ref={turnRef} className="party-fourchars-turn">
-        <strong>
-          {teamEmoji(turnSignal.teamId)} {turnTeam?.name ?? '팀'}
-        </strong>{' '}
-        차례 · 답하는 사람 <strong>{nicknameOf(turnSignal.answererId)}</strong>
-        {isAnswerer && ' (나)'}
+        {isEveryone ? (
+          <>
+            모두 같은 문제를 풀어요 · <strong>{turnSignal.progress?.submitted ?? 0}</strong> / {turnSignal.progress?.total ?? players.length}명 제출
+          </>
+        ) : (
+          <>
+            <strong>
+              {teamEmoji(turnSignal.teamId)} {turnTeam?.name ?? '팀'}
+            </strong>{' '}
+            차례 · 답하는 사람 <strong>{nicknameOf(turnSignal.answererId)}</strong>
+            {isAnswerer && ' (나)'}
+          </>
+        )}
       </p>
 
       {turnSignal.category ? (
@@ -126,7 +168,7 @@ export function FourCharsGame({ socket, roundKey, turnSignal, playerId, players,
               className={[
                 'party-fourchars-char',
                 blank ? 'party-fourchars-char-blank' : '',
-                revealed ? (result.correct ? 'party-fourchars-char-right' : 'party-fourchars-char-wrong') : '',
+                revealed ? (iWasRight ? 'party-fourchars-char-right' : 'party-fourchars-char-wrong') : '',
               ].join(' ')}
             >
               {blank ? (revealed ? filledAnswer[blankOrder] : '?') : char}
@@ -138,7 +180,7 @@ export function FourCharsGame({ socket, roundKey, turnSignal, playerId, players,
       {!result && startedAt !== null && <RemainingTime startedAt={startedAt} timeoutMs={FOUR_CHARS_TURN_MS} />}
       {guide && <p className="party-round-hint">{guide}</p>}
 
-      {!result && !isAnswerer && (
+      {!result && isTeamGame && !isAnswerer && (
         <p className="party-fourchars-typing" aria-live="polite">
           ✍️ {nicknameOf(turnSignal.answererId)}님이 쓰는 중: <strong className="party-fourchars-typing-text">{typingNow || ' '}</strong>
         </p>
@@ -168,11 +210,29 @@ export function FourCharsGame({ socket, roundKey, turnSignal, playerId, players,
         </form>
       )}
 
-      {result && (
-        <div className={`party-fourchars-result ${result.correct ? 'party-fourchars-result-right' : 'party-fourchars-result-wrong'}`}>
-          <p className="party-fourchars-result-title">
-            {result.correct ? '⭕ 정답!' : result.timedOut ? '⏰ 시간 초과!' : '❌ 틀렸어요'}
+      {result && isEveryone && (
+        <div className={`party-fourchars-result ${iWasRight ? 'party-fourchars-result-right' : 'party-fourchars-result-wrong'}`}>
+          <p className="party-fourchars-result-title">{iWasRight ? '⭕ 정답!' : myAnswer?.submitted ? '❌ 틀렸어요' : '⏰ 시간 초과!'}</p>
+          <p>
+            정답은 <strong>{result.answer}</strong> ({result.word})
           </p>
+          <p className="party-fourchars-meaning">{result.meaning}</p>
+          <ul className="party-fourchars-answers">
+            {(result.answers ?? []).map((answer) => (
+              <li key={answer.playerId} className={answer.playerId === playerId ? 'party-fourchars-answer-me' : ''}>
+                <span>
+                  {answer.correct ? '⭕' : '❌'} {nicknameOf(answer.playerId)}
+                </span>
+                <span>{answer.submitted ?? '미제출'}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {result && !isEveryone && (
+        <div className={`party-fourchars-result ${result.correct ? 'party-fourchars-result-right' : 'party-fourchars-result-wrong'}`}>
+          <p className="party-fourchars-result-title">{result.correct ? '⭕ 정답!' : result.timedOut ? '⏰ 시간 초과!' : '❌ 틀렸어요'}</p>
           <p>
             {result.correct && result.submitted !== null ? (
               <>
@@ -187,9 +247,7 @@ export function FourCharsGame({ socket, roundKey, turnSignal, playerId, players,
           </p>
           {!result.correct && <p className="party-fourchars-meaning">{result.meaning}</p>}
           {!result.correct && (
-            <p className="party-round-hint">
-              {teams.find((team) => team.id === result.teamId)?.name ?? '팀'}은 이번 바퀴가 끝나면 탈락해요.
-            </p>
+            <p className="party-round-hint">{teams.find((team) => team.id === result.teamId)?.name ?? '팀'}은 이번 바퀴가 끝나면 탈락해요.</p>
           )}
         </div>
       )}

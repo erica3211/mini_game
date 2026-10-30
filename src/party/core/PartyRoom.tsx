@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { PartyFinalResults } from './PartyFinalResults'
 import { PartyLoading } from './PartyLoading'
@@ -20,6 +20,25 @@ export function PartyRoom() {
   useEffect(() => {
     if (roomMode && !pathname.startsWith(partyBasePath(roomMode))) navigate(`${partyBasePath(roomMode)}/${roomCode}`, { replace: true })
   }, [roomMode, pathname, roomCode, navigate])
+  // 이 방 화면에서 다른 곳(홈 로고, 뒤로가기 등)으로 앱 안에서 이동하면 방에서 나간 것으로 처리한다 — 안 그러면 화면만 바뀌고
+  // 서버에는 계속 참가자로 남아 있어서(소켓이 앱 전체에서 하나라 끊기지도 않는다) 다른 사람 눈에는 방에 있는 것으로 보이고, 게임이 그 사람을 기다린다.
+  // 새로고침·탭 닫기는 이 정리 코드가 돌지 않고 소켓만 끊겨서 그대로 재접속할 수 있다. 방 주소끼리의 이동(개인전↔팀전 주소 바로잡기)은 나가기가 아니다
+  const playerIdRef = useRef(session.playerId)
+  const leaveRoomRef = useRef(session.leaveRoom)
+  useEffect(() => {
+    playerIdRef.current = session.playerId
+    leaveRoomRef.current = session.leaveRoom
+  })
+  useEffect(
+    () => () => {
+      if (!playerIdRef.current) return
+      const [, base, code] = window.location.pathname.split('/')
+      const stillInThisRoom = (base === 'party' || base === 'teamParty') && code?.toUpperCase() === roomCode.toUpperCase()
+      if (!stillInThisRoom) leaveRoomRef.current()
+    },
+    [roomCode],
+  )
+
   const [nickname, setNickname] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [joinError, setJoinError] = useState<string | null>(null)
