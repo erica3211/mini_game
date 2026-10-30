@@ -8,6 +8,7 @@ import { ColorMatchGame } from '../games/colorMatch/ColorMatchGame'
 import { HumanTimerGame } from '../games/humanTimer/HumanTimerGame'
 import { LiarQuizGame } from '../games/liarQuiz/LiarQuizGame'
 import { MinorityGame } from '../games/minority/MinorityGame'
+import { FindOddGame } from '../games/findOdd/FindOddGame'
 import { MouseHunterGame } from '../games/mouseHunter/MouseHunterGame'
 import { OneToTwentyFiveGame } from '../games/oneToTwentyFive/OneToTwentyFiveGame'
 import { PartyExitToLobbyButton } from './PartyExitToLobbyButton'
@@ -71,6 +72,16 @@ function renderGame(session: GameSession, roundKey: string) {
     case 'balloonPop':
       return (
         <BalloonPopGame socket={session.socket} roundKey={roundKey} startSignal={session.balloonPopStart} />
+      )
+    case 'findOdd':
+      return (
+        <FindOddGame
+          socket={session.socket}
+          roundKey={roundKey}
+          signal={session.findOddRound}
+          playerId={session.playerId}
+          players={state.players}
+        />
       )
     case 'mouseHunter':
       return (

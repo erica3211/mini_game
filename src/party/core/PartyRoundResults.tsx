@@ -103,6 +103,9 @@ export function PartyRoundResults({ session }: Props) {
       return ` (${entry.value}칸 차지)`
     }
     // 쥐 세 끼도 pixelCanvas처럼 연속 동작이라 dnf(한 마리도 못 잡음)여도 잡은 수를 그대로 보여준다
+    if (lastRound.gameId === 'findOdd' && entry.value !== undefined) {
+      return ` (3라운드 합산 ${entry.value}점)`
+    }
     if (lastRound.gameId === 'mouseHunter' && entry.value !== undefined) {
       return ` (${entry.value}마리 잡음)`
     }

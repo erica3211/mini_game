@@ -1,0 +1,125 @@
+/* 다른 글자 찾기 */
+.party-odd-stage {
+  gap: 0.9rem;
+  width: 100%;
+}
+
+.party-odd-play {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.7rem;
+  width: 100%;
+  scroll-margin-top: 0.5rem;
+}
+
+.party-odd-round {
+  margin: 0;
+  font-size: 1.3rem;
+  font-weight: 800;
+}
+
+.party-odd-round-max {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+/* 사람별 점수 */
+.party-odd-players,
+.party-odd-result {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.25rem;
+  width: 100%;
+  max-width: 420px;
+}
+
+.party-odd-players li,
+.party-odd-result li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: var(--radius);
+  font-size: 0.85rem;
+}
+
+.party-odd-player-me {
+  background: var(--tint-info);
+  font-weight: 700;
+}
+
+/* 글자 판 — 정사각형이고, 칸이 많아질수록 칸과 글자가 함께 작아진다. 글자 크기는 판의 너비(화면 너비 기준)와 칸 수로 정한다 */
+.party-odd-grid {
+  --odd-size: min(calc(100vw - 2rem), 420px);
+  display: grid;
+  grid-template-columns: repeat(var(--odd-cols, 5), 1fr);
+  width: var(--odd-size);
+  aspect-ratio: 1;
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.party-odd-grid-locked {
+  opacity: 0.55;
+}
+
+.party-odd-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  background: none;
+  border: none;
+  border-radius: 6px;
+  color: var(--text);
+  font-family: inherit;
+  /* 칸 하나의 너비의 60% 정도 */
+  font-size: calc(var(--odd-size) / var(--odd-cols, 5) * 0.6);
+  line-height: 1;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.party-odd-cell:disabled {
+  cursor: default;
+  color: var(--text);
+  opacity: 1;
+}
+
+.party-odd-cell-dim {
+  opacity: 0.35;
+}
+
+.party-odd-cell-answer {
+  background: var(--tint-strike);
+  box-shadow: inset 0 0 0 3px var(--text-success);
+  opacity: 1;
+  font-weight: 800;
+}
+
+.party-odd-cell-wrong {
+  background: var(--tint-warn);
+  box-shadow: inset 0 0 0 2px var(--text-danger, #d4472a);
+}
+
+.party-odd-hint {
+  margin: 0;
+  text-align: center;
+}
+
+.party-odd-hint-wrong {
+  color: var(--text-danger, #d4472a);
+  font-weight: 700;
+}

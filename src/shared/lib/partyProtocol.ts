@@ -16,6 +16,7 @@ import type {
   LiarQuizWriteSignal,
 } from '../../party/games/liarQuiz/protocol'
 import type { MinorityStartSignal, MinoritySubRoundResult } from '../../party/games/minority/protocol'
+import type { FindOddRoundResult, FindOddRoundSignal } from '../../party/games/findOdd/protocol'
 import type { MouseHunterMouse } from '../../party/games/mouseHunter/protocol'
 import type { ScavengerHuntRoundTarget } from '../../party/games/scavengerHunt/protocol'
 import type {
@@ -54,6 +55,7 @@ export type PlayerId = string
 export type GameId =
   | 'humanTimer'
   | 'mouseHunter'
+  | 'findOdd'
   // | 'reverseElection'
   | 'balloonPop'
   | 'oneToTwentyFive'
@@ -253,6 +255,8 @@ export interface ClientToServerEvents {
   /** 화면에 보이는 쥐를 탭함. 서버는 이 mouseId가 본인 맵에 지금 떠 있는 쥐인지만 확인하고 판정한다 —
    *  잡으면 그 자리에 곧바로 다른 방의 새 쥐가 스폰된다 */
   'mouseHunter:tap': (data: { mouseId: string }) => void
+  /** 다른 글자 찾기: 이 칸이 정답이라고 눌렀다 (index는 칸 번호) */
+  'findOdd:tap': (data: { index: number }) => void
   /** 촬영한 사진을 온디바이스 AI(사물 인식) 또는 캔버스 픽셀 분석(색상 검증)으로 직접 계산한 일치율(0~100)을
    *  제출. 사진 자체는 서버로 전송되지 않으므로 서버는 이 값을 그대로 신뢰하고, 제출이 도착한 시각으로 속도 점수를 계산한다 */
   /** photo: 결과 화면에서 다른 참가자에게 공개할 작은 썸네일(dataURL, 결과 공개용으로 압축된 저화질 사본).
@@ -391,6 +395,14 @@ export interface ServerToClientEvents {
   'mouseHunter:roundStart': (data: { mice: MouseHunterMouse[]; caughtCount: number; elapsedMs: number }) => void
   /** 쥐를 잡아서 그 자리가 다른 방의 새 쥐로 교체된 뒤의 최신 3마리 — 본인에게만 전송 */
   'mouseHunter:miceUpdate': (data: { mice: MouseHunterMouse[] }) => void
+  /** 다른 글자 찾기 라운드 시작(재접속 시 재전송) */
+  'findOdd:roundStart': (data: FindOddRoundSignal) => void
+  /** 누군가 정답을 찾았다 — 누가 찾았는지만 알린다 */
+  'findOdd:found': (data: { roundIndex: number; playerId: PlayerId }) => void
+  /** 틀린 칸을 눌렀다 (본인에게만) */
+  'findOdd:wrong': (data: { lockMs: number }) => void
+  /** 라운드가 끝났을 때 정답 위치와 사람별 결과 공개 */
+  'findOdd:roundResult': (data: FindOddRoundResult) => void
   /** 누군가 쥐를 잡을 때마다 전체에게 브로드캐스트 (본인 포함) — 어디서 잡았는지는 비공개, "몇 마리째"만 공개된다.
    *  닉네임은 room:state의 players로 조회 */
   'mouseHunter:playerCaught': (data: { playerId: PlayerId; totalCaught: number }) => void
