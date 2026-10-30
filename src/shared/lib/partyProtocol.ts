@@ -17,6 +17,7 @@ import type {
 } from '../../party/games/liarQuiz/protocol'
 import type { MinorityStartSignal, MinoritySubRoundResult } from '../../party/games/minority/protocol'
 import type { FindOddRoundResult, FindOddRoundSignal } from '../../party/games/findOdd/protocol'
+import type { TugEndSignal, TugProgressSignal, TugStartSignal } from '../../party/games/tugOfWar/protocol'
 import type { StroopQuestionResult, StroopQuestionSignal } from '../../party/games/stroop/protocol'
 import type { MouseHunterMouse } from '../../party/games/mouseHunter/protocol'
 import type { ScavengerHuntRoundTarget } from '../../party/games/scavengerHunt/protocol'
@@ -79,6 +80,7 @@ export type GameId =
   | 'emojiCharades'
   | 'characterDescribe'
   | 'mazeEscape'
+  | 'tugOfWar'
 
 /** 방의 진행 방식 — backend/types.ts와 같아야 한다. /party는 개인전, /teamParty는 팀전 방이다 */
 export type RoomMode = 'individual' | 'team'
@@ -343,6 +345,8 @@ export interface ClientToServerEvents {
   'characterDescribe:guess': (data: { text: string }) => void
   /** 미로 탈출: 내 담당 방향으로 팀 캐릭터를 한 칸 움직이려고 한다 (내 방향이 아니거나 벽이 있거나 너무 빠르면 서버가 무시한다) */
   'mazeEscape:move': (data: { dir: MazeDirection }) => void
+  /** 줄다리기: 줄을 한 번 당겼다 — 몇 번째인지는 서버가 센다 */
+  'tugOfWar:pull': () => void
 }
 
 /** Server -> Client */
@@ -571,6 +575,12 @@ export interface ServerToClientEvents {
   /** 정답이 나오거나 시간이 끝났을 때 — 정답과 팀별 설명 공개 */
   'characterDescribe:end': (data: CharacterEndSignal) => void
   /** 미로 탈출 시작(재접속·담당 방향이 바뀔 때도 다시 보낸다) — 내 팀 기준으로 개인화되어 있다 */
+  /** 줄다리기 시작(재접속 시 재전송) */
+  'tugOfWar:start': (data: TugStartSignal) => void
+  /** 팀별 힘 현황 */
+  'tugOfWar:progress': (data: TugProgressSignal) => void
+  /** 끝났을 때 팀 순위와 사람별 당긴 횟수 공개 */
+  'tugOfWar:end': (data: TugEndSignal) => void
   'mazeEscape:start': (data: MazeStartSignal) => void
   /** 팀 캐릭터가 움직일 때마다 같은 팀에게만 오는 새 위치 */
   'mazeEscape:pos': (data: MazePoint) => void

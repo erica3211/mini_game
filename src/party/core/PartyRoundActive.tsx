@@ -10,6 +10,7 @@ import { LiarQuizGame } from '../games/liarQuiz/LiarQuizGame'
 import { MinorityGame } from '../games/minority/MinorityGame'
 import { FindOddGame } from '../games/findOdd/FindOddGame'
 import { StroopGame } from '../games/stroop/StroopGame'
+import { TugOfWarGame } from '../games/tugOfWar/TugOfWarGame'
 import { MouseHunterGame } from '../games/mouseHunter/MouseHunterGame'
 import { OneToTwentyFiveGame } from '../games/oneToTwentyFive/OneToTwentyFiveGame'
 import { PartyExitToLobbyButton } from './PartyExitToLobbyButton'
@@ -73,6 +74,17 @@ function renderGame(session: GameSession, roundKey: string) {
     case 'balloonPop':
       return (
         <BalloonPopGame socket={session.socket} roundKey={roundKey} startSignal={session.balloonPopStart} />
+      )
+    case 'tugOfWar':
+      return (
+        <TugOfWarGame
+          socket={session.socket}
+          roundKey={roundKey}
+          startSignal={session.tugStart}
+          playerId={session.playerId}
+          players={state.players}
+          teams={state.teams}
+        />
       )
     case 'stroop':
       return (

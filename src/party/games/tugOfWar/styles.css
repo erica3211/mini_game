@@ -1,0 +1,228 @@
+/* 줄다리기 */
+.party-tug-stage {
+  gap: 0.9rem;
+  width: 100%;
+}
+
+/* 줄 — 두 팀의 색이 힘의 비율만큼 차지한다. 센 팀의 색이 상대 쪽으로 밀고 들어가고, 가운데(▼와 검은 선)가 비긴 지점이다 */
+.party-tug-rope {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  padding-top: 1.1rem;
+}
+
+.party-tug-rope-marker {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  color: var(--text);
+  font-size: 1rem;
+  line-height: 1;
+  transform: translateX(-50%);
+}
+
+.party-tug-rope-bar {
+  position: relative;
+  height: 3rem;
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.party-tug-rope-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  transition: width 0.15s ease-out;
+}
+
+/* 가운데 선 — 어떤 팀 색 위에서도, 어두운 바탕에서도 보이도록 흰 테두리를 얇게 두른다 */
+.party-tug-rope-center {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 4px;
+  background: #000;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.7);
+  transform: translateX(-50%);
+}
+
+.party-tug-rope-name {
+  position: absolute;
+  top: 50%;
+  left: 0.7rem;
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 800;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
+  transform: translateY(-50%);
+}
+
+.party-tug-rope-name-right {
+  right: 0.7rem;
+  left: auto;
+}
+
+/* 팀별 힘 */
+.party-tug-teams {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.35rem;
+  width: 100%;
+  max-width: 420px;
+}
+
+.party-tug-team {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius);
+  font-size: 0.85rem;
+}
+
+.party-tug-team-mine {
+  background: var(--tint-info);
+  font-weight: 700;
+}
+
+.party-tug-team-name {
+  flex-shrink: 0;
+  min-width: 5rem;
+}
+
+.party-tug-bar {
+  flex: 1;
+  height: 0.9rem;
+  background: var(--border);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.party-tug-bar > span {
+  display: block;
+  height: 100%;
+  background: var(--tug-color, var(--accent));
+  border-radius: 999px;
+  transition: width 0.15s ease-out;
+}
+
+.party-tug-team-power {
+  flex-shrink: 0;
+  min-width: 2.6rem;
+  text-align: right;
+}
+
+.party-tug-note {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  text-align: center;
+}
+
+/* 당기는 큰 버튼 — 손가락 연타가 잘 먹히도록 크고, 눌렀을 때 바로 반응한다. 더블탭 확대와 롱프레스 메뉴·선택은 막는다 */
+.party-tug-button {
+  width: 100%;
+  max-width: 420px;
+  min-height: 11rem;
+  padding: 1rem;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 1.2rem;
+  font: inherit;
+  font-size: 2rem;
+  font-weight: 900;
+  cursor: pointer;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.05s;
+}
+
+.party-tug-button:active:not(:disabled) {
+  transform: scale(0.96);
+}
+
+.party-tug-button:disabled {
+  background: var(--border-strong);
+  cursor: default;
+}
+
+.party-tug-count {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.party-tug-count strong {
+  font-size: 1.5rem;
+}
+
+/* 끝난 뒤 결과 */
+.party-tug-end {
+  display: grid;
+  gap: 0.6rem;
+  width: 100%;
+  max-width: 420px;
+  padding: 0.75rem 1rem;
+  border: 2px solid var(--text-success);
+  border-radius: var(--radius);
+  background: var(--tint-strike);
+  text-align: center;
+}
+
+.party-tug-end-title {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 800;
+}
+
+.party-tug-end-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.4rem;
+}
+
+.party-tug-end-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border-width: 2px;
+  border-style: solid;
+  border-radius: var(--radius);
+  color: var(--text);
+  font-size: 0.9rem;
+  text-align: left;
+}
+
+.party-tug-pullers {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.2rem;
+  font-size: 0.85rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .party-tug-rope-fill,
+  .party-tug-bar > span {
+    transition: none;
+  }
+}
+
+/* 결과 화면: 게임이 끝났을 때 보이던 줄, 팀별 힘, 결과 상자를 세로로 쌓는다 */
+.party-tug-recap {
+  display: grid;
+  justify-items: center;
+  gap: 0.9rem;
+  width: 100%;
+}
