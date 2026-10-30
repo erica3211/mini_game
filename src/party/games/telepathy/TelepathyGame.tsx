@@ -45,8 +45,8 @@ export function TelepathyGame({ socket, roundKey, startSignal, playerId, players
   // 공개 단계에서 카드별로 누가 골랐는지 모아서 보여준다
   const pickersOf = (cardId: number) =>
     reveal ? Object.entries(reveal.picks).filter(([, pick]) => pick.cardId === cardId).map(([id]) => id) : []
-  // 과반수(제출한 사람의 절반 초과) 판정의 기준 인원 — 서버 점수 계산과 같은 기준이다
-  const submittedCount = reveal ? Object.values(reveal.picks).filter((pick) => pick.cardId !== null).length : 0
+  // 개인전은 협동이라 전원이 같은 카드를 골라 점수가 났을 때만 그 카드를 초록으로 강조한다
+  const everyoneMatched = reveal ? Object.values(reveal.picks).some((pick) => pick.score > 0) : false
 
   return (
     <div className="party-round-stage">
@@ -58,7 +58,7 @@ export function TelepathyGame({ socket, roundKey, startSignal, playerId, players
       {startedAt !== null && status === 'running' && <RemainingTime startedAt={startedAt} timeoutMs={TELEPATHY_SUB_ROUND_MS} />}
       {status === 'running' && !revealed && (
         <p className="party-round-hint">
-          {isTeamGame ? '팀원 모두 같은 카드를 골라야 점수를 받아요! 서로 통할까요?' : '다른 사람들이 가장 많이 고를 것 같은 카드는?'}
+          {isTeamGame ? '팀원 모두 같은 카드를 골라야 점수를 받아요! 서로 통할까요?' : '모두가 같은 카드를 골라야 다 같이 점수를 받아요! 서로 통할까요?'}
         </p>
       )}
       {status === 'submitted' && !revealed && <p className="party-round-hint">다른 사람들을 기다리는 중...</p>}
@@ -67,9 +67,9 @@ export function TelepathyGame({ socket, roundKey, startSignal, playerId, players
         {startSignal.cards.map((card) => {
           const pickers = pickersOf(card.id)
           const isMine = selectedCardId === card.id
-          // 과반수가 고른 카드만 초록 — 점수가 나는 카드와 같은 기준이라, 의견이 갈리면 아무 카드도 초록이 아니다
+          // 모두가 고른 카드만 초록 — 의견이 갈리면 아무 카드도 초록이 아니다
           // (팀전은 점수가 팀 안의 일치 여부로 정해져서 카드를 강조하지 않는다)
-          const isTop = revealed && !isTeamGame && pickers.length * 2 > submittedCount
+          const isTop = revealed && !isTeamGame && everyoneMatched && pickers.length > 0
           return (
             <li key={card.id}>
               <button
@@ -130,7 +130,7 @@ export function TelepathyGame({ socket, roundKey, startSignal, playerId, players
 
       {revealed && !isTeamGame && (
         <p className="party-telepathy-result-score">
-          {myScore ? `통했어요! +${myScore}점` : '이번엔 안 통했어요... 0점'}
+          {myScore ? `모두 통했어요! 다 같이 +${myScore}점` : '의견이 갈렸어요... 모두 0점'}
         </p>
       )}
     </div>

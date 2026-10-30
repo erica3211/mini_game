@@ -22,14 +22,24 @@ interface Props {
 }
 
 export function FourCharsGame({ socket, roundKey, turnSignal, playerId, players, teams }: Props) {
-  const { text, setText, canAnswer, submit, startedAt, hasSubmitted } = useFourCharsRound(socket, roundKey, turnSignal, playerId)
+  const { text, changeText, canAnswer, submit, startedAt, hasSubmitted, typingNow } = useFourCharsRound(socket, roundKey, turnSignal, playerId)
   const nicknameOf = (id: string) => players.find((p) => p.id === id)?.nickname ?? '???'
   const inputRef = useRef<HTMLInputElement>(null)
 
-  // 내가 답할 차례가 되면 바로 입력할 수 있게 포커스를 준다
+  const turnRef = useRef<HTMLParagraphElement>(null)
+
+  // 내가 답할 차례가 되면 바로 입력할 수 있게 포커스를 준다.
+  // 브라우저가 알아서 입력창을 끌어올리면 키보드에 문제가 가려지므로(모바일) 자동 스크롤은 끄고(preventScroll),
+  // 차례 안내·문제·입력창이 키보드 위에 한 화면으로 보이도록 "누구 차례인지" 줄이 화면 맨 위에 오게 직접 부드럽게 맞춘다.
+  // 스크롤은 손가락으로 쓰는 기기(모바일)에서만 하고, 움직임을 줄이는 설정을 켠 사람에게는 애니메이션 없이 바로 옮긴다
   const turnIndex = turnSignal?.turnIndex
   useEffect(() => {
-    if (canAnswer) inputRef.current?.focus({ preventScroll: true })
+    if (!canAnswer) return
+    inputRef.current?.focus({ preventScroll: true })
+    if (window.matchMedia('(pointer: coarse)').matches) {
+      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      turnRef.current?.scrollIntoView({ block: 'start', behavior: reduceMotion ? 'auto' : 'smooth' })
+    }
   }, [canAnswer, turnIndex])
 
   if (!turnSignal) {
@@ -90,7 +100,7 @@ export function FourCharsGame({ socket, roundKey, turnSignal, playerId, players,
         })}
       </ul>
 
-      <p className="party-fourchars-turn">
+      <p ref={turnRef} className="party-fourchars-turn">
         <strong>
           {teamEmoji(turnSignal.teamId)} {turnTeam?.name ?? '팀'}
         </strong>{' '}
@@ -128,6 +138,12 @@ export function FourCharsGame({ socket, roundKey, turnSignal, playerId, players,
       {!result && startedAt !== null && <RemainingTime startedAt={startedAt} timeoutMs={FOUR_CHARS_TURN_MS} />}
       {guide && <p className="party-round-hint">{guide}</p>}
 
+      {!result && !isAnswerer && (
+        <p className="party-fourchars-typing" aria-live="polite">
+          ✍️ {nicknameOf(turnSignal.answererId)}님이 쓰는 중: <strong className="party-fourchars-typing-text">{typingNow || ' '}</strong>
+        </p>
+      )}
+
       {!result && canAnswer && (
         <form
           className="party-fourchars-form"
@@ -140,7 +156,7 @@ export function FourCharsGame({ socket, roundKey, turnSignal, playerId, players,
             ref={inputRef}
             className="party-fourchars-input"
             value={text}
-            onChange={(event) => setText(event.target.value)}
+            onChange={(event) => changeText(event.target.value)}
             placeholder="가려진 두 글자"
             maxLength={8}
             autoComplete="off"

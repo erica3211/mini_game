@@ -37,7 +37,7 @@ export function Modal({ open, title, onClose, doneLabel = '완료', actions, top
         {children}
         <div className={`modal-footer${actions ? ' modal-footer-split' : ''}`}>
           {actions}
-          <button type="button" className={`btn ${actions ? 'btn-secondary' : 'btn-primary'}`} onClick={onClose}>
+          <button type="button" className={`btn ${actions || doneLabel === '닫기' ? 'btn-secondary' : 'btn-primary'}`} onClick={onClose}>
             {doneLabel}
           </button>
         </div>

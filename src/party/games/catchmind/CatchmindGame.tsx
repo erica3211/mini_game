@@ -105,7 +105,9 @@ export function CatchmindGame({
         <div className="party-catchmind-toasts">
           {toasts.map((t) => (
             <p key={t.id} className="party-catchmind-toast">
-              🎉 {nicknameOf(t.playerId)}님 정답! (+{t.points}점)
+              {t.rivalTeamId === undefined
+                ? `🎉 ${nicknameOf(t.playerId)}님 정답! (+${t.points}점)`
+                : `🎉 ${teamEmoji(t.rivalTeamId)} ${teams.find((team) => team.id === t.rivalTeamId)?.name ?? '다른 팀'} ${nicknameOf(t.playerId)}님 정답!`}
             </p>
           ))}
         </div>

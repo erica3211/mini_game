@@ -55,6 +55,16 @@
   margin: 0;
   text-align: center;
   overflow-wrap: anywhere;
+  /* 내 차례에 이 줄이 화면 맨 위에 오도록 스크롤할 때 위쪽에 남기는 여백 */
+  scroll-margin-top: 1rem;
+}
+
+/* 손가락으로 쓰는 기기(모바일): 화면 아래쪽 내용이 짧아 스크롤할 여유가 없으면 입력창이 키보드에 가리므로,
+   처음부터 아래에 여백을 두어 차례 안내 줄이 맨 위까지 올라올 수 있게 한다 (마우스로 쓰는 웹에서는 스크롤하지 않으므로 두지 않는다) */
+@media (pointer: coarse) {
+  .party-fourchars-stage {
+    padding-bottom: 60vh;
+  }
 }
 
 .party-fourchars-category-locked {
@@ -187,4 +197,30 @@
   border-radius: var(--radius);
   color: var(--text);
   font-size: 0.9rem;
+}
+
+/* 다른 사람이 지금 쓰고 있는 글자 (실시간) */
+.party-fourchars-typing {
+  margin: 0;
+  padding: 0.4rem 0.9rem;
+  background: var(--tint-info);
+  border: 1px dashed var(--text-info);
+  border-radius: var(--radius);
+  font-size: 0.95rem;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.party-fourchars-typing strong {
+  font-size: 1.1rem;
+  letter-spacing: 0.05em;
+}
+
+/* 아직 아무것도 안 썼을 때도 빈칸으로 보이게 — 글자가 들어와도 줄 크기가 변하지 않도록 최소 폭을 두고 밑줄을 긋는다 */
+.party-fourchars-typing-text {
+  display: inline-block;
+  min-width: 4.5em;
+  border-bottom: 2px solid var(--text-info);
+  text-align: center;
+  vertical-align: bottom;
 }

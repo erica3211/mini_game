@@ -49,6 +49,8 @@ export interface CatchmindCorrectToast {
   id: number
   playerId: PlayerId
   points: number
+  /** 팀전에서 다른 팀이 맞혔을 때만: 맞힌 팀 (우리 팀 소식이면 없다) */
+  rivalTeamId?: number
 }
 
 let chatIdSeq = 0
@@ -138,6 +140,11 @@ export function useCatchmindRound(
       setToasts((prev) => [...prev, { id, playerId: data.playerId, points: data.points }])
       window.setTimeout(() => setToasts((prev) => prev.filter((t) => t.id !== id)), TOAST_DURATION_MS)
     }
+    const onRivalSolved = (data: { teamId: number; playerId: PlayerId }) => {
+      const id = chatIdSeq++
+      setToasts((prev) => [...prev, { id, playerId: data.playerId, points: 0, rivalTeamId: data.teamId }])
+      window.setTimeout(() => setToasts((prev) => prev.filter((t) => t.id !== id)), TOAST_DURATION_MS)
+    }
     const onTurnEnd = (data: CatchmindTurnEndInfo) => {
       setLastTurnEnd(data)
       setFinishedTurnKey(`${roundKey}-${data.turnIndex}`)
@@ -180,6 +187,7 @@ export function useCatchmindRound(
 
     socket.on('catchmind:chatMessage', onChatMessage)
     socket.on('catchmind:correctGuess', onCorrectGuess)
+    socket.on('catchmind:rivalSolved', onRivalSolved)
     socket.on('catchmind:turnEnd', onTurnEnd)
     socket.on('catchmind:strokeStart', onStrokeStart)
     socket.on('catchmind:strokePoints', onStrokePoints)
@@ -189,6 +197,7 @@ export function useCatchmindRound(
     return () => {
       socket.off('catchmind:chatMessage', onChatMessage)
       socket.off('catchmind:correctGuess', onCorrectGuess)
+      socket.off('catchmind:rivalSolved', onRivalSolved)
       socket.off('catchmind:turnEnd', onTurnEnd)
       socket.off('catchmind:strokeStart', onStrokeStart)
       socket.off('catchmind:strokePoints', onStrokePoints)

@@ -107,6 +107,8 @@ export interface GameMeta {
   howToPlay: string
   /** 사용법을 보여줄 gif/이미지 (아직 없으면 undefined) */
   howToPlayMediaUrl?: string
+  /** 개인전 방에서 모두가 같은 점수를 받는 협동 게임 (로비 카드에 "협동"을 붙인다) */
+  cooperative?: boolean
   playTimeSeconds: number
   /** 이 게임을 즐길 수 있는 방 모드 — 서버가 방 모드에 맞는 게임만 gameCatalog에 담아 보낸다 */
   modes: RoomMode[]
@@ -313,6 +315,8 @@ export interface ClientToServerEvents {
   'simon:submit': (data: { stageIndex: number; answer: string[] }) => void
   /** 네글자 퀴즈 답 제출 — 지금 답할 차례인 사람만 낼 수 있고, 한 턴에 한 번뿐이다 */
   'fourChars:submit': (data: { text: string }) => void
+  /** 답할 사람이 입력창에 쓰고 있는 글자 (다른 사람들에게 실시간으로 보여주기용) */
+  'fourChars:typing': (data: { text: string }) => void
   /** 이모티콘 퀴즈: 표현자 지원 단계(5초)에서 "내가 이모티콘으로 표현하고 싶다"를 체크하거나 해제한다 */
   'emojiCharades:volunteer': (data: { want: boolean }) => void
   /** 표현자가 이모티콘 하나를 맨 뒤에 붙인다 (최대 12개) */
@@ -434,6 +438,8 @@ export interface ServerToClientEvents {
   'catchmind:chatMessage': (data: { playerId: PlayerId; text: string }) => void
   /** 누군가 정답을 맞혔을 때 전체에게 방송 (본인 포함) — 실제 정답 텍스트는 공개하지 않는다.
    *  points는 이번 턴에서 이 사람이 받은 점수 */
+  /** 팀전에서만: 다른 팀이 정답을 맞혔다는 소식 (점수와 정답은 알리지 않는다) */
+  'catchmind:rivalSolved': (data: { teamId: number; playerId: PlayerId }) => void
   'catchmind:correctGuess': (data: {
     playerId: PlayerId
     points: number
@@ -510,6 +516,8 @@ export interface ServerToClientEvents {
   'fourChars:turn': (data: FourCharsTurnSignal) => void
   /** 제한 시간이 10초 남았을 때 열리는 힌트 — 문제의 분류 */
   'fourChars:hint': (data: { turnIndex: number; category: string }) => void
+  /** 답할 사람이 지금 쓰고 있는 글자 — 답할 사람 본인을 뺀 모두에게 중계한다 */
+  'fourChars:typing': (data: { turnIndex: number; text: string }) => void
   /** 턴이 끝났을 때 전원에게 방송하는 정답과 결과 */
   'fourChars:turnResult': (data: FourCharsTurnResult) => void
   /** 이모티콘 퀴즈 표현자 지원 단계(재접속 시 재전송) */

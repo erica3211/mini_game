@@ -123,7 +123,7 @@ export function PartyRoundResults({ session }: Props) {
       return ` (3라운드 합산 ${entry.value}점)`
     }
     if (lastRound.gameId === 'telepathy' && entry.value !== undefined) {
-      return ` (${telepathyMeta?.subRounds.length ?? 3}라운드 합산 ${entry.value}점)`
+      return ` (${telepathyMeta?.subRounds.length ?? 3}라운드 합산 ${entry.value}점${lastRound.teams ? '' : ' · 협동'})`
     }
     if (lastRound.gameId === 'acrostic' && entry.value !== undefined) {
       return ` (받은 표 ${entry.value}표)`
@@ -150,7 +150,7 @@ export function PartyRoundResults({ session }: Props) {
       return ` (전체 턴 합산 ${entry.value}점)`
     }
     if (lastRound.gameId === 'telestration' && entry.value !== undefined) {
-      return ` (받은 표 ${entry.value}표)`
+      return ` (모두가 받은 표 ${entry.value}표 · 협동)`
     }
     return ''
   }
@@ -371,9 +371,11 @@ export function PartyRoundResults({ session }: Props) {
 
       {telepathyMeta && (
         <div className="party-telepathy-reveal">
-          {roundTeams.length > 0 && (
-            <p className="party-team-note">점수 기준: 팀원 모두가 같은 카드를 고른 팀만 점수를 받아요. 한 명이라도 다르면 0점이에요.</p>
-          )}
+          <p className="party-team-note">
+            {roundTeams.length > 0
+              ? '점수 기준: 팀원 모두가 같은 카드를 고른 팀만 점수를 받아요. 한 명이라도 다르면 0점이에요.'
+              : '점수 기준: 모두가 같은 카드를 골라야 다 같이 점수를 받아요. 한 명이라도 다르면 모두 0점이에요.'}
+          </p>
           <PartySubRoundPager current={subRoundPage} total={telepathyMeta.subRounds.length} onChange={setSubRoundPage} />
           <PartySubRoundCarousel current={subRoundPage} onChange={setSubRoundPage}>
             {telepathyMeta.subRounds.map((subRound) => (

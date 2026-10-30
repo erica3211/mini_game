@@ -20,6 +20,7 @@
 
 /* 요약 문단의 기본 여백 때문에 박스 위쪽이 휑해 보이지 않게 없앤다 (간격은 .rules padding이 담당) */
 .rules > p:first-child {
+  white-space: pre-line;
   margin: 0;
 }
 

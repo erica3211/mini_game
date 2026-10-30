@@ -11,6 +11,7 @@ import {
   TEAM_NAMES,
   minPlayersToStart,
   type GameId,
+  type GameMeta,
   type PlayerInfo,
 } from '../../shared/lib/partyProtocol'
 import { WORD_CHAIN_MIN_CANDIDATES } from '../games/wordChain/protocol'
@@ -37,8 +38,11 @@ export function PartyLobby({ session }: Props) {
   const navigate = useNavigate()
   const state = session.roomState!
   const [copied, setCopied] = useState(false)
+  const [codeCopied, setCodeCopied] = useState(false)
   const [categoryModalOpen, setCategoryModalOpen] = useState(false)
   const [gamePage, setGamePage] = useState(0)
+  // 플레이 방법(?)을 보고 있는 게임 (null이면 모달이 닫혀 있다)
+  const [helpGame, setHelpGame] = useState<GameMeta | null>(null)
   // 내 팀 색을 고르는 창이 열려 있는가
   const [paletteOpen, setPaletteOpen] = useState(false)
   // 방장 권한을 넘길지 확인 중인 참가자 (null이면 확인창이 닫혀 있다)
@@ -109,6 +113,16 @@ export function PartyLobby({ session }: Props) {
     return Number(b.connected) - Number(a.connected)
   })
 
+  const handleCopyCode = async () => {
+    try {
+      await navigator.clipboard.writeText(state.code)
+    } catch {
+      return
+    }
+    setCodeCopied(true)
+    setTimeout(() => setCodeCopied(false), 1500)
+  }
+
   const handleCopy = async () => {
     await navigator.clipboard.writeText(inviteUrl)
     setCopied(true)
@@ -146,11 +160,19 @@ export function PartyLobby({ session }: Props) {
   return (
     <section className="game-page">
       <h1 className="page-title">{isTeamRoom ? '👥 팀전 대기실' : '🎉 파티게임 대기실'}</h1>
-      <p className="page-subtitle">방 코드 {state.code}</p>
+      <div className="party-invite party-room-code">
+        <div className="party-room-code-main" aria-label={`방 코드 ${state.code}`}>
+          <span className="party-room-code-label">방 코드</span>
+          <strong className="party-room-code-value">{state.code}</strong>
+        </div>
+        <button type="button" className="btn btn-primary party-room-code-copy" onClick={handleCopyCode}>
+          {codeCopied ? '복사됨!' : '코드 복사'}
+        </button>
+      </div>
 
       <div className="party-invite">
         <input className="party-invite-input" readOnly value={inviteUrl} onFocus={(e) => e.currentTarget.select()} />
-        <button type="button" className="btn btn-primary" onClick={handleCopy}>
+        <button type="button" className="btn btn-primary party-room-code-copy" onClick={handleCopy}>
           {copied ? '복사됨!' : '링크 복사'}
         </button>
       </div>
@@ -377,28 +399,39 @@ export function PartyLobby({ session }: Props) {
                 key={game.id}
                 className={`party-game-card${selected ? ' party-game-card-selected' : ''}${configLocked || game.comingSoon || notEnoughPlayers ? ' party-game-card-disabled' : ''}`}
               >
-                <button
-                  type="button"
-                  className="party-game-card-main"
-                  disabled={configLocked || game.comingSoon || notEnoughPlayers}
-                  aria-pressed={selected}
-                  onClick={() => toggleGame(game.id)}
-                >
-                  <span className="party-game-card-title">
-                    {game.emoji} {game.title}
-                    {game.comingSoon && <span className="party-coming-soon"> (준비중)</span>}
-                    {!game.comingSoon && notEnoughPlayers && (
-                      <span className="party-coming-soon"> ({game.minPlayers}명 이상 필요)</span>
-                    )}
-                  </span>
-                  <span className="party-game-card-desc">"{game.description}"</span>
-                  <span className="party-game-card-meta">
-                    <span>⏱️ {game.playTimeSeconds}초 소요</span>
-                    <span>
-                      {game.mechanismCategory.icon} {game.mechanismCategory.name}
+                <div className="party-game-card-top">
+                  <button
+                    type="button"
+                    className="party-game-card-main"
+                    disabled={configLocked || game.comingSoon || notEnoughPlayers}
+                    aria-pressed={selected}
+                    onClick={() => toggleGame(game.id)}
+                  >
+                    <span className="party-game-card-title">
+                      {game.emoji} {game.title}
+                      {game.comingSoon && <span className="party-coming-soon"> (준비중)</span>}
+                      {!game.comingSoon && notEnoughPlayers && (
+                        <span className="party-coming-soon"> ({game.minPlayers}명 이상 필요)</span>
+                      )}
                     </span>
-                  </span>
-                </button>
+                    <span className="party-game-card-desc">"{game.description}"</span>
+                    <span className="party-game-card-meta">
+                      <span>⏱️ {game.playTimeSeconds}초 소요</span>
+                      <span>
+                        {game.mechanismCategory.icon} {game.mechanismCategory.name}
+                      </span>
+                      {game.cooperative && <span>🤝 협동</span>}
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    className="party-game-help"
+                    aria-label={`${game.title} 플레이 방법 보기`}
+                    onClick={() => setHelpGame(game)}
+                  >
+                    ?
+                  </button>
+                </div>
                 {game.id === 'telestration' && selected && (
                   <div className="party-game-extra">
                     <span>
@@ -484,6 +517,30 @@ export function PartyLobby({ session }: Props) {
           </CategoryPicker>
         </Modal>
       </div>
+
+      <Modal
+        open={helpGame !== null}
+        title={helpGame ? `${helpGame.emoji} ${helpGame.title}` : ''}
+        doneLabel="닫기"
+        onClose={() => setHelpGame(null)}
+      >
+        {helpGame && (
+          <div className="party-howto-modal">
+            {/* 플레이 방법 이미지는 게임 정보(GAME_CATALOG)의 howToPlayMediaUrl에 주소를 넣으면 여기에 나온다 */}
+            {helpGame.howToPlayMediaUrl && (
+              <img className="party-howtoplay-media" src={helpGame.howToPlayMediaUrl} alt={`${helpGame.title} 플레이 방법`} />
+            )}
+            <p className="party-howto-modal-meta">
+              <span>⏱️ {helpGame.playTimeSeconds}초 소요</span>
+              <span>
+                {helpGame.mechanismCategory.icon} {helpGame.mechanismCategory.name}
+              </span>
+              {helpGame.minPlayers !== undefined && helpGame.minPlayers > DEFAULT_GAME_MIN_PLAYERS && <span>👥 {helpGame.minPlayers}명 이상</span>}
+            </p>
+            <p className="party-howto-modal-text">{helpGame.howToPlay}</p>
+          </div>
+        )}
+      </Modal>
 
       <Modal open={paletteOpen && isTeamRoom} title="팀 색 고르기" doneLabel="닫기" onClose={() => setPaletteOpen(false)}>
         <p className="party-team-note">내 팀의 색을 바꿔요. 다른 팀이 쓰고 있는 색은 고를 수 없어요.</p>

@@ -129,13 +129,7 @@
   transition: border-color 0.15s, background 0.15s;
 }
 
-/* 참가하기 팝업: 선택된 방 종류 */
-.party-mode-option-selected {
-  border-color: var(--text-info);
-  background: var(--tint-info);
-}
-
-/* 참가하기 팝업: 방 종류 + 방 번호 + 입장 버튼 */
+/* 참가하기 팝업: 방 번호 + 입장 버튼 */
 .party-join-form {
   display: grid;
   gap: 0.75rem;

@@ -52,9 +52,8 @@ export function Home() {
   const navigate = useNavigate()
   // 파티게임 방 만들기를 누르면 개인전/팀전 중 어느 방식으로 만들지 먼저 묻는다
   const [modeModalOpen, setModeModalOpen] = useState(false)
-  // 파티게임 참가하기: 방 종류(개인전/팀전)와 방 번호를 입력해 들어간다
+  // 파티게임 참가하기: 방 번호만 입력하면 서버가 알려주는 방 종류(개인전/팀전)로 들어간다
   const [joinModalOpen, setJoinModalOpen] = useState(false)
-  const [joinMode, setJoinMode] = useState<RoomMode>('individual')
   const [joinCode, setJoinCode] = useState('')
   const codeInputRef = useRef<HTMLInputElement>(null)
   const [joinError, setJoinError] = useState<string | null>(null)
@@ -138,25 +137,6 @@ export function Home() {
         }
       >
         <form id="party-join-form" className="party-join-form" onSubmit={handleJoin}>
-          <div className="party-mode-options">
-            {(
-              [
-                { mode: 'individual', emoji: '👤', label: '개인전' },
-                { mode: 'team', emoji: '👥', label: '팀전' },
-              ] as const
-            ).map((option) => (
-              <button
-                key={option.mode}
-                type="button"
-                className={`party-mode-option${joinMode === option.mode ? ' party-mode-option-selected' : ''}`}
-                aria-pressed={joinMode === option.mode}
-                onClick={() => setJoinMode(option.mode)}
-              >
-                <span className="party-mode-option-emoji">{option.emoji}</span>
-                <span className="party-mode-option-label">{option.label}</span>
-              </button>
-            ))}
-          </div>
           <div className="party-join-code-row">
             <span className="party-join-code-label">방 번호 :</span>
             <RoomCodeInput
