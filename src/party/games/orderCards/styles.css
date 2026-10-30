@@ -1,0 +1,212 @@
+/* 순서 맞추기 */
+.party-order-stage {
+  gap: 0.7rem;
+  width: 100%;
+}
+
+.party-order-round {
+  margin: 0;
+  font-size: 1.3rem;
+  font-weight: 800;
+}
+
+.party-order-round-max {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.party-order-lives {
+  margin: 0;
+  font-size: 1.4rem;
+  letter-spacing: 0.1em;
+}
+
+.party-order-rule {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  text-align: center;
+}
+
+.party-order-banner {
+  margin: 0;
+  padding: 0.5rem 0.9rem;
+  background: var(--tint-info);
+  border: 1px solid var(--text-info);
+  border-radius: var(--radius);
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+/* 내 카드 — 가장 작은 카드(다음에 낼 카드)를 크게 강조한다 */
+.party-order-hand {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  min-height: 5.5rem;
+}
+
+.party-order-hand-empty {
+  color: var(--text-muted);
+}
+
+.party-order-card {
+  min-width: 3.4rem;
+  padding: 0.8rem 0.9rem;
+  background: var(--surface);
+  border: 2px solid var(--border-strong);
+  border-radius: var(--radius);
+  font-size: 1.5rem;
+  font-weight: 800;
+  text-align: center;
+}
+
+.party-order-card-next {
+  min-width: 4.6rem;
+  padding: 1rem 1.1rem;
+  border-color: var(--text-info);
+  background: var(--tint-info);
+  font-size: 2.2rem;
+}
+
+.party-order-play {
+  width: 100%;
+  max-width: 420px;
+  min-height: 4.2rem;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius);
+  font: inherit;
+  font-size: 1.4rem;
+  font-weight: 800;
+  cursor: pointer;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.party-order-play:disabled {
+  background: var(--border-strong);
+  cursor: default;
+}
+
+.party-order-play:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+/* 팀원별 남은 카드 수 */
+.party-order-counts {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.3rem 0.8rem;
+  font-size: 0.85rem;
+}
+
+.party-order-counts-me {
+  font-weight: 700;
+}
+
+/* 이번 라운드에 나온 카드들 — 낸 순서대로, 버려진 카드는 흐리게 */
+.party-order-played {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.4rem;
+  width: 100%;
+  max-width: 420px;
+}
+
+.party-order-played li {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 3.6rem;
+  padding: 0.3rem 0.5rem;
+  background: var(--tint-strike);
+  border: 1px solid var(--text-success);
+  border-radius: var(--radius);
+  font-size: 0.7rem;
+}
+
+.party-order-played li strong {
+  font-size: 1.1rem;
+}
+
+.party-order-played-discard {
+  background: var(--tint-warn) !important;
+  border-color: var(--text-danger, #d4472a) !important;
+  opacity: 0.8;
+}
+
+.party-order-played-discard strong {
+  text-decoration: line-through;
+}
+
+/* 모든 팀의 진행 상황 */
+.party-order-standings {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.3rem;
+  width: 100%;
+  max-width: 420px;
+}
+
+.party-order-standing {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.3rem 0.7rem;
+  border-width: 2px;
+  border-style: solid;
+  border-radius: var(--radius);
+  font-size: 0.85rem;
+}
+
+.party-order-standing-mine {
+  font-weight: 700;
+}
+
+/* 결과 화면: 팀별 기록 */
+.party-order-recap {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.4rem;
+}
+
+.party-order-recap-item {
+  display: grid;
+  gap: 0.15rem;
+  padding: 0.5rem 0.75rem;
+  border-width: 2px;
+  border-style: solid;
+  border-radius: var(--radius);
+  color: var(--text);
+  font-size: 0.85rem;
+}
+
+.party-order-recap-head {
+  font-weight: 700;
+}
+
+.party-order-recap-rounds {
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+}

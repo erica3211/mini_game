@@ -29,6 +29,8 @@ import { PixelCanvasSnapshot } from '../games/pixelCanvas/PixelCanvasSnapshot'
 import { SimonStageReveal } from '../games/simon/SimonStageReveal'
 import { CharacterDescribeRecap } from '../games/characterDescribe/CharacterDescribeRecap'
 import { MazeRecap } from '../games/mazeEscape/MazeRecap'
+import { OrderCardsRecap } from '../games/orderCards/OrderCardsRecap'
+import type { OrderCardsRoundMeta } from '../games/orderCards/protocol'
 import { TugRecap } from '../games/tugOfWar/TugRecap'
 import type { TugRoundMeta } from '../games/tugOfWar/protocol'
 import type { MazeRoundMeta } from '../games/mazeEscape/protocol'
@@ -74,6 +76,7 @@ export function PartyRoundResults({ session }: Props) {
   const minorityMeta = lastRound.gameId === 'minority' ? (lastRound.meta as MinorityRoundMeta | undefined) : undefined
   const simonMeta = lastRound.gameId === 'simon' ? (lastRound.meta as SimonRoundMeta | undefined) : undefined
   const mazeMeta = lastRound.gameId === 'mazeEscape' ? (lastRound.meta as MazeRoundMeta | undefined) : undefined
+  const orderCardsMeta = lastRound.gameId === 'orderCards' ? (lastRound.meta as OrderCardsRoundMeta | undefined) : undefined
   const tugMeta = lastRound.gameId === 'tugOfWar' ? (lastRound.meta as TugRoundMeta | undefined) : undefined
   const characterDescribeMeta =
     lastRound.gameId === 'characterDescribe' ? (lastRound.meta as CharacterRoundMeta | undefined) : undefined
@@ -92,6 +95,9 @@ export function PartyRoundResults({ session }: Props) {
     }
     if (lastRound.gameId === 'shoutRace' && entry.value !== undefined) {
       return entry.dnf ? ` (${entry.value}% 도달)` : ` (${(entry.value / 1000).toFixed(2)}초 만에 완주)`
+    }
+    if (lastRound.gameId === 'orderCards' && entry.value !== undefined) {
+      return ` (${Math.floor(entry.value / 10)}라운드 클리어 · 목숨 ${entry.value % 10}개)`
     }
     if (lastRound.gameId === 'tugOfWar' && entry.value !== undefined) {
       return ` (팀 1인당 평균 ${entry.value.toFixed(1)}번)`
@@ -194,13 +200,16 @@ export function PartyRoundResults({ session }: Props) {
     .map((row, _index, rows) => ({ ...row, rank: rows.findIndex((other) => other.rank === row.rank) + 1 }))
 
   const standingDetailOf = (row: { score: number; dnf: boolean }) => {
+    if (lastRound.gameId === 'orderCards') return `${Math.floor(row.score / 10)}라운드 클리어 · 목숨 ${row.score % 10}개`
     if (lastRound.gameId === 'tugOfWar') return `1인당 평균 ${row.score.toFixed(1)}번 누름`
     if (lastRound.gameId === 'mazeEscape') return row.dnf ? `${row.score}%까지 도착` : `${(row.score / 1000).toFixed(1)}초에 탈출`
     if (lastRound.gameId === 'emojiCharades' || lastRound.gameId === 'characterDescribe') return row.score ? '정답을 맞혔어요' : '못 맞혔어요'
     return `합산 ${row.score}점`
   }
   const standingNote =
-    lastRound.gameId === 'tugOfWar'
+    lastRound.gameId === 'orderCards'
+      ? '더 많은 라운드를 깬 팀이 1등이고, 같으면 목숨이 많이 남은 팀, 그것도 같으면 빨리 끝낸 팀 순이에요. 순위에 따라 받는 점수(초록색)가 누적 점수에 더해져요.'
+      : lastRound.gameId === 'tugOfWar'
       ? '팀이 누른 횟수를 팀 인원으로 나눈 값(1인당 평균)이 큰 팀이 1등이에요. 순위에 따라 받는 점수(초록색)가 누적 점수에 더해져요.'
       : lastRound.gameId === 'mazeEscape'
       ? '먼저 탈출한 팀이 1등이고, 못 나간 팀은 출구에 가까이 갔던 순서예요. 순위에 따라 받는 점수(초록색)가 누적 점수에 더해져요.'
@@ -513,6 +522,7 @@ export function PartyRoundResults({ session }: Props) {
       )}
 
       {mazeMeta && <MazeRecap meta={mazeMeta} teams={roundTeams} />}
+      {orderCardsMeta && <OrderCardsRecap meta={orderCardsMeta} teams={roundTeams} />}
       {tugMeta && <TugRecap meta={tugMeta} teams={roundTeams} playerId={session.playerId} nicknameOf={plainNicknameOf} />}
 
       {characterDescribeMeta && <CharacterDescribeRecap meta={characterDescribeMeta} teams={roundTeams} nicknameOf={plainNicknameOf} />}

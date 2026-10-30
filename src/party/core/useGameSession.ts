@@ -6,6 +6,7 @@ import type { LiarQuizWriteSignal, LiarQuizGuessSignal, LiarQuizComposeSignal } 
 import type { MinorityStartSignal } from '../games/minority/protocol'
 import type { FindOddRoundSignal } from '../games/findOdd/protocol'
 import type { StroopQuestionSignal } from '../games/stroop/protocol'
+import type { OrderCardsEndSignal, OrderCardsStanding, OrderCardsStateSignal } from '../games/orderCards/protocol'
 import type { TugStartSignal } from '../games/tugOfWar/protocol'
 import type { MouseHunterMouse } from '../games/mouseHunter/protocol'
 import type { ScavengerHuntRoundTarget } from '../games/scavengerHunt/protocol'
@@ -118,6 +119,9 @@ export function useGameSession(roomCodeFromUrl?: string) {
   const [findOddRound, setFindOddRound] = useState<FindOddRoundSignal | null>(null)
   const [stroopQuestion, setStroopQuestion] = useState<StroopQuestionSignal | null>(null)
   const [tugStart, setTugStart] = useState<TugStartSignal | null>(null)
+  const [orderCardsState, setOrderCardsState] = useState<OrderCardsStateSignal | null>(null)
+  const [orderCardsStandings, setOrderCardsStandings] = useState<OrderCardsStanding[]>([])
+  const [orderCardsEnd, setOrderCardsEnd] = useState<OrderCardsEndSignal | null>(null)
   const [scavengerHuntStart, setScavengerHuntStart] = useState<{
     subRoundIndex: number
     target: ScavengerHuntRoundTarget
@@ -202,6 +206,9 @@ export function useGameSession(roomCodeFromUrl?: string) {
         setFindOddRound(null)
         setStroopQuestion(null)
         setTugStart(null)
+        setOrderCardsState(null)
+        setOrderCardsStandings([])
+        setOrderCardsEnd(null)
         setScavengerHuntStart(null)
         setShoutRaceStart(null)
         setShoutRaceCountdown(null)
@@ -252,6 +259,9 @@ export function useGameSession(roomCodeFromUrl?: string) {
     const onFindOddRound = (data: FindOddRoundSignal) => setFindOddRound(data)
     const onStroopQuestion = (data: StroopQuestionSignal) => setStroopQuestion(data)
     const onTugStart = (data: TugStartSignal) => setTugStart(data)
+    const onOrderCardsState = (data: OrderCardsStateSignal) => setOrderCardsState(data)
+    const onOrderCardsStandings = (data: { standings: OrderCardsStanding[] }) => setOrderCardsStandings(data.standings)
+    const onOrderCardsEnd = (data: OrderCardsEndSignal) => setOrderCardsEnd(data)
     const onScavengerHuntStart = (data: { subRoundIndex: number; target: ScavengerHuntRoundTarget; elapsedMs: number; submitted?: boolean }) =>
       setScavengerHuntStart(data)
     const onShoutRaceStart = (data: { elapsedMs: number }) => setShoutRaceStart(data)
@@ -345,6 +355,9 @@ export function useGameSession(roomCodeFromUrl?: string) {
     socket.on('findOdd:roundStart', onFindOddRound)
     socket.on('stroop:question', onStroopQuestion)
     socket.on('tugOfWar:start', onTugStart)
+    socket.on('orderCards:state', onOrderCardsState)
+    socket.on('orderCards:standings', onOrderCardsStandings)
+    socket.on('orderCards:end', onOrderCardsEnd)
     socket.on('scavengerHunt:roundStart', onScavengerHuntStart)
     socket.on('shoutRace:roundStart', onShoutRaceStart)
     socket.on('shoutRace:countdown', onShoutRaceCountdown)
@@ -405,6 +418,9 @@ export function useGameSession(roomCodeFromUrl?: string) {
       socket.off('findOdd:roundStart', onFindOddRound)
       socket.off('stroop:question', onStroopQuestion)
       socket.off('tugOfWar:start', onTugStart)
+      socket.off('orderCards:state', onOrderCardsState)
+      socket.off('orderCards:standings', onOrderCardsStandings)
+      socket.off('orderCards:end', onOrderCardsEnd)
       socket.off('scavengerHunt:roundStart', onScavengerHuntStart)
       socket.off('shoutRace:roundStart', onShoutRaceStart)
       socket.off('shoutRace:countdown', onShoutRaceCountdown)
@@ -589,6 +605,9 @@ export function useGameSession(roomCodeFromUrl?: string) {
     findOddRound,
     stroopQuestion,
     tugStart,
+    orderCardsState,
+    orderCardsStandings,
+    orderCardsEnd,
     scavengerHuntStart,
     shoutRaceStart,
     shoutRaceCountdown,
