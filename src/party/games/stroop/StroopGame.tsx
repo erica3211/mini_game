@@ -38,11 +38,28 @@ export function StroopGame({ socket, roundKey, signal, playerId, players }: Prop
   const isInk = signal.type === 'ink'
   // 글자를 눌러서 답하는 유형(보기 색 동그라미가 없는 유형)
   const isTap = !isInk
-  const isChain = signal.type === 'chain' || signal.type === 'chainRev'
+  const isChain = signal.type === 'chain' || signal.type === 'chainRev' || signal.type === 'chain3' || signal.type === 'chain3Rev'
   const colorName = (index: number) => STROOP_COLORS[index]?.name ?? '?'
   const colorValue = (index: number) => STROOP_COLORS[index]?.value ?? '#111'
-  // 두 단계 유형에서 거쳐 가는 글자(첫 단계에서 찾는 글자) — chain은 물어본 글자, chainRev는 그 색으로 칠해진 글자
-  const viaIndex = signal.type === 'chain' ? signal.target : signal.type === 'chainRev' ? signal.words.findIndex((w) => w.ink === signal.target) : -1
+  // 여러 단계 유형에서 풀이 때 거쳐 가는 글자들 — 정답 풀이를 보여줄 때 점선으로 표시한다
+  const viaIndices = ((): number[] => {
+    const byName = (color: number) => signal.words.findIndex((w) => w.nameColor === color)
+    const byInk = (color: number) => signal.words.findIndex((w) => w.ink === color)
+    switch (signal.type) {
+      case 'chain':
+        return [signal.target]
+      case 'chainRev':
+        return [byInk(signal.target)]
+      case 'chain3':
+        return [signal.target, byName(signal.words[signal.target].ink)]
+      case 'chain3Rev': {
+        const first = byInk(signal.target)
+        return [first, byInk(signal.words[first].nameColor)]
+      }
+      default:
+        return []
+    }
+  })()
   const colorChip = (index: number) => (
     <strong style={{ color: colorValue(index) }} className="party-stroop-prompt-color">
       {colorName(index)}
@@ -75,6 +92,18 @@ export function StroopGame({ socket, roundKey, signal, playerId, players }: Prop
             {colorChip(signal.target)}으로 칠해진 글자가 <strong>말하는 색</strong>으로 칠해진 글자를 누르세요!
           </>
         )
+      case 'chain3':
+        return (
+          <>
+            <strong>‘{colorName(signal.words[signal.target].nameColor)}’</strong>이라고 적힌 글자의 <strong>색과 같은 이름을 가진 글자의 색과 같은 이름</strong>의 글자를 누르세요!
+          </>
+        )
+      case 'chain3Rev':
+        return (
+          <>
+            {colorChip(signal.target)}으로 칠해진 글자가 <strong>말하는 색으로 칠해진 글자가 말하는 색</strong>으로 칠해진 글자를 누르세요!
+          </>
+        )
     }
   })()
 
@@ -85,7 +114,6 @@ export function StroopGame({ socket, roundKey, signal, playerId, players }: Prop
     }
     if (iAnswered) return '맞혔어요! 다른 사람을 기다리는 중...'
     if (locked) return '틀렸어요! 잠깐 기다리세요...'
-    if (isChain) return '두 단계예요! 먼저 한 글자를 찾고, 거기서 이어지는 글자를 누르세요.'
     return isInk ? '글자의 뜻이 아니라 칠해진 색을 보세요!' : '글자의 뜻이 아니라 칠해진 색을 보고 찾으세요!'
   })()
 
@@ -115,7 +143,7 @@ export function StroopGame({ socket, roundKey, signal, playerId, players }: Prop
         <div className={`party-stroop-words${locked ? ' party-stroop-words-locked' : ''}`}>
           {signal.words.map((word, index) => {
             const isAnswer = result !== null && isTap && index === result.answer
-            const isVia = result !== null && isChain && index === viaIndex
+            const isVia = result !== null && isChain && viaIndices.includes(index)
             return (
               <button
                 key={index}

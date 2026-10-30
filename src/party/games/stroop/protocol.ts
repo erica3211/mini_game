@@ -4,9 +4,10 @@ import type { PlayerId } from '../../../shared/lib/partyProtocol'
 
 /**
  * 문제 유형 — ink: 글자의 색을 고른다 / word: 어떤 색으로 쓰인 글자를 누른다 /
- * chain: 어떤 글자의 칠해진 색을 찾고 그 색 이름의 글자를 누른다 / chainRev: 어떤 색으로 칠해진 글자가 말하는 색을 찾고 그 색으로 칠해진 글자를 누른다
+ * chain: 어떤 글자의 칠해진 색을 찾고 그 색 이름의 글자를 누른다 / chainRev: 어떤 색으로 칠해진 글자가 말하는 색을 찾고 그 색으로 칠해진 글자를 누른다 /
+ * chain3, chain3Rev: chain, chainRev를 두 번 건너뛴다 (세 단계)
  */
-export type StroopQuestionType = 'ink' | 'word' | 'chain' | 'chainRev'
+export type StroopQuestionType = 'ink' | 'word' | 'chain' | 'chainRev' | 'chain3' | 'chain3Rev'
 
 export interface StroopWord {
   /** 글자가 말하는 색의 번호 */
@@ -34,7 +35,7 @@ export interface StroopQuestionSignal {
   totalQuestions: number
   type: StroopQuestionType
   words: StroopWord[]
-  /** ink·chain 유형: 물어볼 글자의 번호 / word·chainRev 유형: 시작점이 되는 칠해진 색의 번호 */
+  /** ink·chain·chain3 유형: 시작할 글자의 번호 / word·chainRev·chain3Rev 유형: 시작점이 되는 칠해진 색의 번호 */
   target: number
   options: number[]
   /** 이 문제의 제한 시간 */
