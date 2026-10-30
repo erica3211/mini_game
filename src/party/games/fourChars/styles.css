@@ -259,3 +259,29 @@
   flex-wrap: wrap;
   border-color: var(--border);
 }
+
+/* 개인전 결과: 문제 하나에 사람별 답을 세로로 나열한다 */
+.party-fourchars-recap-everyone {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.35rem;
+}
+
+.party-fourchars-recap-question {
+  font-weight: 700;
+}
+
+.party-fourchars-recap-answers {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.2rem;
+}
+
+.party-fourchars-recap-answers li {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  overflow-wrap: anywhere;
+}

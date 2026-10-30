@@ -1,0 +1,175 @@
+/* 글자색 대결 */
+.party-stroop-stage {
+  gap: 0.9rem;
+  width: 100%;
+}
+
+.party-stroop-play {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.7rem;
+  width: 100%;
+  scroll-margin-top: 0.5rem;
+}
+
+.party-stroop-round {
+  margin: 0;
+  font-size: 1.3rem;
+  font-weight: 800;
+}
+
+.party-stroop-round-max {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+/* 사람별 점수 */
+.party-stroop-players,
+.party-stroop-result {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.25rem;
+  width: 100%;
+  max-width: 420px;
+}
+
+.party-stroop-players li,
+.party-stroop-result li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: var(--radius);
+  font-size: 0.85rem;
+}
+
+.party-stroop-player-me {
+  background: var(--tint-info);
+  font-weight: 700;
+}
+
+.party-stroop-prompt {
+  margin: 0.2rem 0;
+  text-align: center;
+  font-size: 1.15rem;
+  line-height: 1.5;
+}
+
+/* 묻는 색 이름 — 바탕이 어두운 모드에서 검정이 안 보이지 않게 밝은 칩 위에 얹는다 */
+.party-stroop-prompt-color {
+  padding: 0.05rem 0.45rem;
+  background: #eeeef3;
+  border-radius: 6px;
+}
+
+/* 색 이름 글자들 — 글자마다 칠해진 색이 다르다. 밝은 회색 칩 위에 얹어서 라이트·다크 모드와 상관없이 같은 색으로 보인다 */
+.party-stroop-words {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  max-width: 420px;
+}
+
+.party-stroop-words-locked {
+  opacity: 0.55;
+}
+
+.party-stroop-word {
+  min-width: 5.2rem;
+  margin: 0;
+  padding: 0.6rem 0.9rem;
+  background: #eeeef3;
+  border: 2px solid transparent;
+  border-radius: var(--radius);
+  font-family: inherit;
+  font-size: 1.35rem;
+  font-weight: 800;
+  line-height: 1.1;
+  cursor: default;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.party-stroop-word:disabled {
+  opacity: 1;
+}
+
+.party-stroop-word-tappable {
+  cursor: pointer;
+}
+
+.party-stroop-word-dim {
+  opacity: 0.35;
+}
+
+.party-stroop-word-answer {
+  border-color: var(--text-success);
+  box-shadow: 0 0 0 3px var(--text-success);
+  opacity: 1;
+}
+
+.party-stroop-word-wrong,
+.party-stroop-swatch-wrong {
+  border-color: var(--text-danger, #d4472a);
+  box-shadow: 0 0 0 3px var(--text-danger, #d4472a);
+}
+
+/* ink 유형의 보기 — 색 동그라미 */
+.party-stroop-options {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.7rem;
+  width: 100%;
+  max-width: 420px;
+}
+
+.party-stroop-swatch {
+  width: 3.2rem;
+  height: 3.2rem;
+  margin: 0;
+  padding: 0;
+  border: 3px solid #eeeef3;
+  border-radius: 50%;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.party-stroop-swatch:disabled {
+  cursor: default;
+  opacity: 1;
+}
+
+.party-stroop-swatch.party-stroop-word-dim {
+  opacity: 0.3;
+}
+
+.party-stroop-swatch-answer {
+  border-color: var(--text-success);
+  box-shadow: 0 0 0 3px var(--text-success);
+  opacity: 1;
+}
+
+.party-stroop-hint {
+  margin: 0;
+  text-align: center;
+}
+
+.party-stroop-hint-wrong {
+  color: var(--text-danger, #d4472a);
+  font-weight: 700;
+}
+
+/* 두 단계 유형에서 거쳐 간 글자 — 정답 풀이를 보여줄 때 점선 테두리로 표시한다 */
+.party-stroop-word-via {
+  border: 2px dashed var(--text-info);
+  opacity: 1;
+}

@@ -5,6 +5,7 @@ import type { CatchmindChatHistoryEntry, CatchmindStroke } from '../games/catchm
 import type { LiarQuizWriteSignal, LiarQuizGuessSignal, LiarQuizComposeSignal } from '../games/liarQuiz/protocol'
 import type { MinorityStartSignal } from '../games/minority/protocol'
 import type { FindOddRoundSignal } from '../games/findOdd/protocol'
+import type { StroopQuestionSignal } from '../games/stroop/protocol'
 import type { MouseHunterMouse } from '../games/mouseHunter/protocol'
 import type { ScavengerHuntRoundTarget } from '../games/scavengerHunt/protocol'
 import { reduceMaze, type MazeAction, type MazeViewState } from '../games/mazeEscape/protocol'
@@ -114,6 +115,7 @@ export function useGameSession(roomCodeFromUrl?: string) {
     elapsedMs: number
   } | null>(null)
   const [findOddRound, setFindOddRound] = useState<FindOddRoundSignal | null>(null)
+  const [stroopQuestion, setStroopQuestion] = useState<StroopQuestionSignal | null>(null)
   const [scavengerHuntStart, setScavengerHuntStart] = useState<{
     subRoundIndex: number
     target: ScavengerHuntRoundTarget
@@ -196,6 +198,7 @@ export function useGameSession(roomCodeFromUrl?: string) {
         setBalloonPopStart(null)
         setMouseHunterStart(null)
         setFindOddRound(null)
+        setStroopQuestion(null)
         setScavengerHuntStart(null)
         setShoutRaceStart(null)
         setShoutRaceCountdown(null)
@@ -244,6 +247,7 @@ export function useGameSession(roomCodeFromUrl?: string) {
     const onMouseHunterStart = (data: { mice: MouseHunterMouse[]; caughtCount: number; elapsedMs: number }) =>
       setMouseHunterStart(data)
     const onFindOddRound = (data: FindOddRoundSignal) => setFindOddRound(data)
+    const onStroopQuestion = (data: StroopQuestionSignal) => setStroopQuestion(data)
     const onScavengerHuntStart = (data: { subRoundIndex: number; target: ScavengerHuntRoundTarget; elapsedMs: number; submitted?: boolean }) =>
       setScavengerHuntStart(data)
     const onShoutRaceStart = (data: { elapsedMs: number }) => setShoutRaceStart(data)
@@ -335,6 +339,7 @@ export function useGameSession(roomCodeFromUrl?: string) {
     socket.on('balloonPop:roundStart', onBalloonPopStart)
     socket.on('mouseHunter:roundStart', onMouseHunterStart)
     socket.on('findOdd:roundStart', onFindOddRound)
+    socket.on('stroop:question', onStroopQuestion)
     socket.on('scavengerHunt:roundStart', onScavengerHuntStart)
     socket.on('shoutRace:roundStart', onShoutRaceStart)
     socket.on('shoutRace:countdown', onShoutRaceCountdown)
@@ -393,6 +398,7 @@ export function useGameSession(roomCodeFromUrl?: string) {
       socket.off('balloonPop:roundStart', onBalloonPopStart)
       socket.off('mouseHunter:roundStart', onMouseHunterStart)
       socket.off('findOdd:roundStart', onFindOddRound)
+      socket.off('stroop:question', onStroopQuestion)
       socket.off('scavengerHunt:roundStart', onScavengerHuntStart)
       socket.off('shoutRace:roundStart', onShoutRaceStart)
       socket.off('shoutRace:countdown', onShoutRaceCountdown)
@@ -575,6 +581,7 @@ export function useGameSession(roomCodeFromUrl?: string) {
     balloonPopStart,
     mouseHunterStart,
     findOddRound,
+    stroopQuestion,
     scavengerHuntStart,
     shoutRaceStart,
     shoutRaceCountdown,
