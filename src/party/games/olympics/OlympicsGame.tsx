@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent } fr
 import type { Socket } from 'socket.io-client'
 import type { OlympicsAttempt, OlympicsStateSignal, OlympicsTrackSignal } from './protocol'
 import { BaseballField } from './BaseballField'
+import { ZoneDuelField } from './ZoneDuelField'
 import { BOWLING_REVEAL_MS, BowlingLane, LIFT_REVEAL_MS, WeightliftingStage } from './OlympicsStages'
 import type { ClientToServerEvents, PlayerInfo, ServerToClientEvents, TeamInfo } from '../../../shared/lib/partyProtocol'
 import { teamColorClass, teamEmoji, teamOf } from '../../core/PartyTeamBanner'
@@ -165,7 +166,20 @@ export function OlympicsGame({ socket, roundKey, state, playerId, players, teams
       {state.phase === 'play' && (
         <>
           {isDuel ? (
-            state.baseball && (
+            <>
+              {state.zoneDuel && (
+                <ZoneDuelField
+                  duel={state.zoneDuel}
+                  roundId={roundId}
+                  socket={socket}
+                  teams={teams}
+                  myTeamId={myTeamId}
+                  iAmRep={iAmRep}
+                  nameOf={nameOf}
+                  nicknameOf={(teamId) => nicknameOf(state.reps[teamId])}
+                />
+              )}
+              {state.baseball && (
               <BaseballField
                 baseball={state.baseball}
                 roundId={roundId}
@@ -176,7 +190,8 @@ export function OlympicsGame({ socket, roundKey, state, playerId, players, teams
                 nameOf={nameOf}
                 nicknameOf={(teamId) => nicknameOf(state.reps[teamId])}
               />
-            )
+              )}
+            </>
           ) : isTrack ? (
             <>
               {trackStartedAt !== null && state.track && <RemainingTime startedAt={trackStartedAt} timeoutMs={state.track.durationMs} />}

@@ -82,6 +82,35 @@ export interface OlympicsBaseball {
   reveal: BaseballReveal | null
 }
 
+export type ZoneDuelKind = 'soccer' | 'pingpong'
+
+/** 축구 승부차기·탁구: 한 번의 결과 — 공개 단계에서만 온다 */
+export interface ZoneDuelReveal {
+  attackZone: number
+  defendZone: number
+  result: 'goal' | 'saved' | 'return' | 'point'
+  scorerTeamId: number | null
+  rally: number
+}
+
+export interface OlympicsZoneDuel {
+  kind: ZoneDuelKind
+  phase: 'pick' | 'reveal'
+  step: number
+  attackerTeamId: number
+  defenderTeamId: number
+  attackerReady: boolean
+  defenderReady: boolean
+  score: Record<number, number>
+  kicks: Record<number, boolean[]>
+  target: number
+  suddenDeath: boolean
+  rally: number
+  elapsedMs: number
+  maxMs: number
+  reveal: ZoneDuelReveal | null
+}
+
 /** 역도: 무게를 고르는 중 */
 export interface OlympicsChoice {
   teamId: number
@@ -119,6 +148,7 @@ export interface OlympicsStateSignal {
   gauge: OlympicsGauge | null
   choice: OlympicsChoice | null
   baseball: OlympicsBaseball | null
+  zoneDuel: OlympicsZoneDuel | null
   track: { positions: Record<number, number>; finishTaps: number; durationMs: number; elapsedMs: number } | null
   totals: Record<number, number>
   roundResult: OlympicsRoundResult | null

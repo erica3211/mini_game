@@ -50,6 +50,8 @@ export const OLYMPICS_SPORT_CHOICES: { id: string; label: string; twoTeamsOnly?:
   { id: 'bowling', label: '🎳 볼링' },
   { id: 'weightlifting', label: '🏋️ 역도' },
   { id: 'baseball', label: '⚾ 야구 (2팀일 때만)', twoTeamsOnly: true },
+  { id: 'soccer', label: '⚽ 축구 승부차기 (2팀일 때만)', twoTeamsOnly: true },
+  { id: 'pingpong', label: '🏓 탁구 (2팀일 때만)', twoTeamsOnly: true },
   { id: 'track', label: '🏃 육상' },
 ]
 
