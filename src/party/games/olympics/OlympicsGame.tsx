@@ -1,0 +1,260 @@
+import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react'
+import type { Socket } from 'socket.io-client'
+import type { OlympicsAttempt, OlympicsStateSignal, OlympicsTrackSignal } from './protocol'
+import { BOWLING_REVEAL_MS, BowlingLane, LIFT_REVEAL_MS, WeightliftingStage } from './OlympicsStages'
+import type { ClientToServerEvents, PlayerInfo, ServerToClientEvents, TeamInfo } from '../../../shared/lib/partyProtocol'
+import { teamColorClass, teamEmoji, teamOf } from '../../core/PartyTeamBanner'
+import { useMonotonicStartedAt } from '../../core/useMonotonicStartedAt'
+import { RemainingTime } from '../../../shared/components/RemainingTime'
+import {
+  ARCHERY_REVEAL_MS,
+  ArcheryTarget,
+  AttemptsPanel,
+  BASKETBALL_REVEAL_MS,
+  BasketballCourt,
+  BasketballGauge,
+  TrackLanes,
+  useGaugeClock,
+  useShotTracker,
+  visibleAttempts,
+} from './OlympicsSportViews'
+
+const NO_ATTEMPTS: Record<number, OlympicsAttempt[]> = {}
+
+interface Props {
+  socket: Socket<ServerToClientEvents, ClientToServerEvents>
+  roundKey: string
+  state: OlympicsStateSignal | null
+  playerId: string | null
+  players: PlayerInfo[]
+  teams: TeamInfo[]
+}
+
+export function OlympicsGame({ socket, roundKey, state, playerId, players, teams }: Props) {
+  const nicknameOf = (id: string) => players.find((p) => p.id === id)?.nickname ?? '???'
+  const nameOf = (teamId: number) => teams.find((team) => team.id === teamId)?.name ?? '팀'
+  const myTeam = teamOf(teams, playerId)
+
+  // 육상: 팀별 달린 칸 수 — 서버가 일정 간격으로 알려 주고, 내가 누른 것은 바로 올려서 보여준다
+  const [serverPositions, setServerPositions] = useState<Record<number, number>>({})
+  const [myTaps, setMyTaps] = useState(0)
+  useEffect(() => {
+    if (state?.track) setServerPositions(state.track.positions)
+  }, [state?.track])
+  useEffect(() => {
+    const onTrack = (data: OlympicsTrackSignal) => setServerPositions(data.positions)
+    socket.on('olympics:track', onTrack)
+    return () => {
+      socket.off('olympics:track', onTrack)
+    }
+  }, [socket])
+  const roundId = `${roundKey}-${state?.roundIndex ?? 'none'}`
+  useEffect(() => setMyTaps(0), [roundId])
+
+  const gauge = state?.gauge ?? null
+  // 볼링은 한 번 던질 때 게이지가 두 번(방향, 힘) 나오므로 단계까지 키에 넣어 시계를 다시 시작한다
+  const gaugeKey = gauge ? `${roundId}-${gauge.teamId}-${gauge.attempt}-${gauge.stage ?? 0}` : 'none'
+  const clock = useGaugeClock(gauge, gaugeKey)
+  const trackStartedAt = useMonotonicStartedAt(`${roundId}-track`, state?.track ? { elapsedMs: state.track.elapsedMs } : null, state?.phase === 'play' ? 'running' : 'finished')
+  const lastTapRef = useRef(0)
+  // 던진 뒤에는 게이지가 사라지므로, 공이 어느 쪽으로 빗나갔는지 알려면 마지막 목표 위치를 기억해 둔다
+  const zoneRef = useRef<number | null>(null)
+  if (gauge?.zoneCenter !== undefined) zoneRef.current = gauge.zoneCenter
+  const revealMs = { archery: ARCHERY_REVEAL_MS, bowling: BOWLING_REVEAL_MS, weightlifting: LIFT_REVEAL_MS }[state?.sport.id ?? ''] ?? BASKETBALL_REVEAL_MS
+  const { shot, pending } = useShotTracker(state?.attempts ?? NO_ATTEMPTS, roundId, revealMs)
+  const choiceStartedAt = useMonotonicStartedAt(`${roundId}-choice-${state?.choice?.teamId}-${state?.choice?.attempt}`, state?.choice ? { elapsedMs: state.choice.elapsedMs } : null, state?.choice ? 'running' : 'finished')
+
+  if (!state) {
+    return (
+      <div className="party-round-stage">
+        <p className="party-round-hint">곧 시작합니다...</p>
+      </div>
+    )
+  }
+
+  const sport = state.sport
+  const myTeamId = myTeam?.id
+  const iAmRep = myTeamId !== undefined && state.reps[myTeamId] === playerId
+  const positions = { ...serverPositions }
+  if (myTeamId !== undefined && iAmRep) positions[myTeamId] = Math.max(positions[myTeamId] ?? 0, myTaps)
+  const finishTaps = state.track?.finishTaps ?? 60
+  const myFinished = myTeamId !== undefined && (positions[myTeamId] ?? 0) >= finishTaps
+
+  const isTrack = sport.mode === 'simultaneous'
+  const playing = state.phase === 'play'
+  const myTurn = !isTrack && playing && iAmRep && gauge !== null && gauge.teamId === myTeamId
+  const canPress = playing && iAmRep && (isTrack ? !myFinished : myTurn)
+
+  const press = () => {
+    if (!canPress) return
+    if (isTrack) {
+      // 서버가 무시하는 속도의 신호는 보내지 않는다
+      const now = performance.now()
+      if (now - lastTapRef.current < 55) return
+      lastTapRef.current = now
+      setMyTaps((prev) => prev + 1)
+      socket.emit('olympics:press', {})
+      return
+    }
+    socket.emit('olympics:press', { elapsedMs: clock.now() })
+  }
+  const onPointerDown = (event: PointerEvent<HTMLButtonElement>) => {
+    event.preventDefault()
+    press()
+  }
+  const onKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
+    if ((event.key === ' ' || event.key === 'Enter') && !event.repeat) {
+      event.preventDefault()
+      press()
+    }
+  }
+
+  const totalsRanked = [...teams]
+    .map((team) => ({ team, total: state.roundResult && state.phase !== 'intro' && state.phase !== 'play' ? (state.roundResult.totals[team.id] ?? 0) : (state.totals[team.id] ?? 0) }))
+    .sort((a, b) => b.total - a.total)
+
+  const shownAttempts = visibleAttempts(state.attempts, shot, pending)
+  const turnRep = state.turnTeamId !== null ? state.reps[state.turnTeamId] : null
+  const attemptTotal = sport.attempts
+  const choosing = playing && state.choice !== null && state.choice.teamId === myTeamId && iAmRep
+  const chooseWeight = (weight: number) => socket.emit('olympics:choose', { weight })
+
+  return (
+    <div className="party-round-stage party-oly-stage">
+      <p className="party-oly-round">
+        {state.roundIndex + 1} <span className="party-oly-round-max">/ {state.totalRounds} 종목</span>
+      </p>
+      <h2 className="party-oly-sport">
+        {sport.emoji} {sport.name}
+      </h2>
+
+      <ul className="party-oly-totals" aria-label="합계 점수">
+        {totalsRanked.map(({ team, total }) => (
+          <li key={team.id} className={`party-oly-total ${teamColorClass(team.id)}${team.id === myTeamId ? ' party-oly-total-mine' : ''}`}>
+            <span>
+              {teamEmoji(team.id)} {team.name}
+            </span>
+            <strong>{total}점</strong>
+          </li>
+        ))}
+      </ul>
+
+      {state.phase === 'intro' && (
+        <div className="party-oly-intro">
+          <p className="party-oly-rule">{sport.rule}</p>
+          <ul className="party-oly-reps">
+            {state.teamOrder.map((teamId) => (
+              <li key={teamId} className={teamColorClass(teamId)}>
+                <span>
+                  {teamEmoji(teamId)} {nameOf(teamId)}
+                </span>
+                <strong>
+                  {nicknameOf(state.reps[teamId])}
+                  {state.reps[teamId] === playerId && ' (나)'}
+                </strong>
+              </li>
+            ))}
+          </ul>
+          {iAmRep ? <p className="party-oly-callout">🎽 이번 종목은 내가 우리 팀 대표예요!</p> : <p className="party-round-hint">우리 팀 대표를 응원하며 지켜봐요.</p>}
+        </div>
+      )}
+
+      {state.phase === 'play' && (
+        <>
+          {isTrack ? (
+            <>
+              {trackStartedAt !== null && state.track && <RemainingTime startedAt={trackStartedAt} timeoutMs={state.track.durationMs} />}
+              <TrackLanes teams={teams} positions={positions} finishTaps={finishTaps} nameOf={nameOf} myTeamId={myTeamId} />
+            </>
+          ) : (
+            <>
+              <p className="party-oly-turn">
+                {state.turnTeamId !== null && turnRep ? (
+                  <>
+                    {teamEmoji(state.turnTeamId)} <strong>{nameOf(state.turnTeamId)}</strong> · {nicknameOf(turnRep)}
+                    {turnRep === playerId && ' (나)'}님 차례
+                    {gauge && ` (${gauge.attempt + 1}/${attemptTotal})`}
+                  </>
+                ) : (
+                  '다음 팀 준비 중...'
+                )}
+              </p>
+              {sport.id === 'basketball' && <BasketballCourt shot={shot} pending={pending} zoneCenter={zoneRef.current} />}
+              {sport.id === 'bowling' && <BowlingLane shot={shot} fallen={gauge === null} />}
+              {sport.id === 'weightlifting' && <WeightliftingStage shot={shot} weight={gauge?.weight ?? null} />}
+              {gauge?.kind === 'bowling' && (
+                <p className="party-oly-stage-hint">{gauge.stage === 0 ? '① 방향: 가운데 초록 선에 맞춰 멈추세요' : '② 힘: 초록 영역에 맞춰 멈추세요'}</p>
+              )}
+              {state.choice && (
+                <div className="party-oly-choice">
+                  <p className="party-oly-stage-hint">
+                    {choosing ? '이번에 들 무게를 고르세요!' : `${nameOf(state.choice.teamId)} 대표가 무게를 고르는 중...`}
+                    {choiceStartedAt !== null && <RemainingTime startedAt={choiceStartedAt} timeoutMs={state.choice.maxMs} />}
+                  </p>
+                  <div className="party-oly-weights">
+                    {state.choice.weights.map((weight) => (
+                      <button key={weight} type="button" className="btn btn-secondary party-oly-weight" disabled={!choosing} onClick={() => chooseWeight(weight)}>
+                        {weight}kg
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {gauge && (sport.id === 'basketball' || sport.id === 'bowling' || sport.id === 'weightlifting') && (
+                <BasketballGauge gauge={gauge} elapsed={clock.elapsed} label={`${sport.name} 게이지`} />
+              )}
+              {sport.id === 'archery' && (
+                <ArcheryTarget gauge={gauge} elapsed={clock.elapsed} arrows={state.turnTeamId !== null ? (shownAttempts[state.turnTeamId] ?? []) : []} shot={shot} />
+              )}
+              <AttemptsPanel
+                sportId={sport.id}
+                total={attemptTotal}
+                teams={teams}
+                order={state.teamOrder}
+                attempts={shownAttempts}
+                turnTeamId={state.turnTeamId}
+                nameOf={nameOf}
+              />
+            </>
+          )}
+
+          <button
+            type="button"
+            className="party-oly-press"
+            disabled={!canPress}
+            onPointerDown={onPointerDown}
+            onKeyDown={onKeyDown}
+            onContextMenu={(event) => event.preventDefault()}
+          >
+            {isTrack ? (myFinished ? '🏁 결승선!' : iAmRep ? '달려라!! 🏃' : '대표를 응원해요') : myTurn ? pressLabel(sport.id, gauge?.stage)  : iAmRep ? '내 차례를 기다려요' : '구경 중'}
+          </button>
+        </>
+      )}
+
+      {state.phase === 'result' && state.roundResult && (
+        <ol className="party-oly-result">
+          {state.roundResult.teams.map((row) => (
+            <li key={row.teamId} className={teamColorClass(row.teamId)}>
+              <span>
+                {row.rank}위 {teamEmoji(row.teamId)} {nameOf(row.teamId)}
+              </span>
+              <span>
+                {row.detail} · <strong>+{row.points}점</strong>
+              </span>
+            </li>
+          ))}
+        </ol>
+      )}
+
+      {state.phase === 'ended' && <p className="party-round-hint">모든 종목이 끝났어요! 결과를 확인하는 중...</p>}
+    </div>
+  )
+}
+
+/** 내 차례에 누르는 버튼의 문구 */
+function pressLabel(sportId: string, stage: number | undefined): string {
+  if (sportId === 'archery') return '쏘기!'
+  if (sportId === 'bowling') return stage === 1 ? '힘 멈추기!' : '방향 멈추기!'
+  if (sportId === 'weightlifting') return '들어올리기!'
+  return '던지기!'
+}

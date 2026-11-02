@@ -29,6 +29,8 @@ import { PixelCanvasSnapshot } from '../games/pixelCanvas/PixelCanvasSnapshot'
 import { SimonStageReveal } from '../games/simon/SimonStageReveal'
 import { CharacterDescribeRecap } from '../games/characterDescribe/CharacterDescribeRecap'
 import { MazeRecap } from '../games/mazeEscape/MazeRecap'
+import { OlympicsRecap } from '../games/olympics/OlympicsRecap'
+import type { OlympicsRoundMeta } from '../games/olympics/protocol'
 import { OrderCardsRecap } from '../games/orderCards/OrderCardsRecap'
 import type { OrderCardsRoundMeta } from '../games/orderCards/protocol'
 import { TugRecap } from '../games/tugOfWar/TugRecap'
@@ -76,6 +78,7 @@ export function PartyRoundResults({ session }: Props) {
   const minorityMeta = lastRound.gameId === 'minority' ? (lastRound.meta as MinorityRoundMeta | undefined) : undefined
   const simonMeta = lastRound.gameId === 'simon' ? (lastRound.meta as SimonRoundMeta | undefined) : undefined
   const mazeMeta = lastRound.gameId === 'mazeEscape' ? (lastRound.meta as MazeRoundMeta | undefined) : undefined
+  const olympicsMeta = lastRound.gameId === 'olympics' ? (lastRound.meta as OlympicsRoundMeta | undefined) : undefined
   const orderCardsMeta = lastRound.gameId === 'orderCards' ? (lastRound.meta as OrderCardsRoundMeta | undefined) : undefined
   const tugMeta = lastRound.gameId === 'tugOfWar' ? (lastRound.meta as TugRoundMeta | undefined) : undefined
   const characterDescribeMeta =
@@ -95,6 +98,9 @@ export function PartyRoundResults({ session }: Props) {
     }
     if (lastRound.gameId === 'shoutRace' && entry.value !== undefined) {
       return entry.dnf ? ` (${entry.value}% 도달)` : ` (${(entry.value / 1000).toFixed(2)}초 만에 완주)`
+    }
+    if (lastRound.gameId === 'olympics' && entry.value !== undefined) {
+      return ` (팀 합계 ${entry.value}점)`
     }
     if (lastRound.gameId === 'memoryCards' && entry.value !== undefined) {
       return ` (팀이 짝 ${entry.value}쌍 찾음)`
@@ -203,6 +209,7 @@ export function PartyRoundResults({ session }: Props) {
     .map((row, _index, rows) => ({ ...row, rank: rows.findIndex((other) => other.rank === row.rank) + 1 }))
 
   const standingDetailOf = (row: { score: number; dnf: boolean }) => {
+    if (lastRound.gameId === 'olympics') return `종목 점수 합계 ${row.score}점`
     if (lastRound.gameId === 'memoryCards') return `짝 ${row.score}쌍 찾음`
     if (lastRound.gameId === 'orderCards') return `${Math.floor(row.score / 10)}라운드 클리어 · 목숨 ${row.score % 10}개`
     if (lastRound.gameId === 'tugOfWar') return `1인당 평균 ${row.score.toFixed(1)}번 누름`
@@ -211,7 +218,9 @@ export function PartyRoundResults({ session }: Props) {
     return `합산 ${row.score}점`
   }
   const standingNote =
-    lastRound.gameId === 'memoryCards'
+    lastRound.gameId === 'olympics'
+      ? '종목마다 순위에 따라 받은 점수를 모두 더한 합계가 높은 팀이 1등이에요. 합계가 같으면 공동 순위이고, 순위에 따라 받는 점수(초록색)가 누적 점수에 더해져요.'
+      : lastRound.gameId === 'memoryCards'
       ? '짝을 가장 많이 찾은 팀이 1등이에요. 같은 개수면 공동 순위이고, 순위에 따라 받는 점수(초록색)가 누적 점수에 더해져요.'
       : lastRound.gameId === 'orderCards'
       ? '더 많은 라운드를 깬 팀이 1등이고, 같으면 목숨이 많이 남은 팀, 그것도 같으면 빨리 끝낸 팀 순이에요. 순위에 따라 받는 점수(초록색)가 누적 점수에 더해져요.'
@@ -528,6 +537,7 @@ export function PartyRoundResults({ session }: Props) {
       )}
 
       {mazeMeta && <MazeRecap meta={mazeMeta} teams={roundTeams} />}
+      {olympicsMeta && <OlympicsRecap meta={olympicsMeta} teams={roundTeams} nicknameOf={plainNicknameOf} />}
       {orderCardsMeta && <OrderCardsRecap meta={orderCardsMeta} teams={roundTeams} />}
       {tugMeta && <TugRecap meta={tugMeta} teams={roundTeams} playerId={session.playerId} nicknameOf={plainNicknameOf} />}
 

@@ -18,6 +18,7 @@ import type {
 import type { MinorityStartSignal, MinoritySubRoundResult } from '../../party/games/minority/protocol'
 import type { FindOddRoundResult, FindOddRoundSignal } from '../../party/games/findOdd/protocol'
 import type { MemoryStateSignal } from '../../party/games/memoryCards/protocol'
+import type { OlympicsStateSignal, OlympicsTrackSignal } from '../../party/games/olympics/protocol'
 import type { OrderCardsEndSignal, OrderCardsStandingsSignal, OrderCardsStateSignal } from '../../party/games/orderCards/protocol'
 import type { TugEndSignal, TugProgressSignal, TugStartSignal } from '../../party/games/tugOfWar/protocol'
 import type { StroopQuestionResult, StroopQuestionSignal } from '../../party/games/stroop/protocol'
@@ -85,6 +86,7 @@ export type GameId =
   | 'tugOfWar'
   | 'orderCards'
   | 'memoryCards'
+  | 'olympics'
 
 /** 방의 진행 방식 — backend/types.ts와 같아야 한다. /party는 개인전, /teamParty는 팀전 방이다 */
 export type RoomMode = 'individual' | 'team'
@@ -147,6 +149,8 @@ export interface SessionConfig {
   randomOrder: boolean
   /** 초성 퀴즈에서 출제할 카테고리. null이면 전체 (빈 배열은 "하나도 안 고름"이라 null과 다르다) */
   wordChainCategories: string[] | null
+  /** 팀 대항 올림픽에서 치를 종목. null이면 전체 (빈 배열은 "하나도 안 고름") — 고른 종목 수가 곧 라운드 수다 */
+  olympicsSports: string[] | null
   /** 이어그리기 제시어 방식 — random: 서버가 단어 은행에서 뽑는다, custom: 라운드 시작 전 참가자가 각자 하나씩 적는다 */
   telestrationWordMode: TelestrationWordMode
   /** 거짓말쟁이 퀴즈 문제 방식 — random: 서버가 문항 은행에서 뽑는다, custom: 라운드 시작 직후 참가자가 각자 문제를 하나씩 만든다 */
@@ -349,6 +353,10 @@ export interface ClientToServerEvents {
   'characterDescribe:guess': (data: { text: string }) => void
   /** 미로 탈출: 내 담당 방향으로 팀 캐릭터를 한 칸 움직이려고 한다 (내 방향이 아니거나 벽이 있거나 너무 빠르면 서버가 무시한다) */
   'mazeEscape:move': (data: { dir: MazeDirection }) => void
+  /** 올림픽: 게이지·조준점을 눌렀다(육상은 한 번 달렸다). elapsedMs는 화면에서 누른 순간의 게이지 경과 시간 */
+  'olympics:press': (data: { elapsedMs?: number }) => void
+  /** 올림픽 역도: 이번에 들 무게를 고른다 (지금 무게를 고르는 팀의 대표만) */
+  'olympics:choose': (data: { weight: number }) => void
   /** 카드 짝 맞추기: 이 카드를 뒤집는다 (지금 뒤집을 차례인 사람만) */
   'memoryCards:flip': (data: { index: number }) => void
   /** 순서 맞추기: 내 카드 중 가장 작은 수를 낸다 */
@@ -583,6 +591,10 @@ export interface ServerToClientEvents {
   /** 정답이 나오거나 시간이 끝났을 때 — 정답과 팀별 설명 공개 */
   'characterDescribe:end': (data: CharacterEndSignal) => void
   /** 미로 탈출 시작(재접속·담당 방향이 바뀔 때도 다시 보낸다) — 내 팀 기준으로 개인화되어 있다 */
+  /** 올림픽 — 지금 상태(종목, 대표, 시도 결과, 진행 중인 게이지, 순위) */
+  'olympics:state': (data: OlympicsStateSignal) => void
+  /** 올림픽 육상 — 팀별 달린 칸 수 */
+  'olympics:track': (data: OlympicsTrackSignal) => void
   /** 카드 짝 맞추기 — 판의 지금 상태(뒤집힌 카드의 그림만 담긴다) */
   'memoryCards:state': (data: MemoryStateSignal) => void
   /** 순서 맞추기 — 내 팀의 지금 상태(내 카드만 담긴다) */

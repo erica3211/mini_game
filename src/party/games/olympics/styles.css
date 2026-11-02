@@ -1,0 +1,633 @@
+/* 팀 대항 올림픽 */
+.party-oly-stage {
+  gap: 0.7rem;
+  width: 100%;
+}
+
+.party-oly-round {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 800;
+}
+
+.party-oly-round-max {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.party-oly-sport {
+  margin: 0;
+  font-size: 1.6rem;
+}
+
+/* 팀별 합계 점수 */
+.party-oly-totals {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.4rem;
+}
+
+.party-oly-total {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 5.5rem;
+  padding: 0.3rem 0.7rem;
+  border-width: 2px;
+  border-style: solid;
+  border-radius: var(--radius);
+  color: var(--text);
+  font-size: 0.8rem;
+}
+
+.party-oly-total-mine {
+  box-shadow: 0 0 0 3px var(--text);
+}
+
+/* 종목 소개 */
+.party-oly-intro {
+  display: grid;
+  gap: 0.7rem;
+  width: 100%;
+  max-width: 420px;
+}
+
+.party-oly-rule {
+  margin: 0;
+  line-height: 1.6;
+  text-align: center;
+}
+
+.party-oly-reps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.party-oly-reps li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.4rem 0.75rem;
+  border-width: 2px;
+  border-style: solid;
+  border-radius: var(--radius);
+  color: var(--text);
+}
+
+.party-oly-callout {
+  margin: 0;
+  padding: 0.5rem 0.9rem;
+  background: var(--tint-info);
+  border: 1px solid var(--text-info);
+  border-radius: var(--radius);
+  font-weight: 800;
+  text-align: center;
+}
+
+.party-oly-turn {
+  margin: 0;
+  text-align: center;
+  font-size: 1rem;
+}
+
+/* 농구 게이지 */
+.party-oly-gauge {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  height: 2.6rem;
+  background: var(--border);
+  border: 2px solid var(--border-strong);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.party-oly-gauge-zone {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: rgba(34, 197, 94, 0.55);
+  border-left: 2px solid #16a34a;
+  border-right: 2px solid #16a34a;
+}
+
+.party-oly-gauge-marker {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 6px;
+  margin-left: -3px;
+  background: var(--text);
+  border-radius: 3px;
+}
+
+/* 팀별 시도 기록 */
+.party-oly-attempts {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.3rem;
+  width: 100%;
+  max-width: 420px;
+}
+
+.party-oly-attempt-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.3rem 0.6rem;
+  border-width: 2px;
+  border-style: solid;
+  border-radius: var(--radius);
+  color: var(--text);
+  font-size: 0.85rem;
+}
+
+.party-oly-attempt-row-turn {
+  box-shadow: 0 0 0 3px var(--text);
+}
+
+.party-oly-attempt-team {
+  flex-shrink: 0;
+  min-width: 4.8rem;
+}
+
+.party-oly-attempt-list {
+  display: flex;
+  flex: 1;
+  justify-content: center;
+  gap: 0.25rem;
+}
+
+.party-oly-chip {
+  min-width: 1.5rem;
+  padding: 0.1rem 0.2rem;
+  border-radius: 6px;
+  background: var(--surface);
+  font-weight: 700;
+  text-align: center;
+}
+
+.party-oly-chip-empty {
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+.party-oly-chip-hit {
+  background: var(--tint-strike);
+}
+
+.party-oly-chip-miss {
+  background: var(--tint-warn);
+}
+
+.party-oly-attempt-sum {
+  flex-shrink: 0;
+  min-width: 2.6rem;
+  text-align: right;
+}
+
+/* 육상 트랙 */
+.party-oly-lanes {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.5rem;
+  width: 100%;
+  max-width: 420px;
+}
+
+.party-oly-lane {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0.4rem;
+  border-radius: var(--radius);
+  font-size: 0.8rem;
+}
+
+.party-oly-lane-mine {
+  background: var(--tint-info);
+  font-weight: 700;
+}
+
+.party-oly-lane-name {
+  flex-shrink: 0;
+  min-width: 4.6rem;
+}
+
+/* 붉은 트랙 + 흰 레인 선. 달리는 동안 바닥 무늬가 뒤로 흘러서 속도감을 준다 */
+.party-oly-lane-track {
+  position: relative;
+  flex: 1;
+  height: 2.6rem;
+  background-color: #6b5a52;
+  background-image: repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.2) 0 2px, transparent 2px 26px);
+  background-size: 26px 100%;
+  border-top: 3px solid #fff;
+  border-bottom: 3px solid #fff;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.party-oly-lane-track-running {
+  animation: party-oly-track-scroll 0.22s linear infinite;
+}
+
+@keyframes party-oly-track-scroll {
+  from {
+    background-position-x: 0;
+  }
+  to {
+    background-position-x: -26px;
+  }
+}
+
+.party-oly-lane-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: var(--lane-color);
+  opacity: 0.85;
+  box-shadow: inset -3px 0 0 rgba(255, 255, 255, 0.85);
+  transition: width 0.12s linear;
+}
+
+.party-oly-lane-start {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 5%;
+  width: 3px;
+  background: #fff;
+}
+
+.party-oly-lane-finish {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  width: 0.9rem;
+  background: repeating-conic-gradient(#111 0 25%, #fff 0 50%) 0 0 / 0.45rem 0.45rem;
+}
+
+.party-oly-lane-runner {
+  position: absolute;
+  top: 50%;
+  width: 2rem;
+  height: 2rem;
+  transform: translate(-50%, -50%);
+  transition: left 0.12s linear;
+  color: #fff;
+  filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.7));
+}
+
+.party-oly-lane-count {
+  flex-shrink: 0;
+  min-width: 1.6rem;
+  text-align: right;
+}
+
+/* 달리는 사람: 팔다리를 번갈아 흔든다 */
+.party-oly-runner {
+  width: 100%;
+  height: 100%;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  overflow: visible;
+}
+
+.party-oly-runner-head {
+  fill: currentColor;
+  stroke: none;
+}
+
+.party-oly-runner-limb {
+  transform-box: view-box;
+}
+
+.party-oly-runner-leg-front,
+.party-oly-runner-leg-back {
+  transform-origin: 11px 14px;
+}
+
+.party-oly-runner-arm-front,
+.party-oly-runner-arm-back {
+  transform-origin: 12px 9px;
+}
+
+.party-oly-runner-running {
+  animation: party-oly-bob 0.22s ease-in-out infinite alternate;
+}
+
+.party-oly-runner-running .party-oly-runner-leg-front,
+.party-oly-runner-running .party-oly-runner-arm-back {
+  animation: party-oly-swing-a 0.22s ease-in-out infinite alternate;
+}
+
+.party-oly-runner-running .party-oly-runner-leg-back,
+.party-oly-runner-running .party-oly-runner-arm-front {
+  animation: party-oly-swing-b 0.22s ease-in-out infinite alternate;
+}
+
+.party-oly-runner-finished {
+  animation: party-oly-cheer 0.5s ease-in-out infinite alternate;
+}
+
+@keyframes party-oly-swing-a {
+  from {
+    transform: rotate(-40deg);
+  }
+  to {
+    transform: rotate(40deg);
+  }
+}
+
+@keyframes party-oly-swing-b {
+  from {
+    transform: rotate(40deg);
+  }
+  to {
+    transform: rotate(-40deg);
+  }
+}
+
+@keyframes party-oly-bob {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-2px);
+  }
+}
+
+@keyframes party-oly-cheer {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-4px);
+  }
+}
+
+/* 농구 코트 / 양궁 */
+.party-oly-court,
+.party-oly-target {
+  display: block;
+  width: min(100%, 360px);
+  background: #dff1ff;
+  border-radius: var(--radius);
+  touch-action: manipulation;
+}
+
+.party-oly-target {
+  width: min(100%, 300px);
+  aspect-ratio: 100 / 134;
+}
+
+.party-oly-ball-idle {
+  animation: party-oly-dribble 0.5s ease-in infinite alternate;
+}
+
+@keyframes party-oly-dribble {
+  from {
+    transform: translateY(-3px);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+.party-oly-net {
+  transform-box: fill-box;
+  transform-origin: 50% 0;
+}
+
+.party-oly-net-swish {
+  animation: party-oly-swish 0.5s ease-out 0.4s;
+}
+
+@keyframes party-oly-swish {
+  0% {
+    transform: scale(1, 1);
+  }
+  30% {
+    transform: scale(0.9, 1.3);
+  }
+  60% {
+    transform: scale(1.06, 0.92);
+  }
+  100% {
+    transform: scale(1, 1);
+  }
+}
+
+/* 결과 말풍선: 연출이 끝나는 때 떠올랐다 사라진다 */
+.party-oly-pop {
+  font-size: 8px;
+  font-weight: 900;
+  fill: #fff;
+  stroke: #475569;
+  stroke-width: 2px;
+  paint-order: stroke;
+  opacity: 0;
+  animation: party-oly-pop 1.1s ease-out both;
+}
+
+.party-oly-pop-hit {
+  fill: #fde047;
+  stroke: #b45309;
+}
+
+@keyframes party-oly-pop {
+  0% {
+    opacity: 0;
+    transform: translateY(3px) scale(0.7);
+  }
+  25% {
+    opacity: 1;
+    transform: translateY(0) scale(1.1);
+  }
+  80% {
+    opacity: 1;
+    transform: translateY(-2px) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-4px) scale(1);
+  }
+}
+
+/* 누르는 큰 버튼 — 손가락 연타와 타이밍 누르기가 잘 먹히도록 크고, 더블탭 확대와 롱프레스 메뉴·선택은 막는다 */
+.party-oly-press {
+  width: 100%;
+  max-width: 420px;
+  min-height: 7rem;
+  padding: 1rem;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 1.2rem;
+  font: inherit;
+  font-size: 1.8rem;
+  font-weight: 900;
+  cursor: pointer;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.05s;
+}
+
+.party-oly-press:active:not(:disabled) {
+  transform: scale(0.96);
+}
+
+.party-oly-press:disabled {
+  background: var(--border-strong);
+  color: var(--text);
+  cursor: default;
+}
+
+/* 라운드 결과 */
+.party-oly-result {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.4rem;
+  width: 100%;
+  max-width: 420px;
+}
+
+.party-oly-result li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.6rem 0.8rem;
+  border-width: 2px;
+  border-style: solid;
+  border-radius: var(--radius);
+  color: var(--text);
+  font-size: 0.9rem;
+}
+
+/* 결과 화면: 종목별 기록 */
+.party-oly-recap {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.6rem;
+}
+
+.party-oly-recap-title {
+  margin: 0 0 0.25rem;
+  font-weight: 800;
+}
+
+.party-oly-recap-rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.25rem;
+}
+
+.party-oly-recap-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.2rem 0.5rem;
+  padding: 0.3rem 0.6rem;
+  border-width: 2px;
+  border-style: solid;
+  border-radius: var(--radius);
+  color: var(--text);
+  font-size: 0.8rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .party-oly-lane-fill,
+  .party-oly-lane-runner {
+    transition: none;
+  }
+
+  .party-oly-lane-track-running,
+  .party-oly-runner,
+  .party-oly-runner-limb,
+  .party-oly-ball-idle,
+  .party-oly-net-swish {
+    animation: none;
+  }
+}
+
+/* 볼링: 쓰러지는 핀 */
+.party-oly-pin-down {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: party-oly-pin-fall 0.45s ease-out both;
+}
+
+@keyframes party-oly-pin-fall {
+  to {
+    transform: translate(var(--pin-dx), -2px) rotate(var(--pin-rot));
+    opacity: 0.3;
+  }
+}
+
+/* 역도 */
+.party-oly-weight-label {
+  font-size: 5px;
+  font-weight: 800;
+  fill: #fff;
+}
+
+.party-oly-stage-hint {
+  margin: 0;
+  text-align: center;
+  font-weight: 700;
+}
+
+.party-oly-choice {
+  display: grid;
+  gap: 0.5rem;
+  width: 100%;
+  max-width: 420px;
+}
+
+.party-oly-weights {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.4rem;
+}
+
+.party-oly-weight {
+  min-width: 3.5rem;
+  padding-inline: 0.5rem;
+  color: var(--text);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .party-oly-pin-down {
+    animation-duration: 0.01ms;
+    animation-delay: 0ms !important;
+  }
+}

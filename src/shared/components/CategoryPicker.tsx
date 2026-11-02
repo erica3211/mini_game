@@ -8,17 +8,19 @@ interface Props {
   onClear: () => void
   /** 보기만 하고 바꾸지 못하게 한다 (예: 방장이 아닌 파티 참가자) */
   disabled?: boolean
+  /** 머리글 (기본: 카테고리) */
+  title?: string
   /** 칩 아래에 보여줄 선택 현황·안내 문구 */
   children?: ReactNode
 }
 
 /** 카테고리를 칩으로 여러 개 고르는 선택 영역 */
-export function CategoryPicker({ categories, selected, onToggle, onSelectAll, onClear, disabled, children }: Props) {
+export function CategoryPicker({ categories, selected, onToggle, onSelectAll, onClear, disabled, title = '카테고리', children }: Props) {
   const selectedSet = new Set(selected)
   return (
     <div className="category-picker">
       <div className="category-picker-head">
-        <span className="category-picker-title">카테고리</span>
+        <span className="category-picker-title">{title}</span>
         {!disabled && (
           <span className="category-picker-actions">
             <button type="button" className="category-picker-link" onClick={onSelectAll}>
