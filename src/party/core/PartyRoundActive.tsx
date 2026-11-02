@@ -10,6 +10,7 @@ import { LiarQuizGame } from '../games/liarQuiz/LiarQuizGame'
 import { MinorityGame } from '../games/minority/MinorityGame'
 import { FindOddGame } from '../games/findOdd/FindOddGame'
 import { StroopGame } from '../games/stroop/StroopGame'
+import { MemoryCardsGame } from '../games/memoryCards/MemoryCardsGame'
 import { OrderCardsGame } from '../games/orderCards/OrderCardsGame'
 import { TugOfWarGame } from '../games/tugOfWar/TugOfWarGame'
 import { MouseHunterGame } from '../games/mouseHunter/MouseHunterGame'
@@ -75,6 +76,17 @@ function renderGame(session: GameSession, roundKey: string) {
     case 'balloonPop':
       return (
         <BalloonPopGame socket={session.socket} roundKey={roundKey} startSignal={session.balloonPopStart} />
+      )
+    case 'memoryCards':
+      return (
+        <MemoryCardsGame
+          socket={session.socket}
+          roundKey={roundKey}
+          state={session.memoryCardsState}
+          playerId={session.playerId}
+          players={state.players}
+          teams={state.teams}
+        />
       )
     case 'orderCards':
       return (

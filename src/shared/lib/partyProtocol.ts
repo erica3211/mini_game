@@ -17,6 +17,7 @@ import type {
 } from '../../party/games/liarQuiz/protocol'
 import type { MinorityStartSignal, MinoritySubRoundResult } from '../../party/games/minority/protocol'
 import type { FindOddRoundResult, FindOddRoundSignal } from '../../party/games/findOdd/protocol'
+import type { MemoryStateSignal } from '../../party/games/memoryCards/protocol'
 import type { OrderCardsEndSignal, OrderCardsStandingsSignal, OrderCardsStateSignal } from '../../party/games/orderCards/protocol'
 import type { TugEndSignal, TugProgressSignal, TugStartSignal } from '../../party/games/tugOfWar/protocol'
 import type { StroopQuestionResult, StroopQuestionSignal } from '../../party/games/stroop/protocol'
@@ -83,6 +84,7 @@ export type GameId =
   | 'mazeEscape'
   | 'tugOfWar'
   | 'orderCards'
+  | 'memoryCards'
 
 /** 방의 진행 방식 — backend/types.ts와 같아야 한다. /party는 개인전, /teamParty는 팀전 방이다 */
 export type RoomMode = 'individual' | 'team'
@@ -347,6 +349,8 @@ export interface ClientToServerEvents {
   'characterDescribe:guess': (data: { text: string }) => void
   /** 미로 탈출: 내 담당 방향으로 팀 캐릭터를 한 칸 움직이려고 한다 (내 방향이 아니거나 벽이 있거나 너무 빠르면 서버가 무시한다) */
   'mazeEscape:move': (data: { dir: MazeDirection }) => void
+  /** 카드 짝 맞추기: 이 카드를 뒤집는다 (지금 뒤집을 차례인 사람만) */
+  'memoryCards:flip': (data: { index: number }) => void
   /** 순서 맞추기: 내 카드 중 가장 작은 수를 낸다 */
   'orderCards:play': () => void
   /** 줄다리기: 줄을 한 번 당겼다 — 몇 번째인지는 서버가 센다 */
@@ -579,6 +583,8 @@ export interface ServerToClientEvents {
   /** 정답이 나오거나 시간이 끝났을 때 — 정답과 팀별 설명 공개 */
   'characterDescribe:end': (data: CharacterEndSignal) => void
   /** 미로 탈출 시작(재접속·담당 방향이 바뀔 때도 다시 보낸다) — 내 팀 기준으로 개인화되어 있다 */
+  /** 카드 짝 맞추기 — 판의 지금 상태(뒤집힌 카드의 그림만 담긴다) */
+  'memoryCards:state': (data: MemoryStateSignal) => void
   /** 순서 맞추기 — 내 팀의 지금 상태(내 카드만 담긴다) */
   'orderCards:state': (data: OrderCardsStateSignal) => void
   /** 순서 맞추기 — 모든 팀의 진행 상황 */

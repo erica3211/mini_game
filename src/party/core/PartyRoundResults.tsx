@@ -96,6 +96,9 @@ export function PartyRoundResults({ session }: Props) {
     if (lastRound.gameId === 'shoutRace' && entry.value !== undefined) {
       return entry.dnf ? ` (${entry.value}% 도달)` : ` (${(entry.value / 1000).toFixed(2)}초 만에 완주)`
     }
+    if (lastRound.gameId === 'memoryCards' && entry.value !== undefined) {
+      return ` (팀이 짝 ${entry.value}쌍 찾음)`
+    }
     if (lastRound.gameId === 'orderCards' && entry.value !== undefined) {
       return ` (${Math.floor(entry.value / 10)}라운드 클리어 · 목숨 ${entry.value % 10}개)`
     }
@@ -200,6 +203,7 @@ export function PartyRoundResults({ session }: Props) {
     .map((row, _index, rows) => ({ ...row, rank: rows.findIndex((other) => other.rank === row.rank) + 1 }))
 
   const standingDetailOf = (row: { score: number; dnf: boolean }) => {
+    if (lastRound.gameId === 'memoryCards') return `짝 ${row.score}쌍 찾음`
     if (lastRound.gameId === 'orderCards') return `${Math.floor(row.score / 10)}라운드 클리어 · 목숨 ${row.score % 10}개`
     if (lastRound.gameId === 'tugOfWar') return `1인당 평균 ${row.score.toFixed(1)}번 누름`
     if (lastRound.gameId === 'mazeEscape') return row.dnf ? `${row.score}%까지 도착` : `${(row.score / 1000).toFixed(1)}초에 탈출`
@@ -207,7 +211,9 @@ export function PartyRoundResults({ session }: Props) {
     return `합산 ${row.score}점`
   }
   const standingNote =
-    lastRound.gameId === 'orderCards'
+    lastRound.gameId === 'memoryCards'
+      ? '짝을 가장 많이 찾은 팀이 1등이에요. 같은 개수면 공동 순위이고, 순위에 따라 받는 점수(초록색)가 누적 점수에 더해져요.'
+      : lastRound.gameId === 'orderCards'
       ? '더 많은 라운드를 깬 팀이 1등이고, 같으면 목숨이 많이 남은 팀, 그것도 같으면 빨리 끝낸 팀 순이에요. 순위에 따라 받는 점수(초록색)가 누적 점수에 더해져요.'
       : lastRound.gameId === 'tugOfWar'
       ? '팀이 누른 횟수를 팀 인원으로 나눈 값(1인당 평균)이 큰 팀이 1등이에요. 순위에 따라 받는 점수(초록색)가 누적 점수에 더해져요.'

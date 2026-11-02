@@ -1,0 +1,111 @@
+/* 카드 짝 맞추기 */
+.party-memory-stage {
+  gap: 0.8rem;
+  width: 100%;
+}
+
+.party-memory-scores {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.4rem;
+}
+
+.party-memory-score {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 6rem;
+  padding: 0.35rem 0.75rem;
+  border-width: 2px;
+  border-style: solid;
+  border-radius: var(--radius);
+  color: var(--text);
+  font-size: 0.85rem;
+}
+
+.party-memory-score-turn {
+  box-shadow: 0 0 0 3px var(--text);
+}
+
+.party-memory-headline {
+  margin: 0;
+  text-align: center;
+  font-size: 1.05rem;
+  font-weight: 800;
+}
+
+.party-memory-result {
+  margin: 0;
+  text-align: center;
+  font-weight: 700;
+}
+
+/* 카드판 — 한 줄에 정해진 장수(--memory-cols), 카드는 정사각형 */
+.party-memory-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--memory-cols, 4), 1fr);
+  gap: 0.5rem;
+  width: min(100%, 360px);
+}
+
+.party-memory-card {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1;
+  margin: 0;
+  padding: 0;
+  background: var(--accent);
+  border: 3px solid transparent;
+  border-radius: var(--radius);
+  font-size: 1.9rem;
+  line-height: 1;
+  cursor: pointer;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.15s, background 0.15s;
+}
+
+/* 뒤집을 수 없는 상태(disabled)의 버튼은 브라우저가 글자색을 반투명하게 바꾸는데, 컬러 이모티콘도 그 투명도를 따라 흐려진다 — 글자색을 직접 정해서 막는다 */
+.party-memory-card:disabled {
+  cursor: default;
+  color: var(--text);
+  opacity: 1;
+}
+
+.party-memory-card:disabled:not(.party-memory-card-up) {
+  opacity: 0.85;
+}
+
+.party-memory-card-up {
+  background: var(--surface);
+  border-color: var(--border-strong);
+  transform: scale(1.04);
+}
+
+/* 짝을 찾은 카드 — 찾은 팀 색으로 테두리를 두른다 */
+.party-memory-card-matched {
+  background: var(--tint-strike);
+  border-color: var(--memory-team, var(--text-success));
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .party-memory-card {
+    transition: none;
+  }
+}
+
+/* 손가락으로 쓰는 기기(모바일): 게임이 시작될 때 카드판을 화면 가운데로 스크롤하려면 판 아래로 스크롤할 여유가 있어야 한다.
+   판이 위쪽에 있으면 페이지가 짧아서 가운데까지 못 올라가므로 아래에 여백을 둔다 (마우스로 쓰는 웹에서는 스크롤하지 않으니 두지 않는다) */
+@media (pointer: coarse) {
+  .party-memory-stage {
+    padding-bottom: 45vh;
+  }
+}
