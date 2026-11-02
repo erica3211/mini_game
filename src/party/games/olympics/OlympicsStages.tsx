@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { prefersReducedMotion, type Shot } from './OlympicsSportViews'
+import type { OlympicsAttempt, OlympicsGauge } from './protocol'
+import { ARCHERY_RING_WIDTH, archeryPosition } from './sports'
 
 // 볼링 레인과 역도 무대 — 던지기·들어올리기 연출
 
@@ -188,6 +190,120 @@ export function WeightliftingStage({ shot, weight }: { shot: Shot | null; weight
       {shot && (
         <text key={shot.key} className={`party-oly-pop${success ? ' party-oly-pop-hit' : ''}`} x="50" y="40" textAnchor="middle" style={{ animationDelay: `${LIFT_REVEAL_MS - 250}ms` }}>
           {success ? `${shot.attempt.weight ?? shown}kg 성공! 🏆` : '실패 💥'}
+        </text>
+      )}
+    </svg>
+  )
+}
+
+// ---------------------------------------------------------------- 사격 (viewBox 100 x 134): 표적은 위쪽 100x100, 총은 아래쪽 — 양궁과 같은 구조
+
+const MUZZLE: Pin = { x: 50, y: 104 }
+export const SHOOTING_FLIGHT_MS = 1000
+export const SHOOTING_REVEAL_MS = 500
+
+function bulletFrames(attempt: OlympicsAttempt): Keyframe[] {
+  const rest = `translate(${MUZZLE.x}px, ${MUZZLE.y}px) rotate(0deg) scale(1.1)`
+  const target = attempt.at ? { x: attempt.at.x * 100, y: attempt.at.y * 100 } : { x: 50, y: -28 }
+  const angle = (Math.atan2(target.x - MUZZLE.x, MUZZLE.y - target.y) * 180) / Math.PI
+  const landed = `translate(${target.x}px, ${target.y}px) rotate(${angle}deg) scale(0.7)`
+  // 총알은 화살보다 훨씬 빠르게 날아간다 (0.2초). 맞은 자리에 구멍이 생길 때까지 잠깐 보이다가 사라진다
+  return [
+    { offset: 0, transform: rest, opacity: 1, easing: 'cubic-bezier(0.1, 0.8, 0.3, 1)' },
+    { offset: 0.2, transform: landed, opacity: 1 },
+    { offset: 0.5, transform: landed, opacity: attempt.at ? 1 : 0 },
+    { offset: 0.52, transform: landed, opacity: 0 },
+    { offset: 1, transform: landed, opacity: 0 },
+  ]
+}
+
+// 사격 표적: 하얀 종이에 안쪽 4칸이 검은 원 (양궁 과녁과 같은 10칸 점수)
+const SHOOTING_RINGS = Array.from({ length: 10 }, (_, index) => index < 6)
+
+/** 사격: 표적 위를 휘젓는 조준점 — 중앙에 올 때 누르면 총에서 총알이 날아가 맞는다. 이미 맞은 자리는 구멍으로 남는다 */
+export function ShootingTarget({ gauge, elapsed, shots, shot }: { gauge: OlympicsGauge | null; elapsed: number; shots: OlympicsAttempt[]; shot: Shot | null }) {
+  const aim = gauge ? archeryPosition(gauge, elapsed) : null
+  const ring = ARCHERY_RING_WIDTH * 100
+  const bullet = useRef<SVGGElement>(null)
+  const gun = useRef<SVGGElement>(null)
+  const flash = useRef<SVGCircleElement>(null)
+  const shotKey = shot?.key
+  const attemptRef = useRef(shot?.attempt)
+  attemptRef.current = shot?.attempt
+
+  useEffect(() => {
+    const attempt = attemptRef.current
+    if (!shotKey || !attempt || prefersReducedMotion()) return
+    const animations: Animation[] = []
+    if (bullet.current && typeof bullet.current.animate === 'function') {
+      animations.push(bullet.current.animate(bulletFrames(attempt), { duration: SHOOTING_FLIGHT_MS, easing: 'linear' }))
+    }
+    if (gun.current && typeof gun.current.animate === 'function') {
+      // 반동: 총이 뒤로 튕겼다가 돌아온다
+      animations.push(
+        gun.current.animate(
+          [
+            { offset: 0, transform: 'translateY(0px)' },
+            { offset: 0.04, transform: 'translateY(5px)' },
+            { offset: 0.2, transform: 'translateY(0px)' },
+            { offset: 1, transform: 'translateY(0px)' },
+          ],
+          { duration: SHOOTING_FLIGHT_MS, easing: 'ease-out' },
+        ),
+      )
+    }
+    if (flash.current && typeof flash.current.animate === 'function') {
+      animations.push(flash.current.animate([{ opacity: 1, scale: '1.4' }, { opacity: 0, scale: '0.6' }], { duration: 120, easing: 'ease-out' }))
+    }
+    return () => animations.forEach((animation) => animation.cancel())
+  }, [shotKey])
+
+  const landedAt = shot?.attempt.at
+  return (
+    <svg className="party-oly-target" viewBox="0 0 100 134" role="img" aria-label="사격 표적">
+      <rect x="1" y="1" width="98" height="98" rx="2" fill="#f8fafc" stroke="#94a3b8" strokeWidth="0.6" />
+      {SHOOTING_RINGS.map((light, index) => (
+        <circle key={index} cx="50" cy="50" r={ring * (SHOOTING_RINGS.length - index)} fill={light ? '#f8fafc' : '#1f2937'} stroke={light ? '#475569' : '#e5e7eb'} strokeWidth="0.35" />
+      ))}
+      <circle cx="50" cy="50" r="1" fill="#e5e7eb" />
+      {shots.map((item, index) =>
+        item.at ? (
+          <g key={index}>
+            <circle cx={item.at.x * 100} cy={item.at.y * 100} r="1.7" fill="#0f172a" stroke="#fde047" strokeWidth="0.6" />
+          </g>
+        ) : null,
+      )}
+      {aim && (
+        <g transform={`translate(${aim.x * 100} ${aim.y * 100})`}>
+          <circle r="4" fill="none" stroke="#e11d1d" strokeWidth="0.9" />
+          <line x1="-6" y1="0" x2="6" y2="0" stroke="#e11d1d" strokeWidth="0.9" />
+          <line x1="0" y1="-6" x2="0" y2="6" stroke="#e11d1d" strokeWidth="0.9" />
+        </g>
+      )}
+      {/* 총: 총구가 표적을 향한다 */}
+      <g ref={gun}>
+        <rect x="46" y="106" width="8" height="14" rx="1" fill="#475569" stroke="#1f2937" strokeWidth="0.6" />
+        <rect x="42" y="118" width="16" height="9" rx="1.5" fill="#374151" stroke="#111827" strokeWidth="0.6" />
+        <path d="M44 126 L56 126 L58 134 L47 134 Z" fill="#1f2937" />
+        <path d="M53 127 Q57 129 53 131" fill="none" stroke="#9ca3af" strokeWidth="0.8" />
+        <rect x="49" y="104" width="2" height="3" fill="#111827" />
+      </g>
+      <circle ref={flash} cx={MUZZLE.x} cy={MUZZLE.y - 1} r="3" fill="#fde047" opacity="0" style={{ transformOrigin: `${MUZZLE.x}px ${MUZZLE.y - 1}px` }} />
+      {/* 총알: 쏘면 총구에서 표적으로 날아간다 */}
+      <g ref={bullet} style={{ transform: `translate(${MUZZLE.x}px, ${MUZZLE.y}px) scale(1.1)`, opacity: 0 }}>
+        <path d="M0 -4 C2.2 -2.2 2.2 0 2.2 5 L-2.2 5 C-2.2 0 -2.2 -2.2 0 -4 Z" fill="#c28a3a" stroke="#7c5314" strokeWidth="0.4" />
+        <rect x="-2.2" y="5" width="4.4" height="1.4" fill="#e5e7eb" />
+      </g>
+      {shot && (
+        <text
+          key={shot.key}
+          className={`party-oly-pop${shot.attempt.score >= 9 ? ' party-oly-pop-hit' : ''}`}
+          x={landedAt ? Math.min(82, Math.max(18, landedAt.x * 100)) : 50}
+          y={landedAt ? Math.max(12, landedAt.y * 100 - 7) : 14}
+          textAnchor="middle"
+          style={{ animationDelay: `${SHOOTING_REVEAL_MS - 80}ms` }}
+        >
+          {landedAt ? `${shot.attempt.score}점!` : '빗나갔어요'}
         </text>
       )}
     </svg>

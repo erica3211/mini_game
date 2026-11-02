@@ -47,12 +47,14 @@ export function pitchZone(type: 'fastball' | 'curve' | 'changeup' | 'slider', ta
 export const OLYMPICS_SPORT_CHOICES: { id: string; label: string; twoTeamsOnly?: boolean }[] = [
   { id: 'basketball', label: '🏀 농구' },
   { id: 'archery', label: '🏹 양궁' },
+  { id: 'shooting', label: '🔫 사격' },
   { id: 'bowling', label: '🎳 볼링' },
   { id: 'weightlifting', label: '🏋️ 역도' },
   { id: 'baseball', label: '⚾ 야구 (2팀일 때만)', twoTeamsOnly: true },
   { id: 'soccer', label: '⚽ 축구 승부차기 (2팀일 때만)', twoTeamsOnly: true },
   { id: 'pingpong', label: '🏓 탁구 (2팀일 때만)', twoTeamsOnly: true },
   { id: 'track', label: '🏃 육상' },
+  { id: 'swimming', label: '🏊 수영' },
 ]
 
 // 과녁의 링 하나의 폭(과녁 크기를 1로 봤을 때) — 서버의 ARCHERY_RING_WIDTH와 같아야 한다

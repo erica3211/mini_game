@@ -1105,3 +1105,176 @@
     animation: none;
   }
 }
+
+/* 수영: 수영장 레인 — 물 위에 레인 로프(위·아래)가 쳐져 있고, 헤엄치는 동안 물결이 뒤로 흐른다 */
+.party-oly-pool {
+  position: relative;
+  flex: 1;
+  height: 2.8rem;
+  background-color: #38a3e8;
+  background-image: repeating-linear-gradient(100deg, rgba(255, 255, 255, 0.22) 0 2px, transparent 2px 22px);
+  background-size: 22px 100%;
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+  border-image: repeating-linear-gradient(90deg, #e11d48 0 10px, #fff 10px 20px, #2563eb 20px 30px, #fff 30px 40px) 5;
+  overflow: hidden;
+}
+
+.party-oly-pool-moving {
+  animation: party-oly-pool-flow 0.3s linear infinite;
+}
+
+@keyframes party-oly-pool-flow {
+  from {
+    background-position-x: 0;
+  }
+  to {
+    background-position-x: -22px;
+  }
+}
+
+.party-oly-pool-trail {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: var(--lane-color);
+  opacity: 0.35;
+  transition: width 0.12s linear;
+}
+
+.party-oly-pool-wall {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 0.5rem;
+  background: #e2e8f0;
+  border: 1px solid #94a3b8;
+}
+
+.party-oly-pool-wall-start {
+  left: 0;
+}
+
+/* 결승 벽에는 터치패드(팀 색이 아닌 노란색)가 붙어 있다 */
+.party-oly-pool-wall-finish {
+  right: 0;
+  background: #facc15;
+}
+
+.party-oly-pool-swimmer {
+  width: 3.4rem;
+  height: 1.8rem;
+}
+
+/* 헤엄치는 사람: 팔은 번갈아 크게 돌고 다리는 퍼덕인다 */
+.party-oly-swimmer {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  stroke-linecap: round;
+}
+
+.party-oly-swimmer-body {
+  fill: #fff;
+  stroke: #0f172a;
+  stroke-width: 0.8;
+}
+
+.party-oly-swimmer-cap {
+  fill: var(--lane-color);
+  stroke: #0f172a;
+  stroke-width: 0.8;
+}
+
+.party-oly-swimmer-eye {
+  fill: #0f172a;
+}
+
+.party-oly-swimmer line {
+  stroke: #0f172a;
+  stroke-width: 2;
+}
+
+.party-oly-swimmer-arm {
+  transform-box: view-box;
+  transform-origin: 28px 11px;
+}
+
+.party-oly-swimmer-leg {
+  transform-box: view-box;
+  transform-origin: 10px 12px;
+}
+
+.party-oly-swimmer-arm-b {
+  rotate: 180deg;
+}
+
+.party-oly-swimmer-swimming .party-oly-swimmer-arm-a {
+  animation: party-oly-swim-arm 0.5s linear infinite;
+}
+
+.party-oly-swimmer-swimming .party-oly-swimmer-arm-b {
+  animation: party-oly-swim-arm 0.5s linear -0.25s infinite;
+}
+
+.party-oly-swimmer-swimming .party-oly-swimmer-leg-a {
+  animation: party-oly-swim-kick 0.18s ease-in-out infinite alternate;
+}
+
+.party-oly-swimmer-swimming .party-oly-swimmer-leg-b {
+  animation: party-oly-swim-kick 0.18s ease-in-out -0.09s infinite alternate-reverse;
+}
+
+.party-oly-swimmer-swimming {
+  animation: party-oly-swim-bob 0.5s ease-in-out infinite;
+}
+
+.party-oly-swimmer-finished {
+  animation: party-oly-cheer 0.5s ease-in-out infinite alternate;
+}
+
+@keyframes party-oly-swim-arm {
+  from {
+    rotate: 0deg;
+  }
+  to {
+    rotate: 360deg;
+  }
+}
+
+@keyframes party-oly-swim-kick {
+  from {
+    rotate: -18deg;
+  }
+  to {
+    rotate: 18deg;
+  }
+}
+
+@keyframes party-oly-swim-bob {
+  50% {
+    translate: 0 -2px;
+  }
+}
+
+/* 수영: 왼쪽·오른쪽 버튼 한 쌍 */
+.party-oly-press-pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  width: 100%;
+  max-width: 420px;
+}
+
+.party-oly-press-pair .party-oly-stage-hint {
+  grid-column: 1 / -1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .party-oly-pool-moving,
+  .party-oly-swimmer-swimming,
+  .party-oly-swimmer-swimming .party-oly-swimmer-arm,
+  .party-oly-swimmer-swimming .party-oly-swimmer-leg,
+  .party-oly-swimmer-finished {
+    animation: none;
+  }
+}

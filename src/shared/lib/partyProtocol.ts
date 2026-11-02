@@ -354,7 +354,7 @@ export interface ClientToServerEvents {
   /** 미로 탈출: 내 담당 방향으로 팀 캐릭터를 한 칸 움직이려고 한다 (내 방향이 아니거나 벽이 있거나 너무 빠르면 서버가 무시한다) */
   'mazeEscape:move': (data: { dir: MazeDirection }) => void
   /** 올림픽: 게이지·조준점을 눌렀다(육상은 한 번 달렸다). elapsedMs는 화면에서 누른 순간의 게이지 경과 시간 */
-  'olympics:press': (data: { elapsedMs?: number }) => void
+  'olympics:press': (data: { elapsedMs?: number; side?: 'left' | 'right' }) => void
   /** 올림픽 야구: 아직 버튼을 누르기 전의 선택 — 시간이 다 되면 서버가 이 선택으로 진행한다 */
   'olympics:draft': (data: { pitch?: string; swing?: string; cell?: number }) => void
   /** 올림픽 야구: 투수는 구종(pitch)과 칸, 타자는 스윙(swing)과 칸(0~8)을 고른다 */

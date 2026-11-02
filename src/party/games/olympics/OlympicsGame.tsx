@@ -3,7 +3,7 @@ import type { Socket } from 'socket.io-client'
 import type { OlympicsAttempt, OlympicsStateSignal, OlympicsTrackSignal } from './protocol'
 import { BaseballField } from './BaseballField'
 import { ZoneDuelField } from './ZoneDuelField'
-import { BOWLING_REVEAL_MS, BowlingLane, LIFT_REVEAL_MS, WeightliftingStage } from './OlympicsStages'
+import { BOWLING_REVEAL_MS, BowlingLane, LIFT_REVEAL_MS, ShootingTarget, WeightliftingStage } from './OlympicsStages'
 import type { ClientToServerEvents, PlayerInfo, ServerToClientEvents, TeamInfo } from '../../../shared/lib/partyProtocol'
 import { teamColorClass, teamEmoji, teamOf } from '../../core/PartyTeamBanner'
 import { useMonotonicStartedAt } from '../../core/useMonotonicStartedAt'
@@ -15,6 +15,7 @@ import {
   BASKETBALL_REVEAL_MS,
   BasketballCourt,
   BasketballGauge,
+  SwimLanes,
   TrackLanes,
   useGaugeClock,
   useShotTracker,
@@ -51,7 +52,10 @@ export function OlympicsGame({ socket, roundKey, state, playerId, players, teams
     }
   }, [socket])
   const roundId = `${roundKey}-${state?.roundIndex ?? 'none'}`
-  useEffect(() => setMyTaps(0), [roundId])
+  useEffect(() => {
+    setMyTaps(0)
+    lastSideRef.current = null
+  }, [roundId])
 
   const gauge = state?.gauge ?? null
   // 볼링은 한 번 던질 때 게이지가 두 번(방향, 힘) 나오므로 단계까지 키에 넣어 시계를 다시 시작한다
@@ -59,10 +63,23 @@ export function OlympicsGame({ socket, roundKey, state, playerId, players, teams
   const clock = useGaugeClock(gauge, gaugeKey)
   const trackStartedAt = useMonotonicStartedAt(`${roundId}-track`, state?.track ? { elapsedMs: state.track.elapsedMs } : null, state?.phase === 'play' ? 'running' : 'finished')
   const lastTapRef = useRef(0)
+  // 수영: 마지막으로 누른 쪽 (같은 쪽을 연달아 누르면 세지 않는다 — 서버도 같은 기준)
+  const lastSideRef = useRef<'left' | 'right' | null>(null)
+  const pressSwimRef = useRef<((side: 'left' | 'right') => void) | null>(null)
+  useEffect(() => {
+    // 키보드: ← → 로 번갈아 저을 수 있다
+    const onKey = (event: globalThis.KeyboardEvent) => {
+      if (event.repeat) return
+      if (event.key === 'ArrowLeft') pressSwimRef.current?.('left')
+      else if (event.key === 'ArrowRight') pressSwimRef.current?.('right')
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
   // 던진 뒤에는 게이지가 사라지므로, 공이 어느 쪽으로 빗나갔는지 알려면 마지막 목표 위치를 기억해 둔다
   const zoneRef = useRef<number | null>(null)
   if (gauge?.zoneCenter !== undefined) zoneRef.current = gauge.zoneCenter
-  const revealMs = { archery: ARCHERY_REVEAL_MS, bowling: BOWLING_REVEAL_MS, weightlifting: LIFT_REVEAL_MS }[state?.sport.id ?? ''] ?? BASKETBALL_REVEAL_MS
+  const revealMs = { archery: ARCHERY_REVEAL_MS, shooting: ARCHERY_REVEAL_MS, bowling: BOWLING_REVEAL_MS, weightlifting: LIFT_REVEAL_MS }[state?.sport.id ?? ''] ?? BASKETBALL_REVEAL_MS
   const { shot, pending } = useShotTracker(state?.attempts ?? NO_ATTEMPTS, roundId, revealMs)
   const choiceStartedAt = useMonotonicStartedAt(`${roundId}-choice-${state?.choice?.teamId}-${state?.choice?.attempt}`, state?.choice ? { elapsedMs: state.choice.elapsedMs } : null, state?.choice ? 'running' : 'finished')
 
@@ -84,12 +101,13 @@ export function OlympicsGame({ socket, roundKey, state, playerId, players, teams
 
   const isTrack = sport.mode === 'simultaneous'
   const isDuel = sport.mode === 'duel'
+  const isSwim = sport.id === 'swimming'
   const playing = state.phase === 'play'
   const myTurn = !isTrack && playing && iAmRep && gauge !== null && gauge.teamId === myTeamId
   const canPress = playing && iAmRep && (isTrack ? !myFinished : myTurn)
 
   const press = () => {
-    if (!canPress) return
+    if (!canPress || isSwim) return
     if (isTrack) {
       // 서버가 무시하는 속도의 신호는 보내지 않는다
       const now = performance.now()
@@ -101,6 +119,17 @@ export function OlympicsGame({ socket, roundKey, state, playerId, players, teams
     }
     socket.emit('olympics:press', { elapsedMs: clock.now() })
   }
+  // 수영: 왼쪽·오른쪽을 번갈아 눌러야 센다
+  const pressSwim = (side: 'left' | 'right') => {
+    if (!canPress || !isSwim || lastSideRef.current === side) return
+    const now = performance.now()
+    if (now - lastTapRef.current < 55) return
+    lastTapRef.current = now
+    lastSideRef.current = side
+    setMyTaps((prev) => prev + 1)
+    socket.emit('olympics:press', { side })
+  }
+  pressSwimRef.current = pressSwim
   const onPointerDown = (event: PointerEvent<HTMLButtonElement>) => {
     event.preventDefault()
     press()
@@ -192,6 +221,11 @@ export function OlympicsGame({ socket, roundKey, state, playerId, players, teams
               />
               )}
             </>
+          ) : isSwim ? (
+            <>
+              {trackStartedAt !== null && state.track && <RemainingTime startedAt={trackStartedAt} timeoutMs={state.track.durationMs} />}
+              <SwimLanes teams={teams} positions={positions} finishTaps={finishTaps} nameOf={nameOf} myTeamId={myTeamId} />
+            </>
           ) : isTrack ? (
             <>
               {trackStartedAt !== null && state.track && <RemainingTime startedAt={trackStartedAt} timeoutMs={state.track.durationMs} />}
@@ -234,6 +268,9 @@ export function OlympicsGame({ socket, roundKey, state, playerId, players, teams
               {gauge && (sport.id === 'basketball' || sport.id === 'bowling' || sport.id === 'weightlifting') && (
                 <BasketballGauge gauge={gauge} elapsed={clock.elapsed} label={`${sport.name} 게이지`} />
               )}
+              {sport.id === 'shooting' && (
+                <ShootingTarget gauge={gauge} elapsed={clock.elapsed} shots={state.turnTeamId !== null ? (shownAttempts[state.turnTeamId] ?? []) : []} shot={shot} />
+              )}
               {sport.id === 'archery' && (
                 <ArcheryTarget gauge={gauge} elapsed={clock.elapsed} arrows={state.turnTeamId !== null ? (shownAttempts[state.turnTeamId] ?? []) : []} shot={shot} />
               )}
@@ -249,7 +286,27 @@ export function OlympicsGame({ socket, roundKey, state, playerId, players, teams
             </>
           )}
 
-          {!isDuel && (
+          {isSwim && (
+            <div className="party-oly-press-pair">
+              {(['left', 'right'] as const).map((side) => (
+                <button
+                  key={side}
+                  type="button"
+                  className="party-oly-press"
+                  disabled={!canPress}
+                  onPointerDown={(event) => {
+                    event.preventDefault()
+                    pressSwim(side)
+                  }}
+                  onContextMenu={(event) => event.preventDefault()}
+                >
+                  {side === 'left' ? '◀ 왼쪽' : '오른쪽 ▶'}
+                </button>
+              ))}
+              <p className="party-oly-stage-hint">{myFinished ? '🏁 도착!' : iAmRep ? '왼쪽, 오른쪽을 번갈아 눌러요! (키보드 ← →)' : '대표를 응원해요'}</p>
+            </div>
+          )}
+          {!isDuel && !isSwim && (
           <button
             type="button"
             className="party-oly-press"
@@ -286,7 +343,7 @@ export function OlympicsGame({ socket, roundKey, state, playerId, players, teams
 
 /** 내 차례에 누르는 버튼의 문구 */
 function pressLabel(sportId: string, stage: number | undefined): string {
-  if (sportId === 'archery') return '쏘기!'
+  if (sportId === 'archery' || sportId === 'shooting') return '쏘기!'
   if (sportId === 'bowling') return stage === 1 ? '힘 멈추기!' : '방향 멈추기!'
   if (sportId === 'weightlifting') return '들어올리기!'
   return '던지기!'

@@ -26,7 +26,7 @@ export interface OlympicsAttempt {
 }
 
 export interface OlympicsGauge {
-  kind: 'basketball' | 'archery' | 'bowling' | 'weightlifting'
+  kind: 'basketball' | 'archery' | 'shooting' | 'bowling' | 'weightlifting'
   teamId: number
   attempt: number
   elapsedMs: number

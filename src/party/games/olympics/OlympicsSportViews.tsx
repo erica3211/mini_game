@@ -322,7 +322,7 @@ export function ArcheryTarget({ gauge, elapsed, arrows, shot }: { gauge: Olympic
 
 /** 기록 칸 한 개의 표시 */
 function chipText(sportId: string, attempt: OlympicsAttempt): string | number {
-  if (sportId === 'archery') return attempt.score
+  if (sportId === 'archery' || sportId === 'shooting') return attempt.score
   if (sportId === 'bowling') return attempt.score === 10 ? '🎳' : attempt.score
   if (sportId === 'weightlifting') return attempt.hit ? attempt.score : '✖'
   return attempt.hit ? '⭕' : '✖'
@@ -330,7 +330,7 @@ function chipText(sportId: string, attempt: OlympicsAttempt): string | number {
 
 /** 팀 줄 오른쪽의 합계 표시 — 역도는 합이 아니라 성공한 가장 무거운 기록 */
 function sumText(sportId: string, sum: number, best: number): string {
-  if (sportId === 'archery') return `${sum}점`
+  if (sportId === 'archery' || sportId === 'shooting') return `${sum}점`
   if (sportId === 'bowling') return `${sum}핀`
   if (sportId === 'weightlifting') return best > 0 ? `${best}kg` : '-'
   return `${sum}골`
@@ -459,6 +459,80 @@ export function TrackLanes({ teams, positions, finishTaps, nameOf, myTeamId }: T
     <ul className="party-oly-lanes">
       {teams.map((team) => (
         <Lane key={team.id} team={team} taps={Math.min(finishTaps, positions[team.id] ?? 0)} finishTaps={finishTaps} nameOf={nameOf} mine={team.id === myTeamId} />
+      ))}
+    </ul>
+  )
+}
+
+/** 헤엄치는 사람 — 옆에서 본 모습. 팔이 번갈아 돌고 다리가 퍼덕이며, swimming일 때만 움직인다 */
+function Swimmer({ swimming, finished }: { swimming: boolean; finished: boolean }) {
+  return (
+    <svg viewBox="0 0 44 22" className={`party-oly-swimmer${swimming ? ' party-oly-swimmer-swimming' : ''}${finished ? ' party-oly-swimmer-finished' : ''}`} aria-hidden="true">
+      <g className="party-oly-swimmer-leg party-oly-swimmer-leg-a">
+        <line x1="10" y1="12" x2="2" y2="14" />
+      </g>
+      <g className="party-oly-swimmer-leg party-oly-swimmer-leg-b">
+        <line x1="10" y1="12" x2="2" y2="10" />
+      </g>
+      <ellipse cx="22" cy="12" rx="13" ry="3.6" className="party-oly-swimmer-body" />
+      <g className="party-oly-swimmer-arm party-oly-swimmer-arm-a">
+        <line x1="28" y1="11" x2="38" y2="11" />
+      </g>
+      <g className="party-oly-swimmer-arm party-oly-swimmer-arm-b">
+        <line x1="28" y1="11" x2="38" y2="11" />
+      </g>
+      <circle cx="36" cy="10.5" r="3.6" className="party-oly-swimmer-cap" />
+      <circle cx="37.2" cy="9.6" r="0.6" className="party-oly-swimmer-eye" />
+    </svg>
+  )
+}
+
+function SwimLane({ team, strokes, finishStrokes, nameOf, mine }: { team: TeamInfo; strokes: number; finishStrokes: number; nameOf: (teamId: number) => string; mine: boolean }) {
+  const [swimming, setSwimming] = useState(false)
+  const lastStrokes = useRef(strokes)
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  useEffect(() => {
+    if (strokes > lastStrokes.current) {
+      setSwimming(true)
+      if (timer.current) clearTimeout(timer.current)
+      timer.current = setTimeout(() => setSwimming(false), RUNNING_HOLD_MS)
+    }
+    lastStrokes.current = strokes
+  }, [strokes])
+  useEffect(
+    () => () => {
+      if (timer.current) clearTimeout(timer.current)
+    },
+    [],
+  )
+
+  const finished = strokes >= finishStrokes
+  const percent = (strokes / finishStrokes) * 100
+  const left = LANE_START + (percent * LANE_SPAN) / 100
+  return (
+    <li className={`party-oly-lane party-oly-pool-row${mine ? ' party-oly-lane-mine' : ''}`}>
+      <span className="party-oly-lane-name">
+        {teamEmoji(team.id)} {nameOf(team.id)}
+      </span>
+      <div className={`party-oly-pool${swimming && !finished ? ' party-oly-pool-moving' : ''}`} style={{ '--lane-color': `rgb(${teamRgb(team.id)})` } as CSSProperties}>
+        <div className="party-oly-pool-trail" style={{ width: `${left}%` }} />
+        <span className="party-oly-pool-wall party-oly-pool-wall-start" />
+        <span className="party-oly-pool-wall party-oly-pool-wall-finish" />
+        <span className="party-oly-lane-runner party-oly-pool-swimmer" style={{ left: `${left}%` }}>
+          <Swimmer swimming={swimming && !finished} finished={finished} />
+        </span>
+      </div>
+      <span className="party-oly-lane-count">{strokes}</span>
+    </li>
+  )
+}
+
+/** 수영: 모든 팀 대표가 동시에 헤엄치는 수영장 — 레인마다 로프가 쳐져 있고 가로 위치로 서로 누가 앞서는지 비교한다 */
+export function SwimLanes({ teams, positions, finishTaps, nameOf, myTeamId }: TrackProps) {
+  return (
+    <ul className="party-oly-lanes">
+      {teams.map((team) => (
+        <SwimLane key={team.id} team={team} strokes={Math.min(finishTaps, positions[team.id] ?? 0)} finishStrokes={finishTaps} nameOf={nameOf} mine={team.id === myTeamId} />
       ))}
     </ul>
   )
