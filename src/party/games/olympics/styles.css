@@ -727,63 +727,146 @@
   cursor: default;
 }
 
+/* 투수는 투수 팀 색, 타자는 타자 팀 색으로 칠한다 (--pitch-rgb, --swing-rgb는 화면에서 팀 색으로 정해 준다) */
 /* 고르는 동안: 모양은 연하게, 고른 기준 칸은 진하게 */
 .party-oly-bb-pv-pitch {
-  background: #f8c9c9;
+  background: rgba(var(--pitch-rgb), 0.3);
 }
 
 .party-oly-bb-sel-pitch {
-  background: #d93b3b;
-  border-color: #7f1d1d;
+  background: rgb(var(--pitch-rgb));
+  border-color: var(--text);
 }
 
 .party-oly-bb-pv-swing {
-  background: #c6dcff;
+  background: rgba(var(--swing-rgb), 0.3);
 }
 
 .party-oly-bb-sel-swing {
-  background: #2563eb;
-  border-color: #1e3a8a;
+  background: rgb(var(--swing-rgb));
+  border-color: var(--text);
 }
 
-/* 공개: 칠해진 칸은 붉게, 투수가 고른 칸은 진하게, 타자가 휘두른 칸은 파란 테두리 */
+/* 공개: 칠해진 칸은 투수 팀 색, 투수가 고른 칸은 진하게(⚾), 타자가 휘두른 칸은 타자 팀 색 테두리 */
 .party-oly-bb-zone {
-  background: #f8b4b4;
-  animation: party-oly-bb-zone-in 0.5s ease-out both;
+  background: rgba(var(--pitch-rgb), 0.35);
 }
 
 .party-oly-bb-target {
-  background: #d93b3b;
+  background: rgb(var(--pitch-rgb));
 }
 
 .party-oly-bb-swing {
-  border-color: #2563eb;
-  box-shadow: inset 0 0 0 2px #2563eb;
+  border-color: rgb(var(--swing-rgb));
+  box-shadow: inset 0 0 0 2px rgb(var(--swing-rgb));
 }
 
 .party-oly-bb-swing-anchor {
-  border-color: #1e3a8a;
-  box-shadow: inset 0 0 0 4px #1e3a8a;
+  border-color: var(--text);
+  box-shadow: inset 0 0 0 4px rgb(var(--swing-rgb));
 }
 
-.party-oly-bb-ball {
-  animation: party-oly-bb-drop 0.55s cubic-bezier(0.3, 0, 0.7, 1) both;
+/* 칠해진 칸·고른 칸·휘두른 칸은 공이 닿은 뒤에 나타난다 */
+.party-oly-bb-stage .party-oly-bb-zone,
+.party-oly-bb-stage .party-oly-bb-target,
+.party-oly-bb-stage .party-oly-bb-swing {
+  animation: party-oly-bb-late 0.2s ease-out 0.65s both;
 }
 
-@keyframes party-oly-bb-zone-in {
+@keyframes party-oly-bb-late {
   from {
     background: var(--surface);
+    border-color: transparent;
+    box-shadow: none;
   }
 }
 
-@keyframes party-oly-bb-drop {
+@keyframes party-oly-bb-fade {
   from {
-    transform: translateY(-200%) scale(1.6);
     opacity: 0;
   }
+}
+
+/* 결과 연출: 격자 위에 겹치는 층 — 공이 날아온다 */
+.party-oly-bb-stage {
+  position: relative;
+  width: min(100%, 15rem);
+}
+
+.party-oly-bb-stage .party-oly-bb-grid {
+  width: 100%;
+}
+
+.party-oly-bb-fx {
+  position: absolute;
+  inset: calc(0.4rem + 2px);
+  pointer-events: none;
+  z-index: 2;
+}
+
+.party-oly-bb-fly {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  font-size: 1.7rem;
+  line-height: 1;
+  transform: translate(-50%, -50%);
+}
+
+/* 위에서 날아와 고른 칸에 닿는다(0.65초). 그 뒤 안타·홈런은 날아가고, 헛스윙·파울은 그 칸에 1초 남았다가 사라진다 */
+.party-oly-bb-fly-hit {
+  animation: party-oly-bb-flight 0.65s cubic-bezier(0.3, 0, 0.7, 1) both, party-oly-bb-ball-hit 0.8s ease-out 0.65s both;
+}
+
+.party-oly-bb-fly-homerun {
+  animation: party-oly-bb-flight 0.65s cubic-bezier(0.3, 0, 0.7, 1) both, party-oly-bb-ball-homerun 1.2s ease-out 0.65s both;
+}
+
+.party-oly-bb-fly-strike,
+.party-oly-bb-fly-foul {
+  animation: party-oly-bb-flight 0.65s cubic-bezier(0.3, 0, 0.7, 1) both, party-oly-bb-ball-vanish 0.25s ease-in 1.65s both;
+}
+
+@keyframes party-oly-bb-flight {
+  from {
+    top: -45%;
+    scale: 0.4;
+    opacity: 0.2;
+  }
   to {
-    transform: none;
+    top: var(--y);
+    scale: 1;
     opacity: 1;
+  }
+}
+
+/* 안타: 앞으로 날아간다 */
+@keyframes party-oly-bb-ball-hit {
+  to {
+    translate: 3.5rem -9rem;
+    scale: 0.45;
+    opacity: 0;
+  }
+}
+
+/* 홈런: 더 크고 높게 멀리 날아간다 */
+@keyframes party-oly-bb-ball-homerun {
+  40% {
+    scale: 2;
+  }
+  to {
+    translate: 6rem -19rem;
+    rotate: 720deg;
+    scale: 0.3;
+    opacity: 0;
+  }
+}
+
+/* 헛스윙·파울: 칸에 남아 있다가 사라진다 */
+@keyframes party-oly-bb-ball-vanish {
+  to {
+    opacity: 0;
+    scale: 0.6;
   }
 }
 
@@ -839,12 +922,16 @@
   text-align: center;
 }
 
+.party-oly-bb-reveal .party-oly-bb-legend {
+  animation: party-oly-bb-fade 0.3s ease-out 0.65s both;
+}
+
 .party-oly-bb-outcome {
   margin: 0;
   font-size: 1.5rem;
   font-weight: 900;
   text-align: center;
-  animation: party-oly-bb-pop 0.6s ease-out 0.5s both;
+  animation: party-oly-bb-fade 0.3s ease-out 0.65s both;
 }
 
 .party-oly-bb-outcome-homerun {
@@ -855,25 +942,17 @@
   color: #15803d;
 }
 
-@keyframes party-oly-bb-pop {
-  from {
-    opacity: 0;
-    transform: scale(0.6);
-  }
-  60% {
-    transform: scale(1.15);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .party-oly-bb-ball,
-  .party-oly-bb-zone,
-  .party-oly-bb-outcome {
+  .party-oly-bb-stage .party-oly-bb-zone,
+  .party-oly-bb-stage .party-oly-bb-target,
+  .party-oly-bb-stage .party-oly-bb-swing,
+  .party-oly-bb-outcome,
+  .party-oly-bb-reveal .party-oly-bb-legend {
     animation: none;
+  }
+
+  .party-oly-bb-fx {
+    display: none;
   }
 }
 

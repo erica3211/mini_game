@@ -1,7 +1,7 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import type { Socket } from 'socket.io-client'
 import type { ClientToServerEvents, ServerToClientEvents, TeamInfo } from '../../../shared/lib/partyProtocol'
-import { teamColorClass, teamEmoji } from '../../core/PartyTeamBanner'
+import { teamColorClass, teamEmoji, teamRgb } from '../../core/PartyTeamBanner'
 import { useMonotonicStartedAt } from '../../core/useMonotonicStartedAt'
 import { RemainingTime } from '../../../shared/components/RemainingTime'
 import type { BaseballOutcome, BaseballPitchType, BaseballSwingType, OlympicsBaseball } from './protocol'
@@ -25,6 +25,9 @@ const SWINGS: { id: BaseballSwingType; label: string; glyph: string }[] = [
 const pitchOf = (type: BaseballPitchType | null) => PITCHES.find((pitch) => pitch.id === type)
 const swingOf = (type: BaseballSwingType | null) => SWINGS.find((swing) => swing.id === type)
 const WRAP_HINT = '대각선은 판 끝에서 반대쪽으로 이어져서 어느 칸을 골라도 3칸이에요'
+
+// 결과 연출의 시간표(ms) — styles.css의 애니메이션 지연과 같아야 한다. 공이 날아와 닿고(0~650) → 결과가 보이고 공이 날아가거나 남는다
+const LAND_MS = 650
 
 const OUTCOME_TEXT: Record<BaseballOutcome, string> = {
   strike: '헛스윙! 스트라이크',
@@ -54,7 +57,7 @@ function ShapeIcon({ cells }: { cells: number[] }) {
 interface GridProps {
   /** 공개된 칠해진 칸 */
   zone?: number[]
-  /** 공개된 투수가 고른 칸 (⚾) */
+  /** 공개된 투수가 고른 칸 */
   target?: number | null
   /** 공개된 타자가 칠한 칸과 기준 칸 */
   swing?: number[]
@@ -66,6 +69,21 @@ interface GridProps {
   selected?: number | null
   onSelect?: (cell: number) => void
   revealKey?: string
+}
+
+/** 공개 연출: 공이 날아와 투수가 고른 칸에 닿으면 칠해진 모양이 나타나고, 안타는 공이 날아가고 홈런은 더 크고 높게 날아가며, 헛스윙·파울은 공이 그 칸에 1초쯤 남았다가 사라진다 */
+function ReplayStage({ reveal, stepKey }: { reveal: NonNullable<OlympicsBaseball['reveal']>; stepKey: string }) {
+  const col = reveal.target % 3
+  const row = Math.floor(reveal.target / 3)
+  const style = { '--x': `${((col + 0.5) / 3) * 100}%`, '--y': `${((row + 0.5) / 3) * 100}%` } as CSSProperties
+  return (
+    <div className="party-oly-bb-stage" key={stepKey}>
+      <ZoneGrid zone={reveal.zone} target={reveal.target} swing={reveal.swing} swingAnchor={reveal.swingCell} />
+      <div className="party-oly-bb-fx" style={style} aria-hidden="true">
+        <span className={`party-oly-bb-fly party-oly-bb-fly-${reveal.outcome}`}>⚾</span>
+      </div>
+    </div>
+  )
 }
 
 /** 점수표 — 결과가 어떻게 정해지는지 항상 작게 보여준다 */
@@ -86,7 +104,7 @@ function Rules() {
       </li>
       <li className="party-oly-bb-rule-homerun">
         <strong>홈런 +3점</strong>
-        <span>투수가 고른 칸(⚾)과 같은 칸</span>
+        <span>투수가 고른 칸과 같은 칸</span>
       </li>
     </ul>
   )
@@ -106,7 +124,6 @@ function ZoneGrid({ zone = [], target = null, swing = [], swingAnchor = null, pr
         if (swingAnchor === cell) classes.push('party-oly-bb-swing-anchor')
         return (
           <button key={cell} type="button" className={classes.join(' ')} disabled={!onSelect} onClick={() => onSelect?.(cell)} aria-label={`${Math.floor(cell / 3) + 1}행 ${(cell % 3) + 1}열`}>
-            {target === cell ? <span className="party-oly-bb-ball">⚾</span> : null}
           </button>
         )
       })}
@@ -132,26 +149,38 @@ export function BaseballField({ baseball, roundId, socket, teams, myTeamId, iAmR
   const stepKey = `${roundId}-${baseball.pitchNo}-${phase}`
   const startedAt = useMonotonicStartedAt(stepKey, { elapsedMs: baseball.elapsedMs }, phase === 'reveal' ? 'finished' : 'running')
 
+  // 공이 닿기 전에 점수·스트라이크가 먼저 바뀌어 보이지 않도록, 공이 닿을 때까지는 고르는 단계에서 본 값을 보여 준다
+  const lastPick = useRef<OlympicsBaseball | null>(null)
+  if (phase === 'pick') lastPick.current = baseball
+  const [settled, setSettled] = useState(false)
+  useEffect(() => {
+    setSettled(false)
+    if (phase !== 'reveal') return
+    const timer = setTimeout(() => setSettled(true), LAND_MS)
+    return () => clearTimeout(timer)
+  }, [stepKey, phase])
+  const board = phase === 'reveal' && !settled && lastPick.current ? lastPick.current : baseball
+
   return (
-    <div className="party-oly-bb">
+    <div className="party-oly-bb" style={{ '--pitch-rgb': teamRgb(pitcherTeamId), '--swing-rgb': teamRgb(batterTeamId) } as CSSProperties}>
       <Rules />
       <p className="party-oly-caption">야구 경기 점수 <small>(이 종목 안에서 낸 점수 — 많은 팀이 1등)</small></p>
       <ul className="party-oly-bb-board">
         {teams.map((team) => {
-          const finished = baseball.out.includes(team.id)
+          const finished = board.out.includes(team.id)
           return (
             <li key={team.id} className={`party-oly-bb-score ${teamColorClass(team.id)}${team.id === batterTeamId && !finished ? ' party-oly-bb-score-batting' : ''}`}>
               <span>
                 {teamEmoji(team.id)} {team.name}
               </span>
-              <strong>{baseball.score[team.id] ?? 0}점</strong>
+              <strong>{board.score[team.id] ?? 0}점</strong>
               <small>
-                안타 {baseball.hits[team.id] ?? 0}
-                {(baseball.homeruns[team.id] ?? 0) > 0 && ` · 홈런 ${baseball.homeruns[team.id]}`}
+                안타 {board.hits[team.id] ?? 0}
+                {(board.homeruns[team.id] ?? 0) > 0 && ` · 홈런 ${board.homeruns[team.id]}`}
               </small>
-              <span className="party-oly-bb-strikes" aria-label={`스트라이크 ${baseball.strikes[team.id] ?? 0}`}>
-                {'●'.repeat(baseball.strikes[team.id] ?? 0)}
-                {'○'.repeat(Math.max(0, 3 - (baseball.strikes[team.id] ?? 0)))}
+              <span className="party-oly-bb-strikes" aria-label={`스트라이크 ${board.strikes[team.id] ?? 0}`}>
+                {'●'.repeat(board.strikes[team.id] ?? 0)}
+                {'○'.repeat(Math.max(0, 3 - (board.strikes[team.id] ?? 0)))}
               </span>
               {finished && <small className="party-oly-bb-finished">공격 끝</small>}
             </li>
@@ -180,7 +209,7 @@ export function BaseballField({ baseball, roundId, socket, teams, myTeamId, iAmR
 
       {phase === 'reveal' && reveal && (
         <div className="party-oly-bb-reveal">
-          <ZoneGrid zone={reveal.zone} target={reveal.target} swing={reveal.swing} swingAnchor={reveal.swingCell} revealKey={stepKey} />
+          <ReplayStage reveal={reveal} stepKey={stepKey} />
           <p className={`party-oly-bb-outcome party-oly-bb-outcome-${reveal.outcome}`} key={`${stepKey}-outcome`}>
             {reveal.outcome === 'foul' && !reveal.strikeAdded ? '파울! 2스트라이크라 그대로예요' : OUTCOME_TEXT[reveal.outcome]}
             {reveal.points > 0 && ` +${reveal.points}점`}
@@ -188,7 +217,7 @@ export function BaseballField({ baseball, roundId, socket, teams, myTeamId, iAmR
           <p className="party-oly-bb-legend">
             투수 {pitchOf(reveal.pitchType)?.label} {pitchOf(reveal.pitchType)?.glyph} · 타자 {swingOf(reveal.swingType)?.label} {swingOf(reveal.swingType)?.glyph} — {OUTCOME_REASON[reveal.outcome]}.
             <br />
-            붉은 칸이 칠해진 곳, 진한 붉은 칸의 ⚾가 투수가 고른 칸, 파란 테두리가 타자가 휘두른 곳이에요.
+            투수 팀 색으로 칠해진 칸이 존, 그중 진한 칸이 투수가 고른 칸, 타자 팀 색 테두리가 타자가 휘두른 곳이에요.
             {reveal.batterOut && ' 삼진 아웃! 이 팀의 공격은 끝났어요.'}
             {reveal.limitReached && ' 10점을 채워서 이 팀의 공격은 끝났어요!'}
           </p>
