@@ -355,6 +355,10 @@ export interface ClientToServerEvents {
   'mazeEscape:move': (data: { dir: MazeDirection }) => void
   /** 올림픽: 게이지·조준점을 눌렀다(육상은 한 번 달렸다). elapsedMs는 화면에서 누른 순간의 게이지 경과 시간 */
   'olympics:press': (data: { elapsedMs?: number }) => void
+  /** 올림픽 야구: 아직 버튼을 누르기 전의 선택 — 시간이 다 되면 서버가 이 선택으로 진행한다 */
+  'olympics:draft': (data: { pitch?: string; swing?: string; cell?: number }) => void
+  /** 올림픽 야구: 투수는 구종(pitch)과 칸, 타자는 스윙(swing)과 칸(0~8)을 고른다 */
+  'olympics:pick': (data: { pitch?: string; swing?: string; cell: number }) => void
   /** 올림픽 역도: 이번에 들 무게를 고른다 (지금 무게를 고르는 팀의 대표만) */
   'olympics:choose': (data: { weight: number }) => void
   /** 카드 짝 맞추기: 이 카드를 뒤집는다 (지금 뒤집을 차례인 사람만) */

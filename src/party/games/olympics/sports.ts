@@ -22,12 +22,34 @@ export function archeryPosition(gauge: OlympicsGauge, elapsedMs: number): { x: n
   }
 }
 
+/** 칸 cell을 기준으로 한 모양이 덮는 칸들 — 서버의 swingCells와 같아야 한다 (고르는 동안 모양을 미리 그려 주려고 화면에도 둔다).
+ *  항상 3칸이고, 대각선은 판 끝에서 반대쪽으로 이어진다 */
+export function swingCells(type: 'row' | 'column' | 'down' | 'up', cell: number): number[] {
+  const row = Math.floor(cell / 3)
+  const col = cell % 3
+  const wrap = (n: number) => ((n % 3) + 3) % 3
+  const cells = [0, 1, 2].map((k) => {
+    if (type === 'row') return row * 3 + k
+    if (type === 'column') return k * 3 + col
+    if (type === 'down') return wrap(row + k) * 3 + wrap(col + k)
+    return wrap(row + k) * 3 + wrap(col - k)
+  })
+  return cells.sort((x, y) => x - y)
+}
+
+/** 구종마다 칠해지는 모양 — 서버의 pitchZone과 같아야 한다 */
+export function pitchZone(type: 'fastball' | 'curve' | 'changeup' | 'slider', target: number): number[] {
+  const shape = { fastball: 'row', curve: 'column', changeup: 'down', slider: 'up' } as const
+  return swingCells(shape[type], target)
+}
+
 /** 로비에서 고를 수 있는 종목 — 서버 OLYMPICS_SPORTS와 id가 같아야 한다 */
-export const OLYMPICS_SPORT_CHOICES = [
+export const OLYMPICS_SPORT_CHOICES: { id: string; label: string; twoTeamsOnly?: boolean }[] = [
   { id: 'basketball', label: '🏀 농구' },
   { id: 'archery', label: '🏹 양궁' },
   { id: 'bowling', label: '🎳 볼링' },
   { id: 'weightlifting', label: '🏋️ 역도' },
+  { id: 'baseball', label: '⚾ 야구 (2팀일 때만)', twoTeamsOnly: true },
   { id: 'track', label: '🏃 육상' },
 ]
 

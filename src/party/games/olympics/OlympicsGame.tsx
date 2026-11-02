@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react'
 import type { Socket } from 'socket.io-client'
 import type { OlympicsAttempt, OlympicsStateSignal, OlympicsTrackSignal } from './protocol'
+import { BaseballField } from './BaseballField'
 import { BOWLING_REVEAL_MS, BowlingLane, LIFT_REVEAL_MS, WeightliftingStage } from './OlympicsStages'
 import type { ClientToServerEvents, PlayerInfo, ServerToClientEvents, TeamInfo } from '../../../shared/lib/partyProtocol'
 import { teamColorClass, teamEmoji, teamOf } from '../../core/PartyTeamBanner'
@@ -81,6 +82,7 @@ export function OlympicsGame({ socket, roundKey, state, playerId, players, teams
   const myFinished = myTeamId !== undefined && (positions[myTeamId] ?? 0) >= finishTaps
 
   const isTrack = sport.mode === 'simultaneous'
+  const isDuel = sport.mode === 'duel'
   const playing = state.phase === 'play'
   const myTurn = !isTrack && playing && iAmRep && gauge !== null && gauge.teamId === myTeamId
   const canPress = playing && iAmRep && (isTrack ? !myFinished : myTurn)
@@ -128,6 +130,7 @@ export function OlympicsGame({ socket, roundKey, state, playerId, players, teams
         {sport.emoji} {sport.name}
       </h2>
 
+      <p className="party-oly-caption">올림픽 누적 점수 <small>(종목 순위로 받은 점수의 합)</small></p>
       <ul className="party-oly-totals" aria-label="합계 점수">
         {totalsRanked.map(({ team, total }) => (
           <li key={team.id} className={`party-oly-total ${teamColorClass(team.id)}${team.id === myTeamId ? ' party-oly-total-mine' : ''}`}>
@@ -161,7 +164,20 @@ export function OlympicsGame({ socket, roundKey, state, playerId, players, teams
 
       {state.phase === 'play' && (
         <>
-          {isTrack ? (
+          {isDuel ? (
+            state.baseball && (
+              <BaseballField
+                baseball={state.baseball}
+                roundId={roundId}
+                socket={socket}
+                teams={teams}
+                myTeamId={myTeamId}
+                iAmRep={iAmRep}
+                nameOf={nameOf}
+                nicknameOf={(teamId) => nicknameOf(state.reps[teamId])}
+              />
+            )
+          ) : isTrack ? (
             <>
               {trackStartedAt !== null && state.track && <RemainingTime startedAt={trackStartedAt} timeoutMs={state.track.durationMs} />}
               <TrackLanes teams={teams} positions={positions} finishTaps={finishTaps} nameOf={nameOf} myTeamId={myTeamId} />
@@ -218,6 +234,7 @@ export function OlympicsGame({ socket, roundKey, state, playerId, players, teams
             </>
           )}
 
+          {!isDuel && (
           <button
             type="button"
             className="party-oly-press"
@@ -228,6 +245,7 @@ export function OlympicsGame({ socket, roundKey, state, playerId, players, teams
           >
             {isTrack ? (myFinished ? '🏁 결승선!' : iAmRep ? '달려라!! 🏃' : '대표를 응원해요') : myTurn ? pressLabel(sport.id, gauge?.stage)  : iAmRep ? '내 차례를 기다려요' : '구경 중'}
           </button>
+          )}
         </>
       )}
 

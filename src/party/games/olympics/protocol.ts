@@ -8,7 +8,7 @@ export interface OlympicsSportInfo {
   emoji: string
   rule: string
   /** sequential: 대표가 한 명씩 차례로 / simultaneous: 모든 대표가 동시에 */
-  mode: 'sequential' | 'simultaneous'
+  mode: 'sequential' | 'simultaneous' | 'duel'
   /** 차례로 하는 종목에서 팀마다 하는 시도 횟수 (육상은 0) */
   attempts: number
 }
@@ -43,6 +43,43 @@ export interface OlympicsGauge {
   fy?: number
   px?: number
   py?: number
+}
+
+export type BaseballPitchType = 'fastball' | 'curve' | 'changeup' | 'slider'
+export type BaseballSwingType = 'row' | 'column' | 'down' | 'up'
+export type BaseballOutcome = 'strike' | 'foul' | 'hit' | 'homerun'
+
+/** 한 구의 결과 — 공개 단계에서만 온다 */
+export interface BaseballReveal {
+  pitchType: BaseballPitchType
+  target: number
+  zone: number[]
+  swingType: BaseballSwingType
+  swingCell: number
+  swing: number[]
+  outcome: BaseballOutcome
+  strikeAdded: boolean
+  batterOut: boolean
+  limitReached: boolean
+  points: number
+}
+
+export interface OlympicsBaseball {
+  phase: 'pick' | 'reveal'
+  pitchNo: number
+  batterTeamId: number
+  pitcherTeamId: number
+  pitcherReady: boolean
+  batterReady: boolean
+  score: Record<number, number>
+  hits: Record<number, number>
+  homeruns: Record<number, number>
+  strikes: Record<number, number>
+  pitches: Record<number, number>
+  out: number[]
+  elapsedMs: number
+  maxMs: number
+  reveal: BaseballReveal | null
 }
 
 /** 역도: 무게를 고르는 중 */
@@ -81,6 +118,7 @@ export interface OlympicsStateSignal {
   attempts: Record<number, OlympicsAttempt[]>
   gauge: OlympicsGauge | null
   choice: OlympicsChoice | null
+  baseball: OlympicsBaseball | null
   track: { positions: Record<number, number>; finishTaps: number; durationMs: number; elapsedMs: number } | null
   totals: Record<number, number>
   roundResult: OlympicsRoundResult | null

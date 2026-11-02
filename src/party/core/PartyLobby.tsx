@@ -94,7 +94,9 @@ export function PartyLobby({ session }: Props) {
   const sportLabels = OLYMPICS_SPORT_CHOICES.map((sport) => sport.label)
   const selectedSportIds = state.config.olympicsSports ?? OLYMPICS_SPORT_CHOICES.map((sport) => sport.id)
   const selectedSportLabels = OLYMPICS_SPORT_CHOICES.filter((sport) => selectedSportIds.includes(sport.id)).map((sport) => sport.label)
-  const noSports = olympicsSelected && selectedSportIds.length === 0
+  // 1대1 종목은 두 팀일 때만 나오므로, 팀이 셋 이상이면 라운드 수에 세지 않는다
+  const playableSportCount = OLYMPICS_SPORT_CHOICES.filter((sport) => selectedSportIds.includes(sport.id) && (!sport.twoTeamsOnly || state.config.teamCount === 2)).length
+  const noSports = olympicsSelected && playableSportCount === 0
   let sportSummary = selectedSportLabels.join(' ')
   if (selectedSportIds.length === OLYMPICS_SPORT_CHOICES.length) sportSummary = `전체 ${selectedSportIds.length}종목`
   else if (noSports) sportSummary = '선택 없음'
@@ -504,7 +506,7 @@ export function PartyLobby({ session }: Props) {
                   <div className="party-game-extra">
                     <span className={noSports ? 'party-game-extra-warn' : undefined}>
                       종목: <strong>{sportSummary}</strong>
-                      <br />총 {selectedSportIds.length}라운드
+                      <br />총 {playableSportCount}라운드
                     </span>
                     {session.isHost && (
                       <button type="button" className="btn btn-secondary" disabled={offline} onClick={() => setSportModalOpen(true)}>
@@ -543,10 +545,10 @@ export function PartyLobby({ session }: Props) {
             onClear={() => updateSports([])}
           >
             <p>
-              선택한 종목 <strong>{selectedSportIds.length}개</strong> · 종목 하나가 한 라운드예요 (순서는 무작위)
+              선택한 종목 <strong>{playableSportCount}개</strong> · 종목 하나가 한 라운드예요 (순서는 무작위)
             </p>
             {noSports && <p className="category-picker-warn">종목을 1개 이상 골라야 시작할 수 있어요.</p>}
-            <p>3팀 이상일 때는 1대1 종목이 나오지 않아요.</p>
+            <p>야구 같은 1대1 종목은 팀이 둘일 때만 나와요.</p>
           </CategoryPicker>
         </Modal>
 
