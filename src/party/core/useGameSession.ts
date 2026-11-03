@@ -11,6 +11,7 @@ import type { OlympicsStateSignal } from '../games/olympics/protocol'
 import type { OrderCardsEndSignal, OrderCardsStanding, OrderCardsStateSignal } from '../games/orderCards/protocol'
 import type { TugStartSignal } from '../games/tugOfWar/protocol'
 import type { RecyclingStartSignal } from '../games/recycling/protocol'
+import type { SpyWordsEndSignal, SpyWordsStateSignal } from '../games/spyWords/protocol'
 import type { MouseHunterMouse } from '../games/mouseHunter/protocol'
 import type { ScavengerHuntRoundTarget } from '../games/scavengerHunt/protocol'
 import { reduceMaze, type MazeAction, type MazeViewState } from '../games/mazeEscape/protocol'
@@ -80,6 +81,8 @@ function saveSession(roomCode: string, playerId: string) {
 
 /** 방 코드(roomCodeFromUrl)가 있으면 새로고침은 물론 앱을 껐다 켜도(1시간 이내) 저장된 참가자로 자동 재접속을 시도한다 */
 /** 설정 변경 응답(room:state)이 더 오지 않고 이만큼 지나면 낙관적 값을 버리고 서버 값으로 맞춘다 */
+// 화면이 다시 보일 때 보내는 상태 요청에 이 시간 안에 응답이 없으면 연결이 죽은 것으로 보고 새로 연결한다
+const RESYNC_ACK_TIMEOUT_MS = 3000
 const PENDING_CONFIG_SETTLE_MS = 800
 /** 응답이 아예 없을 때도 낙관적 값이 이 시간 뒤에는 사라진다 */
 const PENDING_CONFIG_TIMEOUT_MS = 5000
@@ -123,6 +126,8 @@ export function useGameSession(roomCodeFromUrl?: string) {
   const [stroopQuestion, setStroopQuestion] = useState<StroopQuestionSignal | null>(null)
   const [tugStart, setTugStart] = useState<TugStartSignal | null>(null)
   const [recyclingStart, setRecyclingStart] = useState<RecyclingStartSignal | null>(null)
+  const [spyWordsState, setSpyWordsState] = useState<SpyWordsStateSignal | null>(null)
+  const [spyWordsEnd, setSpyWordsEnd] = useState<SpyWordsEndSignal | null>(null)
   const [memoryCardsState, setMemoryCardsState] = useState<MemoryStateSignal | null>(null)
   const [olympicsState, setOlympicsState] = useState<OlympicsStateSignal | null>(null)
   const [orderCardsState, setOrderCardsState] = useState<OrderCardsStateSignal | null>(null)
@@ -213,6 +218,8 @@ export function useGameSession(roomCodeFromUrl?: string) {
         setStroopQuestion(null)
         setTugStart(null)
         setRecyclingStart(null)
+        setSpyWordsState(null)
+        setSpyWordsEnd(null)
         setMemoryCardsState(null)
         setOlympicsState(null)
         setOrderCardsState(null)
@@ -269,6 +276,8 @@ export function useGameSession(roomCodeFromUrl?: string) {
     const onStroopQuestion = (data: StroopQuestionSignal) => setStroopQuestion(data)
     const onTugStart = (data: TugStartSignal) => setTugStart(data)
     const onRecyclingStart = (data: RecyclingStartSignal) => setRecyclingStart(data)
+    const onSpyWordsState = (data: SpyWordsStateSignal) => setSpyWordsState(data)
+    const onSpyWordsEnd = (data: SpyWordsEndSignal) => setSpyWordsEnd(data)
     const onMemoryCardsState = (data: MemoryStateSignal) => setMemoryCardsState(data)
     const onOlympicsState = (data: OlympicsStateSignal) => setOlympicsState(data)
     const onOrderCardsState = (data: OrderCardsStateSignal) => setOrderCardsState(data)
@@ -368,6 +377,8 @@ export function useGameSession(roomCodeFromUrl?: string) {
     socket.on('stroop:question', onStroopQuestion)
     socket.on('tugOfWar:start', onTugStart)
     socket.on('recycling:start', onRecyclingStart)
+    socket.on('spyWords:state', onSpyWordsState)
+    socket.on('spyWords:end', onSpyWordsEnd)
     socket.on('memoryCards:state', onMemoryCardsState)
     socket.on('olympics:state', onOlympicsState)
     socket.on('orderCards:state', onOrderCardsState)
@@ -434,6 +445,8 @@ export function useGameSession(roomCodeFromUrl?: string) {
       socket.off('stroop:question', onStroopQuestion)
       socket.off('tugOfWar:start', onTugStart)
       socket.off('recycling:start', onRecyclingStart)
+      socket.off('spyWords:state', onSpyWordsState)
+      socket.off('spyWords:end', onSpyWordsEnd)
       socket.off('memoryCards:state', onMemoryCardsState)
       socket.off('olympics:state', onOlympicsState)
       socket.off('orderCards:state', onOrderCardsState)
@@ -486,18 +499,40 @@ export function useGameSession(roomCodeFromUrl?: string) {
     }
   }, [socket])
 
-  // 소켓 하트비트 타임아웃(20초)보다 짧게 백그라운드에 있다 돌아오면 연결은 안 끊기지만,
+  // 소켓 하트비트 타임아웃보다 짧게 백그라운드에 있다 돌아오면 연결은 안 끊기지만,
   // 그 사이 브라우저가 JS 실행을 멈춰서 humanTimer:roundStart 같은 이벤트를 놓칠 수 있음.
-  // 탭이 다시 보이게 될 때마다 현재 라운드의 진짜 경과 시간을 다시 요청해 동기화
+  // 탭이 다시 보이게 될 때마다 현재 라운드의 진짜 경과 시간을 다시 요청해 동기화.
+  // 폰에서 화면이 꺼졌다 켜지면 연결은 이미 죽었는데 소켓은 아직 연결된 줄 아는 경우가 있다 — 그러면 서버가 보낸 걸 못 받은 채 화면이 멈춘다.
+  // 그래서 요청에 응답(ack)을 받아서, 응답이 없거나 서버가 이 연결을 모른다면 연결을 새로 맺고 다시 입장한다 (connect → room:rejoin)
   useEffect(() => {
-    const onVisibilityChange = () => {
-      if (document.visibilityState === 'visible' && socket.connected) {
-        socket.emit('round:requestResync')
+    let lastCheckAt = 0
+    const check = () => {
+      if (document.visibilityState !== 'visible' || !roomCodeFromUrl || !readSavedPlayerId(roomCodeFromUrl)) return
+      const now = Date.now()
+      if (now - lastCheckAt < 1_000) return // 보이게 됨·포커스·pageshow가 연달아 와도 한 번만
+      lastCheckAt = now
+      // 끊겨 있으면 소켓이 알아서 다시 붙는다 (붙으면 room:rejoin이 상태를 되돌린다). 재연결이 멈춰 있으면 깨운다
+      if (!socket.connected) {
+        socket.connect()
+        return
       }
+      socket.timeout(RESYNC_ACK_TIMEOUT_MS).emit('round:requestResync', (error, known) => {
+        if (!error && known) return
+        socket.disconnect()
+        socket.connect()
+      })
     }
-    document.addEventListener('visibilitychange', onVisibilityChange)
-    return () => document.removeEventListener('visibilitychange', onVisibilityChange)
-  }, [socket])
+    document.addEventListener('visibilitychange', check)
+    window.addEventListener('focus', check)
+    window.addEventListener('pageshow', check)
+    window.addEventListener('online', check)
+    return () => {
+      document.removeEventListener('visibilitychange', check)
+      window.removeEventListener('focus', check)
+      window.removeEventListener('pageshow', check)
+      window.removeEventListener('online', check)
+    }
+  }, [socket, roomCodeFromUrl])
 
   // 최초 접속뿐 아니라, 화면 잠금 등으로 소켓이 끊겼다가 새로운 소켓으로 재연결될 때마다
   // 다시 room:rejoin을 보내야 서버가 새 소켓을 이 참가자와 다시 연결
@@ -624,6 +659,8 @@ export function useGameSession(roomCodeFromUrl?: string) {
     stroopQuestion,
     tugStart,
     recyclingStart,
+    spyWordsState,
+    spyWordsEnd,
     memoryCardsState,
     olympicsState,
     orderCardsState,

@@ -21,6 +21,7 @@ import type { MemoryStateSignal } from '../../party/games/memoryCards/protocol'
 import type { OlympicsStateSignal, OlympicsTrackSignal } from '../../party/games/olympics/protocol'
 import type { OrderCardsEndSignal, OrderCardsStandingsSignal, OrderCardsStateSignal } from '../../party/games/orderCards/protocol'
 import type { TugEndSignal, TugProgressSignal, TugStartSignal } from '../../party/games/tugOfWar/protocol'
+import type { SpyWordsEndSignal, SpyWordsStateSignal } from '../../party/games/spyWords/protocol'
 import type { RecyclingEndSignal, RecyclingEventSignal, RecyclingProgressSignal, RecyclingStartSignal } from '../../party/games/recycling/protocol'
 import type { StroopQuestionResult, StroopQuestionSignal } from '../../party/games/stroop/protocol'
 import type { MouseHunterMouse } from '../../party/games/mouseHunter/protocol'
@@ -89,6 +90,7 @@ export type GameId =
   | 'memoryCards'
   | 'olympics'
   | 'recycling'
+  | 'spyWords'
 
 /** 방의 진행 방식 — backend/types.ts와 같아야 한다. /party는 개인전, /teamParty는 팀전 방이다 */
 export type RoomMode = 'individual' | 'team'
@@ -251,7 +253,7 @@ export interface ClientToServerEvents {
   'oneToTwentyFive:progress': (data: { progress: number }) => void
   /** 25까지 다 터치했을 때 완료 시간을 제출 */
   'oneToTwentyFive:submit': (data: { elapsedMs: number }) => void
-  'round:requestResync': () => void
+  'round:requestResync': (ack: (known: boolean) => void) => void
   /** 초성 퀴즈 정답 시도. 같은 라운드 안에서 맞힐 때까지 몇 번이든 다시 시도할 수 있다 */
   'wordChain:submit': (data: { guess: string }) => void
   /** 물품별 베팅액을 한 번에 제출 (합계가 예산을 넘으면 서버가 거부). 제출 후에는 라운드가 끝날 때까지 수정 불가 */
@@ -368,6 +370,10 @@ export interface ClientToServerEvents {
   /** 줄다리기: 줄을 한 번 당겼다 — 몇 번째인지는 서버가 센다 */
   'tugOfWar:pull': () => void
   'recycling:tap': (data: { itemId: number }) => void
+  'spyWords:hint': (data: { word: string; count: number }) => void
+  'spyWords:toggle': (data: { index: number }) => void
+  'spyWords:confirm': () => void
+  'spyWords:pass': () => void
 }
 
 /** Server -> Client */
@@ -618,6 +624,8 @@ export interface ServerToClientEvents {
   'recycling:event': (data: RecyclingEventSignal) => void
   'recycling:progress': (data: RecyclingProgressSignal) => void
   'recycling:end': (data: RecyclingEndSignal) => void
+  'spyWords:state': (data: SpyWordsStateSignal) => void
+  'spyWords:end': (data: SpyWordsEndSignal) => void
   'mazeEscape:start': (data: MazeStartSignal) => void
   /** 팀 캐릭터가 움직일 때마다 같은 팀에게만 오는 새 위치 */
   'mazeEscape:pos': (data: MazePoint) => void

@@ -156,7 +156,7 @@ export function usePixelCanvasRound(
   // 화면이 붙기 전에 지나간 변경분을 놓쳤을 수 있으니, 붙자마자 현재 격자 스냅샷을 다시 받아 맞춘다.
   // 소켓은 순서를 보장하므로 스냅샷보다 나중에 일어난 변경분은 스냅샷 뒤에 도착해 그대로 반영된다
   useEffect(() => {
-    socket.emit('round:requestResync')
+    socket.emit('round:requestResync', () => {})
   }, [socket, roundKey])
 
   // 모아둔 붓 중심점을 주기적으로 서버에 전송

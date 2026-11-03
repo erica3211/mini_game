@@ -1,0 +1,353 @@
+/* 스파이 단어판 */
+.party-spy-stage {
+  gap: 0.6rem;
+  width: 100%;
+}
+
+.party-spy-clock {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.8rem;
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.party-spy-clock-urgent {
+  color: var(--text-danger);
+  font-weight: 800;
+}
+
+.party-spy-clock-total {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+/* 누구 차례인가 */
+.party-spy-turn {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.2rem 0.8rem;
+  width: 100%;
+  max-width: 420px;
+  padding: 0.4rem 0.75rem;
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.party-spy-turn-mine {
+  border-color: var(--accent);
+  background: var(--tint-info);
+}
+
+.party-spy-hint {
+  font-size: 1.05rem;
+}
+
+.party-spy-hint strong {
+  font-size: 1.25rem;
+}
+
+.party-spy-status,
+.party-spy-role,
+.party-spy-note {
+  margin: 0;
+  max-width: 420px;
+  text-align: center;
+}
+
+.party-spy-status {
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.party-spy-role {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+.party-spy-note {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}
+
+/* 5×5 단어판 */
+.party-spy-board {
+  display: grid;
+  grid-template-columns: repeat(var(--spy-cols, 5), minmax(0, 1fr));
+  gap: 0.3rem;
+  width: 100%;
+  max-width: 420px;
+}
+
+.party-spy-card {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  height: 3.2rem;
+  padding: 0 0.1rem;
+  border: 2px solid var(--border);
+  border-radius: 0.5rem;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  cursor: default;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.party-spy-word {
+  font-size: clamp(0.72rem, 3.4vw, 0.95rem);
+  font-weight: 700;
+  line-height: 1.1;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  text-align: center;
+}
+
+.party-spy-card-pickable {
+  cursor: pointer;
+}
+
+.party-spy-card-pickable:active {
+  transform: scale(0.95);
+}
+
+/* 정답을 아는 사람에게 보이는, 아직 안 열린 칸의 주인 */
+.party-spy-card-key {
+  border-color: var(--spy-color);
+  border-width: 3px;
+  background: color-mix(in srgb, var(--spy-color) 14%, var(--surface));
+}
+
+.party-spy-card-neutral.party-spy-card-key {
+  border-style: dashed;
+}
+
+.party-spy-card-assassin.party-spy-card-key {
+  background: color-mix(in srgb, #111827 30%, var(--surface));
+}
+
+/* 열린 칸 — 주인 색으로 꽉 채운다 */
+.party-spy-card-open {
+  border-color: var(--spy-color);
+  background: var(--spy-color);
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
+}
+
+.party-spy-card-open.party-spy-card-neutral {
+  color: #1f2937;
+  text-shadow: none;
+}
+
+.party-spy-card-new {
+  animation: party-spy-pop 0.7s ease-out;
+}
+
+@keyframes party-spy-pop {
+  0% {
+    transform: scale(0.8);
+    box-shadow: 0 0 0 0 var(--spy-color, var(--accent));
+  }
+  40% {
+    transform: scale(1.12);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0.7rem transparent;
+  }
+}
+
+/* 요원이 고른 칸 (확정 전) — 팀원 모두에게 보인다 */
+.party-spy-card-picked {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 45%, transparent);
+  background: var(--tint-info);
+}
+
+.party-spy-order {
+  position: absolute;
+  top: -0.45rem;
+  right: -0.3rem;
+  display: grid;
+  place-items: center;
+  min-width: 1.2rem;
+  height: 1.2rem;
+  padding: 0 0.2rem;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 800;
+}
+
+.party-spy-mark {
+  position: absolute;
+  top: 0;
+  left: 0.1rem;
+  font-size: 0.7rem;
+}
+
+/* 힌트 입력 */
+.party-spy-hint-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  justify-content: center;
+  width: 100%;
+  max-width: 420px;
+}
+
+.party-spy-hint-form .guess-input {
+  flex: 1 1 8rem;
+  min-width: 0;
+}
+
+.party-spy-hint-form select {
+  padding: 0.4rem;
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+}
+
+.party-spy-error {
+  flex-basis: 100%;
+  margin: 0;
+  color: var(--text-danger);
+  font-size: 0.8rem;
+  text-align: center;
+}
+
+.party-spy-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  width: 100%;
+  max-width: 420px;
+}
+
+/* 팀별 남은 단어 */
+.party-spy-teams {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.3rem;
+  width: 100%;
+  max-width: 420px;
+}
+
+.party-spy-teams li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.1rem 0.5rem;
+  padding: 0.3rem 0.6rem;
+  border-width: 2px;
+  border-style: solid;
+  border-radius: var(--radius);
+  color: var(--text);
+  font-size: 0.82rem;
+}
+
+.party-spy-team-turn {
+  font-weight: 800;
+  box-shadow: 0 0 0 2px var(--accent);
+}
+
+.party-spy-team-out {
+  opacity: 0.55;
+}
+
+.party-spy-team-info {
+  font-size: 0.78rem;
+}
+
+/* 최근에 있었던 일 */
+.party-spy-events {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.15rem;
+  width: 100%;
+  max-width: 420px;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+}
+
+.party-spy-event-latest {
+  color: var(--text);
+  font-weight: 700;
+}
+
+/* 끝난 뒤 결과 */
+.party-spy-end {
+  display: grid;
+  gap: 0.5rem;
+  width: 100%;
+  max-width: 420px;
+  padding: 0.75rem 1rem;
+  border: 2px solid var(--text-success);
+  border-radius: var(--radius);
+  background: var(--tint-strike);
+  text-align: center;
+}
+
+.party-spy-end-title {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.party-spy-end-winner {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 800;
+}
+
+.party-spy-end-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.4rem;
+}
+
+.party-spy-end-list li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.2rem 0.5rem;
+  padding: 0.45rem 0.7rem;
+  border-width: 2px;
+  border-style: solid;
+  border-radius: var(--radius);
+  color: var(--text);
+  font-size: 0.88rem;
+  text-align: left;
+}
+
+/* 결과 화면 */
+.party-spy-recap {
+  display: grid;
+  justify-items: center;
+  gap: 0.8rem;
+  width: 100%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .party-spy-card-new {
+    animation: none;
+  }
+}

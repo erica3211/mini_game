@@ -418,7 +418,7 @@ export function useShoutRaceRound(
 
   // 화면이 붙기 전에 지나간 브로드캐스트를 놓쳤을 수 있으니, 붙자마자 다시 요청해 맞춘다
   useEffect(() => {
-    socket.emit('round:requestResync')
+    socket.emit('round:requestResync', () => {})
   }, [socket, roundKey])
 
   // 차량 색은 신호등(countdown)에서 이미 확정되고 go에서도 같은 값이 반복되므로, 둘 중 먼저 도착한 쪽을 쓴다

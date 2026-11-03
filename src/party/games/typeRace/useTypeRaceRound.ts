@@ -439,7 +439,7 @@ export function useTypeRaceRound(
   }, [socket])
 
   useEffect(() => {
-    socket.emit('round:requestResync')
+    socket.emit('round:requestResync', () => {})
   }, [socket, roundKey])
 
   const mySlot = playerId !== null ? (startSignal?.slotOfPlayer[playerId] ?? null) : null

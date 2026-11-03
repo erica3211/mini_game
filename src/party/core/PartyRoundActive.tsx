@@ -15,6 +15,7 @@ import { OlympicsGame } from '../games/olympics/OlympicsGame'
 import { OrderCardsGame } from '../games/orderCards/OrderCardsGame'
 import { TugOfWarGame } from '../games/tugOfWar/TugOfWarGame'
 import { RecyclingGame } from '../games/recycling/RecyclingGame'
+import { SpyWordsGame } from '../games/spyWords/SpyWordsGame'
 import { MouseHunterGame } from '../games/mouseHunter/MouseHunterGame'
 import { OneToTwentyFiveGame } from '../games/oneToTwentyFive/OneToTwentyFiveGame'
 import { PartyExitToLobbyButton } from './PartyExitToLobbyButton'
@@ -109,6 +110,18 @@ function renderGame(session: GameSession, roundKey: string) {
           state={session.orderCardsState}
           standings={session.orderCardsStandings}
           end={session.orderCardsEnd}
+          playerId={session.playerId}
+          players={state.players}
+          teams={state.teams}
+        />
+      )
+    case 'spyWords':
+      return (
+        <SpyWordsGame
+          socket={session.socket}
+          roundKey={roundKey}
+          state={session.spyWordsState}
+          end={session.spyWordsEnd}
           playerId={session.playerId}
           players={state.players}
           teams={state.teams}

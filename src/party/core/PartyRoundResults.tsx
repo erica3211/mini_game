@@ -35,6 +35,8 @@ import { OrderCardsRecap } from '../games/orderCards/OrderCardsRecap'
 import type { OrderCardsRoundMeta } from '../games/orderCards/protocol'
 import { TugRecap } from '../games/tugOfWar/TugRecap'
 import { RecyclingRecap } from '../games/recycling/RecyclingRecap'
+import { SpyWordsRecap } from '../games/spyWords/SpyWordsRecap'
+import type { SpyWordsRoundMeta } from '../games/spyWords/protocol'
 import type { RecyclingRoundMeta } from '../games/recycling/protocol'
 import type { TugRoundMeta } from '../games/tugOfWar/protocol'
 import type { MazeRoundMeta } from '../games/mazeEscape/protocol'
@@ -84,6 +86,7 @@ export function PartyRoundResults({ session }: Props) {
   const orderCardsMeta = lastRound.gameId === 'orderCards' ? (lastRound.meta as OrderCardsRoundMeta | undefined) : undefined
   const tugMeta = lastRound.gameId === 'tugOfWar' ? (lastRound.meta as TugRoundMeta | undefined) : undefined
   const recyclingMeta = lastRound.gameId === 'recycling' ? (lastRound.meta as RecyclingRoundMeta | undefined) : undefined
+  const spyWordsMeta = lastRound.gameId === 'spyWords' ? (lastRound.meta as SpyWordsRoundMeta | undefined) : undefined
   const characterDescribeMeta =
     lastRound.gameId === 'characterDescribe' ? (lastRound.meta as CharacterRoundMeta | undefined) : undefined
   const emojiCharadesMeta =
@@ -116,6 +119,10 @@ export function PartyRoundResults({ session }: Props) {
     }
     if (lastRound.gameId === 'recycling' && entry.value !== undefined) {
       return ` (팀 ${entry.value}점)`
+    }
+    if (lastRound.gameId === 'spyWords' && entry.value !== undefined) {
+      const myTeamId = state.teams.find((team) => team.memberIds.includes(entry.playerId))?.id
+      return spyWordsMeta?.end.teams.find((row) => row.teamId === myTeamId)?.eliminated ? ' (함정을 열어 탈락)' : ` (남은 단어 ${entry.value}개)`
     }
     if (lastRound.gameId === 'mazeEscape' && entry.value !== undefined) {
       return entry.dnf ? ` (${entry.value}%까지 도착)` : ` (${(entry.value / 1000).toFixed(1)}초에 탈출)`
@@ -214,12 +221,13 @@ export function PartyRoundResults({ session }: Props) {
     // 개인 등수(4명 중 3위 등)가 아니라 팀끼리의 등수로 다시 매긴다 — 같은 점수는 공동 등수
     .map((row, _index, rows) => ({ ...row, rank: rows.findIndex((other) => other.rank === row.rank) + 1 }))
 
-  const standingDetailOf = (row: { score: number; dnf: boolean }) => {
+  const standingDetailOf = (row: { score: number; dnf: boolean; teamId: number }) => {
     if (lastRound.gameId === 'olympics') return `종목 점수 합계 ${row.score}점`
     if (lastRound.gameId === 'memoryCards') return `짝 ${row.score}쌍 찾음`
     if (lastRound.gameId === 'orderCards') return `${Math.floor(row.score / 10)}라운드 클리어 · 목숨 ${row.score % 10}개`
     if (lastRound.gameId === 'tugOfWar') return `1인당 평균 ${row.score.toFixed(1)}번 누름`
     if (lastRound.gameId === 'recycling') return `${row.score}점`
+    if (lastRound.gameId === 'spyWords') return spyWordsMeta?.end.teams.find((end) => end.teamId === row.teamId)?.eliminated ? '함정을 열어 탈락' : row.score === 0 ? '단어를 모두 찾음' : `남은 단어 ${row.score}개`
     if (lastRound.gameId === 'mazeEscape') return row.dnf ? `${row.score}%까지 도착` : `${(row.score / 1000).toFixed(1)}초에 탈출`
     if (lastRound.gameId === 'emojiCharades' || lastRound.gameId === 'characterDescribe') return row.score ? '정답을 맞혔어요' : '못 맞혔어요'
     return `합산 ${row.score}점`
@@ -233,6 +241,8 @@ export function PartyRoundResults({ session }: Props) {
       ? '더 많은 라운드를 깬 팀이 1등이고, 같으면 목숨이 많이 남은 팀, 그것도 같으면 빨리 끝낸 팀 순이에요. 순위에 따라 받는 점수(초록색)가 누적 점수에 더해져요.'
       : lastRound.gameId === 'tugOfWar'
       ? '팀이 누른 횟수를 팀 인원으로 나눈 값(1인당 평균)이 큰 팀이 1등이에요. 순위에 따라 받는 점수(초록색)가 누적 점수에 더해져요.'
+      : lastRound.gameId === 'spyWords'
+      ? '자기 팀 단어를 먼저 모두 찾은 팀이 1등이에요. 함정을 연 팀은 꼴등이고, 시간이 다 되면 남은 단어가 적은 팀이 앞서요. 순위에 따라 받는 점수(초록색)가 누적 점수에 더해져요.'
       : lastRound.gameId === 'recycling'
       ? '쓰레기를 맞게 치우면 +1점, 담당이 아닌 걸 누르거나 놓치면 -1점이에요. 점수가 높은 팀이 1등이고, 순위에 따라 받는 점수(초록색)가 누적 점수에 더해져요.'
       : lastRound.gameId === 'mazeEscape'
@@ -550,6 +560,7 @@ export function PartyRoundResults({ session }: Props) {
       {orderCardsMeta && <OrderCardsRecap meta={orderCardsMeta} teams={roundTeams} />}
       {tugMeta && <TugRecap meta={tugMeta} teams={roundTeams} playerId={session.playerId} nicknameOf={plainNicknameOf} />}
       {recyclingMeta && <RecyclingRecap meta={recyclingMeta} teams={roundTeams} playerId={session.playerId} players={state.players} />}
+      {spyWordsMeta && <SpyWordsRecap meta={spyWordsMeta} teams={roundTeams} />}
 
       {characterDescribeMeta && <CharacterDescribeRecap meta={characterDescribeMeta} teams={roundTeams} nicknameOf={plainNicknameOf} />}
 
@@ -678,7 +689,7 @@ export function PartyRoundResults({ session }: Props) {
                 >
                   <div className="party-team-standing-head">
                     <span>
-                      {rank}위 {teamEmoji(team.id)} {team.name} · {standingDetailOf({ score, dnf })}
+                      {rank}위 {teamEmoji(team.id)} {team.name} · {standingDetailOf({ score, dnf, teamId: team.id })}
                     </span>
                     <span className="badge badge-strike">{points}점</span>
                   </div>
