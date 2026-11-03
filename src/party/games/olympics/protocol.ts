@@ -11,6 +11,8 @@ export interface OlympicsSportInfo {
   mode: 'sequential' | 'simultaneous' | 'duel'
   /** 차례로 하는 종목에서 팀마다 하는 시도 횟수 (육상은 0) */
   attempts: number
+  /** 게임 방식 이름 (게이지·원판·리듬·연타·칸 고르기) */
+  group?: string
 }
 
 export interface OlympicsAttempt {

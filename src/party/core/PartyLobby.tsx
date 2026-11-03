@@ -15,7 +15,6 @@ import {
   type PlayerInfo,
 } from '../../shared/lib/partyProtocol'
 import { WORD_CHAIN_MIN_CANDIDATES } from '../games/wordChain/protocol'
-import { OLYMPICS_SPORT_CHOICES } from '../games/olympics/sports'
 import { partyBasePath } from './partyPaths'
 import { TeamColorMark } from './PartyTeamColorMark'
 import { teamColorClass, teamEmoji } from './PartyTeamBanner'
@@ -41,7 +40,6 @@ export function PartyLobby({ session }: Props) {
   const [copied, setCopied] = useState(false)
   const [codeCopied, setCodeCopied] = useState(false)
   const [categoryModalOpen, setCategoryModalOpen] = useState(false)
-  const [sportModalOpen, setSportModalOpen] = useState(false)
   const [gamePage, setGamePage] = useState(0)
   // 플레이 방법(?)을 보고 있는 게임 (null이면 모달이 닫혀 있다)
   const [helpGame, setHelpGame] = useState<GameMeta | null>(null)
@@ -89,23 +87,6 @@ export function PartyLobby({ session }: Props) {
         : selectedCategories.length <= 2
           ? selectedCategories.join(', ')
           : `${selectedCategories[0]} 외 ${selectedCategories.length - 1}개`
-  // 팀 대항 올림픽 종목: null은 전체. 고른 종목 수가 곧 라운드 수라서 하나도 없으면 시작할 수 없다
-  const olympicsSelected = state.config.selectedGames.includes('olympics')
-  const sportLabels = OLYMPICS_SPORT_CHOICES.map((sport) => sport.label)
-  const selectedSportIds = state.config.olympicsSports ?? OLYMPICS_SPORT_CHOICES.map((sport) => sport.id)
-  const selectedSportLabels = OLYMPICS_SPORT_CHOICES.filter((sport) => selectedSportIds.includes(sport.id)).map((sport) => sport.label)
-  // 1대1 종목은 두 팀일 때만 나오므로, 팀이 셋 이상이면 라운드 수에 세지 않는다
-  const playableSportCount = OLYMPICS_SPORT_CHOICES.filter((sport) => selectedSportIds.includes(sport.id) && (!sport.twoTeamsOnly || state.config.teamCount === 2)).length
-  const noSports = olympicsSelected && playableSportCount === 0
-  let sportSummary = selectedSportLabels.join(' ')
-  if (selectedSportIds.length === OLYMPICS_SPORT_CHOICES.length) sportSummary = `전체 ${selectedSportIds.length}종목`
-  else if (noSports) sportSummary = '선택 없음'
-  const updateSports = (labels: string[]) => {
-    const ids = OLYMPICS_SPORT_CHOICES.filter((sport) => labels.includes(sport.label)).map((sport) => sport.id)
-    session.updateConfig({ olympicsSports: ids.length === OLYMPICS_SPORT_CHOICES.length ? null : ids })
-  }
-  const toggleSport = (label: string) =>
-    updateSports(selectedSportLabels.includes(label) ? selectedSportLabels.filter((name) => name !== label) : [...selectedSportLabels, label])
   // 소켓이 끊긴 동안 보낸 요청은 서버에 닿기 전에 사라질 수 있어서, 다시 연결될 때까지 시작·설정 변경을 막는다
   const offline = !session.connected || session.rejoining
   // 팀전은 대기실에서 각자 팀을 고른다 (게임이 끝나도 팀이 유지된다)
@@ -119,7 +100,7 @@ export function PartyLobby({ session }: Props) {
   const teamCounts = new Map<number, number>()
   for (const p of state.players) if (p.teamId !== null) teamCounts.set(p.teamId, (teamCounts.get(p.teamId) ?? 0) + 1)
   const canStart =
-    !offline && connectedPlayers.length >= minPlayers && teamIssue === null && allReady && hasSelectedGame && !tooFewWords && !noSports
+    !offline && connectedPlayers.length >= minPlayers && teamIssue === null && allReady && hasSelectedGame && !tooFewWords
   const configLocked = !session.isHost || offline
   // comingSoon 게임과 인원이 모자란 게임은 카드 자체가 선택 불가능하니 "전체 선택"의 대상에서도 제외한다
   const playableGames = state.gameCatalog.filter((g) => !g.comingSoon && !needsMorePlayers(g))
@@ -285,9 +266,7 @@ export function PartyLobby({ session }: Props) {
                   ? '최소 1개 이상의 게임을 선택해주세요.'
                   : tooFewWords
                     ? `초성 퀴즈 문제 후보가 ${WORD_CHAIN_MIN_CANDIDATES}개 이상 되도록 카테고리를 골라주세요.`
-                    : noSports
-                      ? '올림픽 종목을 1개 이상 골라주세요.'
-                      : '모든 참가자가 준비완료 상태여야 시작할 수 있어요.'}
+                    : '모든 참가자가 준비완료 상태여야 시작할 수 있어요.'}
             </p>
           )}
         </>
@@ -502,19 +481,6 @@ export function PartyLobby({ session }: Props) {
                     )}
                   </div>
                 )}
-                {game.id === 'olympics' && selected && (
-                  <div className="party-game-extra">
-                    <span className={noSports ? 'party-game-extra-warn' : undefined}>
-                      종목: <strong>{sportSummary}</strong>
-                      <br />총 {playableSportCount}라운드
-                    </span>
-                    {session.isHost && (
-                      <button type="button" className="btn btn-secondary" disabled={offline} onClick={() => setSportModalOpen(true)}>
-                        변경
-                      </button>
-                    )}
-                  </div>
-                )}
                 {game.id === 'wordChain' && selected && wordChainCategories && (
                   <div className="party-game-extra">
                     <span className={tooFewWords ? 'party-game-extra-warn' : undefined}>
@@ -534,23 +500,6 @@ export function PartyLobby({ session }: Props) {
             </div>
           ))}
         </PartySubRoundCarousel>
-
-        <Modal open={sportModalOpen && session.isHost && olympicsSelected} title="올림픽 종목" onClose={() => setSportModalOpen(false)}>
-          <CategoryPicker
-            title="종목"
-            categories={sportLabels}
-            selected={selectedSportLabels}
-            onToggle={toggleSport}
-            onSelectAll={() => updateSports(sportLabels)}
-            onClear={() => updateSports([])}
-          >
-            <p>
-              선택한 종목 <strong>{playableSportCount}개</strong> · 종목 하나가 한 라운드예요 (순서는 무작위)
-            </p>
-            {noSports && <p className="category-picker-warn">종목을 1개 이상 골라야 시작할 수 있어요.</p>}
-            <p>야구 같은 1대1 종목은 팀이 둘일 때만 나와요.</p>
-          </CategoryPicker>
-        </Modal>
 
         <Modal
           open={categoryModalOpen && session.isHost && wordChainSelected && wordChainCategories !== null}

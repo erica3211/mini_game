@@ -159,6 +159,7 @@ export function OlympicsGame({ socket, roundKey, state, playerId, players, teams
     <div className="party-round-stage party-oly-stage">
       <p className="party-oly-round">
         {state.roundIndex + 1} <span className="party-oly-round-max">/ {state.totalRounds} 종목</span>
+        {sport.group && <span className="party-oly-group">{sport.group} 방식</span>}
       </p>
       <h2 className="party-oly-sport">
         {sport.emoji} {sport.name}

@@ -1363,9 +1363,12 @@
 .party-oly-gym-figure {
   position: relative;
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: center;
-  height: 5.5rem;
+  /* 동작이 튀어 오르거나 커져도 칸 밖으로 나가지 않도록 위쪽 여유를 넉넉히 둔다 */
+  height: 11.2rem;
+  padding-bottom: 1.6rem;
+  overflow: hidden;
   background: #e0f2fe;
   border-radius: var(--radius);
 }
@@ -1479,6 +1482,8 @@
 
 /* 피겨 스케이팅: 체조와 같은 방식에 얼음판·점프·스핀·넘어짐 */
 .party-oly-gym-ice {
+  align-items: center;
+  padding-bottom: 0;
   background: linear-gradient(180deg, #f0f9ff 0%, #dbeafe 100%);
   border: 2px solid #bfdbfe;
 }
@@ -1531,4 +1536,247 @@
   .party-oly-gym-fall {
     animation: none;
   }
+}
+
+/* 체조 선수 그림: 가만히 서 있는 모습과 대표 동작 6장 (동작마다 움직임이 다르다) */
+.party-oly-gym-sprite {
+  height: 6.4rem;
+  width: auto;
+  max-width: 70%;
+  object-fit: contain;
+  transform-origin: 50% 100%;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* 1 리본: 몸을 좌우로 크게 흔든다 */
+.party-oly-gym-sprite-0 {
+  animation: party-oly-gym-sway 1.1s ease-in-out;
+}
+
+/* 2 물구나무 다리 벌리기: 거꾸로 뒤집히듯 튀어 오른다 */
+.party-oly-gym-sprite-1 {
+  animation: party-oly-gym-hop 1s ease-out;
+}
+
+/* 3 후프: 빙그르르 돈다 */
+.party-oly-gym-sprite-2 {
+  animation: party-oly-gym-twirl 1.1s ease-in-out;
+}
+
+/* 4 곤봉: 앞으로 크게 내딛는다 */
+.party-oly-gym-sprite-3 {
+  animation: party-oly-gym-lunge 1s ease-in-out;
+}
+
+/* 5 줄: 줄넘기처럼 두 번 뛴다 */
+.party-oly-gym-sprite-4 {
+  animation: party-oly-gym-skip 1s ease-in-out;
+}
+
+/* 6 공: 공을 던지듯 높이 솟았다가 내려온다 */
+.party-oly-gym-sprite-5 {
+  animation: party-oly-gym-toss 1s ease-in-out;
+}
+
+@keyframes party-oly-gym-sway {
+  0%,
+  100% {
+    transform: rotate(0deg) translateX(0);
+  }
+  20% {
+    transform: rotate(-9deg) translateX(-0.4rem);
+  }
+  50% {
+    transform: rotate(9deg) translateX(0.4rem);
+  }
+  80% {
+    transform: rotate(-5deg) translateX(-0.2rem);
+  }
+}
+
+@keyframes party-oly-gym-hop {
+  0% {
+    transform: translateY(0) rotate(-25deg) scale(0.85);
+  }
+  45% {
+    transform: translateY(-0.9rem) rotate(8deg) scale(1.08);
+  }
+  100% {
+    transform: translateY(0) rotate(0deg) scale(1);
+  }
+}
+
+@keyframes party-oly-gym-twirl {
+  0% {
+    transform: perspective(300px) rotateY(0deg);
+  }
+  100% {
+    transform: perspective(300px) rotateY(720deg);
+  }
+}
+
+@keyframes party-oly-gym-lunge {
+  0% {
+    transform: translateX(-0.9rem) skewX(8deg);
+  }
+  55% {
+    transform: translateX(0.5rem) skewX(-6deg) scale(1.06);
+  }
+  100% {
+    transform: translateX(0) skewX(0deg);
+  }
+}
+
+@keyframes party-oly-gym-skip {
+  0%,
+  45%,
+  100% {
+    transform: translateY(0);
+  }
+  22% {
+    transform: translateY(-0.9rem);
+  }
+  72% {
+    transform: translateY(-0.9rem);
+  }
+}
+
+@keyframes party-oly-gym-toss {
+  0% {
+    transform: translateY(0) scale(0.95);
+  }
+  50% {
+    transform: translateY(-1.1rem) scale(1.1) rotate(4deg);
+  }
+  100% {
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .party-oly-gym-sprite-0,
+  .party-oly-gym-sprite-1,
+  .party-oly-gym-sprite-2,
+  .party-oly-gym-sprite-3,
+  .party-oly-gym-sprite-4,
+  .party-oly-gym-sprite-5 {
+    animation: none;
+  }
+}
+
+/* 피겨 스케이팅 선수 그림: 대표 동작 6장 (동작마다 움직임이 다르다) — 얼음 위에서 미끄러지고 도는 느낌 */
+/* 1 점프: 위로 크게 뛰어올라 한 바퀴 돌고 내려온다 (몸통 가운데를 축으로 돌아야 바닥 밖으로 안 나간다) */
+.party-oly-skate-sprite-0 {
+  transform-origin: 50% 50%;
+  animation: party-oly-skate-jump 1s ease-in-out;
+}
+
+/* 2 스핀: 제자리에서 빙글빙글 돈다 */
+.party-oly-skate-sprite-1 {
+  animation: party-oly-gym-twirl 1.2s ease-in-out;
+}
+
+/* 3 한 발 서기(스파이럴): 천천히 솟아오르며 흔들린다 */
+.party-oly-skate-sprite-2 {
+  animation: party-oly-skate-rise 1.1s ease-in-out;
+}
+
+/* 4 웅크린 점프: 웅크린 채 높이 솟아 빠르게 돈다 */
+.party-oly-skate-sprite-3 {
+  transform-origin: 50% 50%;
+  animation: party-oly-skate-tuck 1s ease-in-out;
+}
+
+/* 5 다리 돌리기: 옆으로 미끄러진다 */
+.party-oly-skate-sprite-4 {
+  animation: party-oly-skate-glide 1.1s ease-in-out;
+}
+
+/* 6 비엘만 스핀: 위로 쭉 뻗으며 돈다 */
+.party-oly-skate-sprite-5 {
+  animation: party-oly-skate-biel 1.2s ease-in-out;
+}
+
+@keyframes party-oly-skate-jump {
+  0% {
+    transform: translateY(0) rotate(0deg);
+  }
+  45% {
+    transform: translateY(-1.3rem) rotate(180deg) scale(1.05);
+  }
+  100% {
+    transform: translateY(0) rotate(360deg);
+  }
+}
+
+@keyframes party-oly-skate-rise {
+  0% {
+    transform: translateY(0) scale(0.9) rotate(-6deg);
+  }
+  50% {
+    transform: translateY(-0.5rem) scale(1.1) rotate(6deg);
+  }
+  100% {
+    transform: translateY(0) scale(1) rotate(0deg);
+  }
+}
+
+@keyframes party-oly-skate-tuck {
+  0% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-1.5rem) rotate(540deg);
+  }
+  100% {
+    transform: translateY(0) rotate(1080deg);
+  }
+}
+
+@keyframes party-oly-skate-glide {
+  0% {
+    transform: translateX(-1.6rem) skewX(6deg);
+  }
+  60% {
+    transform: translateX(1rem) skewX(-4deg);
+  }
+  100% {
+    transform: translateX(0) skewX(0deg);
+  }
+}
+
+@keyframes party-oly-skate-biel {
+  0% {
+    transform: perspective(300px) rotateY(0deg) scale(0.9);
+  }
+  50% {
+    transform: perspective(300px) rotateY(360deg) scale(1.1);
+  }
+  100% {
+    transform: perspective(300px) rotateY(720deg) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .party-oly-skate-sprite-0,
+  .party-oly-skate-sprite-1,
+  .party-oly-skate-sprite-2,
+  .party-oly-skate-sprite-3,
+  .party-oly-skate-sprite-4,
+  .party-oly-skate-sprite-5 {
+    animation: none;
+  }
+}
+
+/* 이번 종목의 게임 방식 이름 */
+.party-oly-group {
+  margin-left: 0.5rem;
+  padding: 0.1rem 0.55rem;
+  background: var(--tint-info);
+  border: 1px solid var(--text-info);
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  vertical-align: middle;
 }

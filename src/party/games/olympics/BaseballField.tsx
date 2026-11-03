@@ -31,7 +31,7 @@ const LAND_MS = 650
 
 const OUTCOME_TEXT: Record<BaseballOutcome, string> = {
   strike: '헛스윙! 스트라이크',
-  foul: '파울! 스트라이크',
+  foul: '파울!',
   hit: '안타! 🎉',
   homerun: '홈런!! 🎆',
 }

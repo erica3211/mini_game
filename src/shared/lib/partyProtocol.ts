@@ -149,8 +149,6 @@ export interface SessionConfig {
   randomOrder: boolean
   /** 초성 퀴즈에서 출제할 카테고리. null이면 전체 (빈 배열은 "하나도 안 고름"이라 null과 다르다) */
   wordChainCategories: string[] | null
-  /** 팀 대항 올림픽에서 치를 종목. null이면 전체 (빈 배열은 "하나도 안 고름") — 고른 종목 수가 곧 라운드 수다 */
-  olympicsSports: string[] | null
   /** 이어그리기 제시어 방식 — random: 서버가 단어 은행에서 뽑는다, custom: 라운드 시작 전 참가자가 각자 하나씩 적는다 */
   telestrationWordMode: TelestrationWordMode
   /** 거짓말쟁이 퀴즈 문제 방식 — random: 서버가 문항 은행에서 뽑는다, custom: 라운드 시작 직후 참가자가 각자 문제를 하나씩 만든다 */

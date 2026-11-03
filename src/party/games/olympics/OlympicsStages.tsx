@@ -1,6 +1,20 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { prefersReducedMotion, type Shot } from './OlympicsSportViews'
 import type { OlympicsAttempt, OlympicsGauge } from './protocol'
+import gymStand from './assets/gym-stand.png'
+import gymPose1 from './assets/gym-pose-1.png'
+import gymPose2 from './assets/gym-pose-2.png'
+import gymPose3 from './assets/gym-pose-3.png'
+import gymPose4 from './assets/gym-pose-4.png'
+import gymPose5 from './assets/gym-pose-5.png'
+import gymPose6 from './assets/gym-pose-6.png'
+import skateStand from './assets/skate-stand.png'
+import skatePose1 from './assets/skate-pose-1.png'
+import skatePose2 from './assets/skate-pose-2.png'
+import skatePose3 from './assets/skate-pose-3.png'
+import skatePose4 from './assets/skate-pose-4.png'
+import skatePose5 from './assets/skate-pose-5.png'
+import skatePose6 from './assets/skate-pose-6.png'
 import { ARCHERY_RING_WIDTH, archeryPosition } from './sports'
 
 // 볼링 레인과 역도 무대 — 던지기·들어올리기 연출
@@ -405,6 +419,13 @@ export function GolfCourse({ shot, shots }: { shot: Shot | null; shots: Olympics
 
 export const GYM_REVEAL_MS = 150
 
+/** 체조 대표 동작 6장 — 맞힌 큐의 번호(0~5)와 같은 번호의 동작이 나온다. 맨 앞은 가만히 서 있는 모습(놓쳤을 때·처음) */
+const GYM_POSES = [gymPose1, gymPose2, gymPose3, gymPose4, gymPose5, gymPose6]
+/** 피겨 스케이팅 대표 동작 6장 (같은 방식) */
+const SKATE_POSES = [skatePose1, skatePose2, skatePose3, skatePose4, skatePose5, skatePose6]
+/** 동작을 보여 주는 시간(ms) — 지나면 다시 가만히 선다 */
+const GYM_POSE_MS = 1100
+
 /**
  * 체조 무대 — 위쪽에 체조 선수, 아래쪽에 일자 게이지. 표시가 왼쪽에서 오른쪽으로 지나가고, 초록 칸이 눌러야 하는 시점이다.
  * 누른 자리는 작은 눈금으로 남고(맞으면 초록, 놓치면 빨강), 맞힌 초록 칸은 짙어진다. 맞히면 선수가 한 바퀴 돌고, 놓치면 휘청한다.
@@ -412,13 +433,28 @@ export const GYM_REVEAL_MS = 150
 export function GymStage({ variant = 'gymnastics', cues, windowMs, maxMs, elapsed, attempts, shot }: { variant?: 'gymnastics' | 'skating'; cues: number[]; windowMs: number; maxMs: number; elapsed: number | null; attempts: OlympicsAttempt[]; shot: Shot | null }) {
   const hitCues = new Set(attempts.filter((a) => a.hit && a.zone !== undefined).map((a) => a.zone))
   const skating = variant === 'skating'
-  const reaction = shot ? (shot.attempt.hit ? (skating ? 'spin' : 'flip') : skating ? 'fall' : 'stumble') : 'idle'
+  // 체조: 맞히면 그 큐의 대표 동작을 잠깐 보여 주고, 놓치거나 시간이 지나면 가만히 서 있는 모습
+  const shotKey = shot?.key
+  const [posing, setPosing] = useState(false)
+  useEffect(() => {
+    if (!shotKey) return
+    setPosing(true)
+    const timer = setTimeout(() => setPosing(false), GYM_POSE_MS)
+    return () => clearTimeout(timer)
+  }, [shotKey])
+  const poses = skating ? SKATE_POSES : GYM_POSES
+  const pose = posing && shot?.attempt.hit ? (shot.attempt.zone ?? 0) % poses.length : null
+  const prefix = skating ? 'skate' : 'gym'
   return (
     <div className="party-oly-gym">
       <div className={`party-oly-gym-figure${skating ? ' party-oly-gym-ice' : ''}`} aria-hidden="true">
-        <span key={shot?.key ?? 'idle'} className={`party-oly-gym-athlete party-oly-gym-${reaction}`}>
-          {skating ? '⛸️' : '🤸'}
-        </span>
+        <img
+          key={pose === null ? 'stand' : `${shotKey}-${pose}`}
+          src={pose === null ? (skating ? skateStand : gymStand) : poses[pose]}
+          alt=""
+          className={`party-oly-gym-sprite${pose === null ? '' : ` party-oly-${prefix}-sprite-${pose}`}`}
+          draggable={false}
+        />
         {shot && (
           <span key={`pop-${shot.key}`} className={`party-oly-gym-score${shot.attempt.hit ? ' party-oly-gym-score-hit' : ''}`}>
             {shot.attempt.hit ? `${shot.attempt.score}점!` : '아쉬워요'}
