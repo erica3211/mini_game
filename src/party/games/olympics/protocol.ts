@@ -26,7 +26,7 @@ export interface OlympicsAttempt {
 }
 
 export interface OlympicsGauge {
-  kind: 'basketball' | 'archery' | 'shooting' | 'bowling' | 'weightlifting'
+  kind: 'basketball' | 'archery' | 'shooting' | 'bowling' | 'golf' | 'weightlifting' | 'gymnastics' | 'skating'
   teamId: number
   attempt: number
   elapsedMs: number
@@ -36,6 +36,9 @@ export interface OlympicsGauge {
   aimAt?: number
   /** 역도: 고른 무게 */
   weight?: number
+  /** 체조: 눌러야 하는 시점들(ms)과 그 앞뒤로 인정하는 폭(ms) */
+  cues?: number[]
+  windowMs?: number
   speed?: number
   zoneCenter?: number
   zoneHalf?: number

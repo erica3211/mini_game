@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import type { TeamInfo } from '../../../shared/lib/partyProtocol'
 import { teamColorClass, teamEmoji, teamRgb } from '../../core/PartyTeamBanner'
 import { ARCHERY_RING_WIDTH, archeryPosition, basketballPosition } from './sports'
@@ -103,6 +103,38 @@ export function BasketballGauge({ gauge, elapsed, label = '농구 게이지' }: 
     <div className="party-oly-gauge" aria-label={label}>
       <div className="party-oly-gauge-zone" style={{ left: `${zoneLeft}%`, width: `${zoneWidth}%` }} />
       <div className="party-oly-gauge-marker" style={{ left: `${position * 100}%` }} />
+    </div>
+  )
+}
+
+/**
+ * 볼링·골프: 두 번 멈추는 게이지를 따로 보여 준다 — 방향은 가로 게이지, 힘은 오른쪽의 세로 게이지.
+ * 방향을 정하면 가로 게이지의 표시가 그 자리에 고정되고(점선), 세로 게이지가 움직이기 시작한다.
+ */
+export function TwoStageGauges({ gauge, elapsed, children }: { gauge: OlympicsGauge | null; elapsed: number; children: ReactNode }) {
+  const aiming = gauge !== null && (gauge.stage ?? 0) === 0
+  const powering = gauge !== null && gauge.stage === 1
+  const aimPosition = aiming ? basketballPosition(gauge, elapsed) : (gauge?.aimAt ?? null)
+  const powerPosition = powering ? basketballPosition(gauge, elapsed) : null
+  const powerLow = powering ? (gauge.zoneCenter ?? 0.5) - (gauge.zoneHalf ?? 0.04) : 0
+  const powerHigh = powering ? (gauge.zoneCenter ?? 0.5) + (gauge.zoneHalf ?? 0.04) : 0
+  return (
+    <div className="party-oly-twostage">
+      <div className="party-oly-twostage-main">
+        {children}
+        <div className={`party-oly-gauge${aiming ? '' : ' party-oly-gauge-idle'}`} aria-label="방향 게이지">
+          <div className="party-oly-gauge-zone" style={{ left: '46%', width: '8%' }} />
+          {aimPosition !== null && <div className={`party-oly-gauge-marker${aiming ? '' : ' party-oly-gauge-marker-locked'}`} style={{ left: `${aimPosition * 100}%` }} />}
+        </div>
+        <small className="party-oly-gauge-label">① 방향 (가로) — 가운데 초록 선에 맞춰요</small>
+      </div>
+      <div className="party-oly-vgauge">
+        <div className={`party-oly-vgauge-bar${powering ? '' : ' party-oly-gauge-idle'}`} aria-label="힘 게이지">
+          {powering && <div className="party-oly-vgauge-zone" style={{ bottom: `${powerLow * 100}%`, height: `${(powerHigh - powerLow) * 100}%` }} />}
+          {powerPosition !== null && <div className="party-oly-vgauge-marker" style={{ bottom: `${powerPosition * 100}%` }} />}
+        </div>
+        <small className="party-oly-gauge-label">② 힘 (세로)</small>
+      </div>
     </div>
   )
 }
@@ -324,6 +356,8 @@ export function ArcheryTarget({ gauge, elapsed, arrows, shot }: { gauge: Olympic
 function chipText(sportId: string, attempt: OlympicsAttempt): string | number {
   if (sportId === 'archery' || sportId === 'shooting') return attempt.score
   if (sportId === 'bowling') return attempt.score === 10 ? '🎳' : attempt.score
+  if (sportId === 'golf') return attempt.score === 10 ? '⛳' : attempt.score
+  if (sportId === 'gymnastics' || sportId === 'skating') return attempt.hit ? attempt.score : '✖'
   if (sportId === 'weightlifting') return attempt.hit ? attempt.score : '✖'
   return attempt.hit ? '⭕' : '✖'
 }
@@ -331,6 +365,7 @@ function chipText(sportId: string, attempt: OlympicsAttempt): string | number {
 /** 팀 줄 오른쪽의 합계 표시 — 역도는 합이 아니라 성공한 가장 무거운 기록 */
 function sumText(sportId: string, sum: number, best: number): string {
   if (sportId === 'archery' || sportId === 'shooting') return `${sum}점`
+  if (sportId === 'golf' || sportId === 'gymnastics' || sportId === 'skating') return `${sum}점`
   if (sportId === 'bowling') return `${sum}핀`
   if (sportId === 'weightlifting') return best > 0 ? `${best}kg` : '-'
   return `${sum}골`

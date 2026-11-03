@@ -9,7 +9,7 @@ interface Props {
 }
 
 // 종목 이름과 이모티콘 — 서버의 OLYMPICS_SPORTS와 같아야 한다 (결과 화면에서 종목 id로 보여주려고 따로 둔다)
-const SPORT_LABELS: Record<string, string> = { basketball: '🏀 농구', archery: '🏹 양궁', shooting: '🔫 사격', bowling: '🎳 볼링', baseball: '⚾ 야구', soccer: '⚽ 축구 승부차기', pingpong: '🏓 탁구', weightlifting: '🏋️ 역도', track: '🏃 육상 100m', swimming: '🏊 수영 100m' }
+const SPORT_LABELS: Record<string, string> = { basketball: '🏀 농구', archery: '🏹 양궁', shooting: '🔫 사격', bowling: '🎳 볼링', golf: '⛳ 골프', gymnastics: '🤸 체조', skating: '⛸️ 피겨 스케이팅', baseball: '⚾ 야구', soccer: '⚽ 축구 승부차기', pingpong: '🏓 탁구', weightlifting: '🏋️ 역도', track: '🏃 육상 100m', swimming: '🏊 수영 100m' }
 
 /** 결과 화면: 종목마다 대표가 누구였고 각 팀이 몇 위·몇 점을 받았는지 */
 export function OlympicsRecap({ meta, teams, nicknameOf }: Props) {

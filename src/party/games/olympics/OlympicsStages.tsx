@@ -309,3 +309,136 @@ export function ShootingTarget({ gauge, elapsed, shots, shot }: { gauge: Olympic
     </svg>
   )
 }
+
+// ---------------------------------------------------------------- 골프 (viewBox 100 x 80): 위에서 내려다본 코스 — 깃대(홀)가 위쪽, 티가 아래쪽
+
+export const GOLF_SHOT_MS = 1000
+export const GOLF_REVEAL_MS = 900
+const HOLE: Pin = { x: 50, y: 22 }
+const TEE: Pin = { x: 50, y: 70 }
+/** 게이지의 어긋남(0~1)을 코스 위의 거리로 바꾸는 배율 — 한 칸(0.045)이 홀 반지름과 같다 */
+const GOLF_SCALE = 60
+
+/** 공이 떨어진 자리: 방향 게이지가 가운데에서 벗어난 만큼 옆으로, 힘이 초록 영역을 넘은 만큼 홀 너머로(못 미치면 앞쪽으로) */
+function golfLanding(attempt: OlympicsAttempt): Pin {
+  const aim = attempt.at?.x ?? 0.5
+  const power = attempt.at?.y ?? 0
+  const zone = attempt.zone ?? 0
+  return {
+    x: Math.min(96, Math.max(4, HOLE.x + (aim - 0.5) * GOLF_SCALE)),
+    y: Math.min(76, Math.max(3, HOLE.y - (power - zone) * GOLF_SCALE)),
+  }
+}
+
+/** 골프 코스: 공이 포물선으로 날아가 떨어진다. 홀에 들어가면 사라지고, 이미 친 공은 떨어진 자리에 하얀 점으로 남는다 */
+export function GolfCourse({ shot, shots }: { shot: Shot | null; shots: OlympicsAttempt[] }) {
+  const ball = useRef<SVGGElement>(null)
+  const shotKey = shot?.key
+  const attemptRef = useRef(shot?.attempt)
+  attemptRef.current = shot?.attempt
+
+  useEffect(() => {
+    const element = ball.current
+    const attempt = attemptRef.current
+    if (!shotKey || !element || !attempt || prefersReducedMotion() || typeof element.animate !== 'function') return
+    const end = attempt.at ? golfLanding(attempt) : { x: TEE.x, y: TEE.y - 8 }
+    const holed = attempt.score === 10
+    const frames: Keyframe[] = []
+    const steps = 14
+    for (let i = 0; i <= steps; i += 1) {
+      const t = i / steps
+      const x = TEE.x + (end.x - TEE.x) * t
+      const y = TEE.y + (end.y - TEE.y) * t
+      // 높이: 가운데에서 가장 크게 보이도록 공을 키운다
+      frames.push({ offset: 0.7 * t, transform: `translate(${x}px, ${y}px) scale(${1 + 1.6 * 4 * t * (1 - t)})`, opacity: 1 })
+    }
+    frames.push({ offset: 0.78, transform: `translate(${end.x}px, ${end.y}px) scale(${holed ? 0.3 : 1})`, opacity: holed ? 0 : 1 })
+    frames.push({ offset: 0.92, transform: `translate(${end.x}px, ${end.y}px) scale(${holed ? 0.3 : 1})`, opacity: holed ? 0 : 1 })
+    frames.push({ offset: 0.95, transform: `translate(${TEE.x}px, ${TEE.y}px) scale(1)`, opacity: 0 })
+    frames.push({ offset: 1, transform: `translate(${TEE.x}px, ${TEE.y}px) scale(1)`, opacity: 1 })
+    const animation = element.animate(frames, { duration: GOLF_SHOT_MS, easing: 'linear' })
+    return () => animation.cancel()
+  }, [shotKey])
+
+  const landed = shot?.attempt.at ? golfLanding(shot.attempt) : null
+  return (
+    <svg className="party-oly-court" viewBox="0 0 100 80" role="img" aria-label="골프 코스">
+      <rect x="0" y="0" width="100" height="80" fill="#4fb35f" />
+      {[0, 1, 2, 3].map((i) => (
+        <rect key={i} x="0" y={i * 20} width="100" height="10" fill="#58bf68" />
+      ))}
+      <ellipse cx={HOLE.x} cy={HOLE.y} rx="32" ry="17" fill="#7ddc86" stroke="#3f9a4d" strokeWidth="0.6" />
+      {[1, 2, 3, 4, 5].map((k) => (
+        <circle key={k} cx={HOLE.x} cy={HOLE.y} r={0.045 * GOLF_SCALE * k} fill="none" stroke="rgba(255,255,255,0.45)" strokeWidth="0.3" strokeDasharray="1 1" />
+      ))}
+      <circle cx={HOLE.x} cy={HOLE.y} r="2.6" fill="#1f2937" />
+      <line x1={HOLE.x} y1={HOLE.y} x2={HOLE.x} y2={HOLE.y - 17} stroke="#e5e7eb" strokeWidth="0.8" />
+      <polygon points={`${HOLE.x},${HOLE.y - 17} ${HOLE.x + 9},${HOLE.y - 13.5} ${HOLE.x},${HOLE.y - 10}`} fill="#ef4444" />
+      <rect x="44" y="72" width="12" height="2.4" rx="1" fill="#8b5a2b" />
+      {shots.map((item, index) =>
+        item.at && item.score < 10 ? (
+          <circle key={index} cx={golfLanding(item).x} cy={golfLanding(item).y} r="1.7" fill="#f8fafc" stroke="#64748b" strokeWidth="0.5" />
+        ) : null,
+      )}
+      <g ref={ball} style={{ transform: `translate(${TEE.x}px, ${TEE.y}px)` }}>
+        <circle r="2.4" fill="#fff" stroke="#475569" strokeWidth="0.6" />
+        <circle cx="-0.7" cy="-0.6" r="0.35" fill="#cbd5e1" />
+        <circle cx="0.8" cy="0.5" r="0.35" fill="#cbd5e1" />
+      </g>
+      {shot && (
+        <text
+          key={shot.key}
+          className={`party-oly-pop${shot.attempt.score >= 9 ? ' party-oly-pop-hit' : ''}`}
+          x={landed ? Math.min(82, Math.max(18, landed.x)) : 50}
+          y={landed ? Math.max(10, landed.y - 6) : 40}
+          textAnchor="middle"
+          style={{ animationDelay: `${GOLF_REVEAL_MS - 250}ms` }}
+        >
+          {shot.attempt.score === 10 ? '홀인! ⛳' : landed ? `${shot.attempt.score}점` : '헛스윙'}
+        </text>
+      )}
+    </svg>
+  )
+}
+
+// ---------------------------------------------------------------- 체조: 10초짜리 일자 게이지에 놓인 초록 시점(큐)에 맞춰 누른다
+
+export const GYM_REVEAL_MS = 150
+
+/**
+ * 체조 무대 — 위쪽에 체조 선수, 아래쪽에 일자 게이지. 표시가 왼쪽에서 오른쪽으로 지나가고, 초록 칸이 눌러야 하는 시점이다.
+ * 누른 자리는 작은 눈금으로 남고(맞으면 초록, 놓치면 빨강), 맞힌 초록 칸은 짙어진다. 맞히면 선수가 한 바퀴 돌고, 놓치면 휘청한다.
+ */
+export function GymStage({ variant = 'gymnastics', cues, windowMs, maxMs, elapsed, attempts, shot }: { variant?: 'gymnastics' | 'skating'; cues: number[]; windowMs: number; maxMs: number; elapsed: number | null; attempts: OlympicsAttempt[]; shot: Shot | null }) {
+  const hitCues = new Set(attempts.filter((a) => a.hit && a.zone !== undefined).map((a) => a.zone))
+  const skating = variant === 'skating'
+  const reaction = shot ? (shot.attempt.hit ? (skating ? 'spin' : 'flip') : skating ? 'fall' : 'stumble') : 'idle'
+  return (
+    <div className="party-oly-gym">
+      <div className={`party-oly-gym-figure${skating ? ' party-oly-gym-ice' : ''}`} aria-hidden="true">
+        <span key={shot?.key ?? 'idle'} className={`party-oly-gym-athlete party-oly-gym-${reaction}`}>
+          {skating ? '⛸️' : '🤸'}
+        </span>
+        {shot && (
+          <span key={`pop-${shot.key}`} className={`party-oly-gym-score${shot.attempt.hit ? ' party-oly-gym-score-hit' : ''}`}>
+            {shot.attempt.hit ? `${shot.attempt.score}점!` : '아쉬워요'}
+          </span>
+        )}
+      </div>
+      <div className="party-oly-gymbar" aria-label="체조 게이지">
+        {cues.map((cue, index) => (
+          <div
+            key={cue}
+            className={`party-oly-gymbar-cue${hitCues.has(index) ? ' party-oly-gymbar-cue-hit' : ''}`}
+            style={{ left: `${((cue - windowMs) / maxMs) * 100}%`, width: `${((windowMs * 2) / maxMs) * 100}%` }}
+          />
+        ))}
+        {attempts.map((attempt, index) =>
+          attempt.at ? <div key={index} className={`party-oly-gymbar-click${attempt.hit ? ' party-oly-gymbar-click-hit' : ''}`} style={{ left: `${attempt.at.x * 100}%` }} /> : null,
+        )}
+        {elapsed !== null && <div className="party-oly-gymbar-marker" style={{ left: `${Math.min(1, elapsed / maxMs) * 100}%` }} />}
+      </div>
+      <small className="party-oly-gauge-label">{skating ? '초록 칸에 표시가 지날 때 점프! ' : '초록 칸에 표시가 지날 때 눌러요 '} (누를 수 있는 횟수는 {cues.length}번)</small>
+    </div>
+  )
+}

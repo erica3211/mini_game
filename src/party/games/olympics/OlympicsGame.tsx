@@ -3,7 +3,7 @@ import type { Socket } from 'socket.io-client'
 import type { OlympicsAttempt, OlympicsStateSignal, OlympicsTrackSignal } from './protocol'
 import { BaseballField } from './BaseballField'
 import { ZoneDuelField } from './ZoneDuelField'
-import { BOWLING_REVEAL_MS, BowlingLane, LIFT_REVEAL_MS, ShootingTarget, WeightliftingStage } from './OlympicsStages'
+import { BOWLING_REVEAL_MS, BowlingLane, GOLF_REVEAL_MS, GYM_REVEAL_MS, GolfCourse, GymStage, LIFT_REVEAL_MS, ShootingTarget, WeightliftingStage } from './OlympicsStages'
 import type { ClientToServerEvents, PlayerInfo, ServerToClientEvents, TeamInfo } from '../../../shared/lib/partyProtocol'
 import { teamColorClass, teamEmoji, teamOf } from '../../core/PartyTeamBanner'
 import { useMonotonicStartedAt } from '../../core/useMonotonicStartedAt'
@@ -16,6 +16,7 @@ import {
   BasketballCourt,
   BasketballGauge,
   SwimLanes,
+  TwoStageGauges,
   TrackLanes,
   useGaugeClock,
   useShotTracker,
@@ -79,7 +80,10 @@ export function OlympicsGame({ socket, roundKey, state, playerId, players, teams
   // 던진 뒤에는 게이지가 사라지므로, 공이 어느 쪽으로 빗나갔는지 알려면 마지막 목표 위치를 기억해 둔다
   const zoneRef = useRef<number | null>(null)
   if (gauge?.zoneCenter !== undefined) zoneRef.current = gauge.zoneCenter
-  const revealMs = { archery: ARCHERY_REVEAL_MS, shooting: ARCHERY_REVEAL_MS, bowling: BOWLING_REVEAL_MS, weightlifting: LIFT_REVEAL_MS }[state?.sport.id ?? ''] ?? BASKETBALL_REVEAL_MS
+  // 체조: 모든 팀이 같은 큐로 겨루므로, 게이지가 없는 동안에도 큐를 보여 주려고 마지막으로 본 큐를 기억해 둔다
+  const gymRef = useRef<{ cues: number[]; windowMs: number; maxMs: number } | null>(null)
+  if ((gauge?.kind === 'gymnastics' || gauge?.kind === 'skating') && gauge.cues) gymRef.current = { cues: gauge.cues, windowMs: gauge.windowMs ?? 150, maxMs: gauge.maxMs }
+  const revealMs = { archery: ARCHERY_REVEAL_MS, shooting: ARCHERY_REVEAL_MS, bowling: BOWLING_REVEAL_MS, golf: GOLF_REVEAL_MS, gymnastics: GYM_REVEAL_MS, skating: GYM_REVEAL_MS, weightlifting: LIFT_REVEAL_MS }[state?.sport.id ?? ''] ?? BASKETBALL_REVEAL_MS
   const { shot, pending } = useShotTracker(state?.attempts ?? NO_ATTEMPTS, roundId, revealMs)
   const choiceStartedAt = useMonotonicStartedAt(`${roundId}-choice-${state?.choice?.teamId}-${state?.choice?.attempt}`, state?.choice ? { elapsedMs: state.choice.elapsedMs } : null, state?.choice ? 'running' : 'finished')
 
@@ -238,17 +242,38 @@ export function OlympicsGame({ socket, roundKey, state, playerId, players, teams
                   <>
                     {teamEmoji(state.turnTeamId)} <strong>{nameOf(state.turnTeamId)}</strong> · {nicknameOf(turnRep)}
                     {turnRep === playerId && ' (나)'}님 차례
-                    {gauge && ` (${gauge.attempt + 1}/${attemptTotal})`}
+                    {gauge && sport.id !== 'gymnastics' && sport.id !== 'skating' && ` (${gauge.attempt + 1}/${attemptTotal})`}
                   </>
                 ) : (
                   '다음 팀 준비 중...'
                 )}
               </p>
               {sport.id === 'basketball' && <BasketballCourt shot={shot} pending={pending} zoneCenter={zoneRef.current} />}
-              {sport.id === 'bowling' && <BowlingLane shot={shot} fallen={gauge === null} />}
+              {(sport.id === 'bowling' || sport.id === 'golf') && (
+                <TwoStageGauges gauge={gauge} elapsed={clock.elapsed}>
+                  {sport.id === 'bowling' ? (
+                    <BowlingLane shot={shot} fallen={gauge === null} />
+                  ) : (
+                    <GolfCourse shot={shot} shots={state.turnTeamId !== null ? (shownAttempts[state.turnTeamId] ?? []) : []} />
+                  )}
+                </TwoStageGauges>
+              )}
+              {(sport.id === 'gymnastics' || sport.id === 'skating') && gymRef.current && (
+                <GymStage
+                  variant={sport.id}
+                  cues={gymRef.current.cues}
+                  windowMs={gymRef.current.windowMs}
+                  maxMs={gymRef.current.maxMs}
+                  elapsed={gauge ? clock.elapsed : null}
+                  attempts={state.turnTeamId !== null ? (shownAttempts[state.turnTeamId] ?? []) : []}
+                  shot={shot}
+                />
+              )}
               {sport.id === 'weightlifting' && <WeightliftingStage shot={shot} weight={gauge?.weight ?? null} />}
-              {gauge?.kind === 'bowling' && (
-                <p className="party-oly-stage-hint">{gauge.stage === 0 ? '① 방향: 가운데 초록 선에 맞춰 멈추세요' : '② 힘: 초록 영역에 맞춰 멈추세요'}</p>
+              {(gauge?.kind === 'bowling' || gauge?.kind === 'golf') && (
+                <p className="party-oly-stage-hint">
+                  {gauge.stage === 0 ? '① 방향 게이지(가로)를 가운데 초록 선에 맞춰 멈추세요' : gauge.kind === 'golf' ? '② 이제 힘 게이지(세로)를 초록 영역에 맞춰 멈추세요 (깃대까지의 거리)' : '② 이제 힘 게이지(세로)를 초록 영역에 맞춰 멈추세요'}
+                </p>
               )}
               {state.choice && (
                 <div className="party-oly-choice">
@@ -265,7 +290,7 @@ export function OlympicsGame({ socket, roundKey, state, playerId, players, teams
                   </div>
                 </div>
               )}
-              {gauge && (sport.id === 'basketball' || sport.id === 'bowling' || sport.id === 'weightlifting') && (
+              {gauge && (sport.id === 'basketball' || sport.id === 'weightlifting') && (
                 <BasketballGauge gauge={gauge} elapsed={clock.elapsed} label={`${sport.name} 게이지`} />
               )}
               {sport.id === 'shooting' && (
@@ -344,7 +369,9 @@ export function OlympicsGame({ socket, roundKey, state, playerId, players, teams
 /** 내 차례에 누르는 버튼의 문구 */
 function pressLabel(sportId: string, stage: number | undefined): string {
   if (sportId === 'archery' || sportId === 'shooting') return '쏘기!'
-  if (sportId === 'bowling') return stage === 1 ? '힘 멈추기!' : '방향 멈추기!'
+  if (sportId === 'bowling' || sportId === 'golf') return stage === 1 ? '힘 멈추기!' : '방향 멈추기!'
   if (sportId === 'weightlifting') return '들어올리기!'
+  if (sportId === 'gymnastics') return '동작!'
+  if (sportId === 'skating') return '점프!'
   return '던지기!'
 }

@@ -1278,3 +1278,257 @@
     animation: none;
   }
 }
+
+/* 볼링·골프: 방향(가로)과 힘(세로) 게이지를 따로 보여 준다 */
+.party-oly-twostage {
+  display: flex;
+  gap: 0.6rem;
+  width: 100%;
+  max-width: 420px;
+}
+
+.party-oly-twostage-main {
+  flex: 1;
+  display: grid;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.party-oly-twostage-main .party-oly-court {
+  width: 100%;
+}
+
+.party-oly-gauge-label {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  text-align: center;
+}
+
+/* 아직 차례가 아닌 게이지는 흐리게, 이미 멈춘 방향 표시는 점선으로 */
+.party-oly-gauge-idle {
+  opacity: 0.55;
+}
+
+.party-oly-gauge-marker-locked {
+  background: transparent;
+  border-left: 3px dashed var(--text);
+  border-radius: 0;
+}
+
+.party-oly-vgauge {
+  flex-shrink: 0;
+  width: 3.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.party-oly-vgauge-bar {
+  position: relative;
+  flex: 1;
+  min-height: 10rem;
+  background: var(--border);
+  border: 2px solid var(--border-strong);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.party-oly-vgauge-zone {
+  position: absolute;
+  left: 0;
+  right: 0;
+  background: rgba(34, 197, 94, 0.55);
+  border-top: 2px solid #16a34a;
+  border-bottom: 2px solid #16a34a;
+}
+
+.party-oly-vgauge-marker {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 6px;
+  margin-bottom: -3px;
+  background: var(--text);
+  border-radius: 3px;
+}
+
+/* 체조 */
+.party-oly-gym {
+  display: grid;
+  gap: 0.4rem;
+  width: 100%;
+  max-width: 420px;
+}
+
+.party-oly-gym-figure {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 5.5rem;
+  background: #e0f2fe;
+  border-radius: var(--radius);
+}
+
+.party-oly-gym-athlete {
+  font-size: 3.2rem;
+  line-height: 1;
+}
+
+.party-oly-gym-flip {
+  animation: party-oly-gym-flip 0.6s ease-in-out;
+}
+
+.party-oly-gym-stumble {
+  animation: party-oly-gym-stumble 0.45s ease-in-out;
+}
+
+@keyframes party-oly-gym-flip {
+  0% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-1rem) rotate(180deg);
+  }
+  100% {
+    transform: translateY(0) rotate(360deg);
+  }
+}
+
+@keyframes party-oly-gym-stumble {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(-14deg);
+  }
+  75% {
+    transform: rotate(14deg);
+  }
+}
+
+.party-oly-gym-score {
+  position: absolute;
+  right: 0.6rem;
+  top: 0.4rem;
+  font-weight: 900;
+  color: var(--text-muted);
+}
+
+.party-oly-gym-score-hit {
+  color: #15803d;
+  font-size: 1.2rem;
+}
+
+/* 10초짜리 일자 게이지 */
+.party-oly-gymbar {
+  position: relative;
+  height: 2.6rem;
+  background: var(--border);
+  border: 2px solid var(--border-strong);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.party-oly-gymbar-cue {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: rgba(34, 197, 94, 0.55);
+  border-left: 2px solid #16a34a;
+  border-right: 2px solid #16a34a;
+}
+
+.party-oly-gymbar-cue-hit {
+  background: #16a34a;
+}
+
+.party-oly-gymbar-marker {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  margin-left: -2px;
+  background: var(--text);
+  border-radius: 2px;
+}
+
+/* 누른 자리: 맞으면 초록, 놓치면 빨강 */
+.party-oly-gymbar-click {
+  position: absolute;
+  top: 25%;
+  bottom: 25%;
+  width: 4px;
+  margin-left: -2px;
+  background: #ef4444;
+  border-radius: 2px;
+}
+
+.party-oly-gymbar-click-hit {
+  background: #fff;
+  box-shadow: 0 0 0 2px #16a34a;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .party-oly-gym-flip,
+  .party-oly-gym-stumble {
+    animation: none;
+  }
+}
+
+/* 피겨 스케이팅: 체조와 같은 방식에 얼음판·점프·스핀·넘어짐 */
+.party-oly-gym-ice {
+  background: linear-gradient(180deg, #f0f9ff 0%, #dbeafe 100%);
+  border: 2px solid #bfdbfe;
+}
+
+.party-oly-gym-ice::after {
+  content: '';
+  position: absolute;
+  left: 12%;
+  right: 12%;
+  bottom: 0.9rem;
+  height: 3px;
+  background: rgba(147, 197, 253, 0.8);
+  border-radius: 2px;
+}
+
+.party-oly-gym-spin {
+  animation: party-oly-gym-spin 0.7s ease-in-out;
+}
+
+.party-oly-gym-fall {
+  animation: party-oly-gym-fall 0.6s ease-in-out;
+}
+
+@keyframes party-oly-gym-spin {
+  0% {
+    transform: translateY(0) rotate(0deg) scaleX(1);
+  }
+  50% {
+    transform: translateY(-1.2rem) rotate(0deg) scaleX(-1);
+  }
+  100% {
+    transform: translateY(0) rotate(0deg) scaleX(1);
+  }
+}
+
+@keyframes party-oly-gym-fall {
+  0% {
+    transform: rotate(0deg) translateY(0);
+  }
+  45% {
+    transform: rotate(-80deg) translateY(0.6rem);
+  }
+  100% {
+    transform: rotate(0deg) translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .party-oly-gym-spin,
+  .party-oly-gym-fall {
+    animation: none;
+  }
+}
