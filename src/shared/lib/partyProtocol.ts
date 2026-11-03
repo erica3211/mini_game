@@ -21,6 +21,7 @@ import type { MemoryStateSignal } from '../../party/games/memoryCards/protocol'
 import type { OlympicsStateSignal, OlympicsTrackSignal } from '../../party/games/olympics/protocol'
 import type { OrderCardsEndSignal, OrderCardsStandingsSignal, OrderCardsStateSignal } from '../../party/games/orderCards/protocol'
 import type { TugEndSignal, TugProgressSignal, TugStartSignal } from '../../party/games/tugOfWar/protocol'
+import type { RecyclingEndSignal, RecyclingEventSignal, RecyclingProgressSignal, RecyclingStartSignal } from '../../party/games/recycling/protocol'
 import type { StroopQuestionResult, StroopQuestionSignal } from '../../party/games/stroop/protocol'
 import type { MouseHunterMouse } from '../../party/games/mouseHunter/protocol'
 import type { ScavengerHuntRoundTarget } from '../../party/games/scavengerHunt/protocol'
@@ -87,6 +88,7 @@ export type GameId =
   | 'orderCards'
   | 'memoryCards'
   | 'olympics'
+  | 'recycling'
 
 /** 방의 진행 방식 — backend/types.ts와 같아야 한다. /party는 개인전, /teamParty는 팀전 방이다 */
 export type RoomMode = 'individual' | 'team'
@@ -365,6 +367,7 @@ export interface ClientToServerEvents {
   'orderCards:play': () => void
   /** 줄다리기: 줄을 한 번 당겼다 — 몇 번째인지는 서버가 센다 */
   'tugOfWar:pull': () => void
+  'recycling:tap': (data: { itemId: number }) => void
 }
 
 /** Server -> Client */
@@ -611,6 +614,10 @@ export interface ServerToClientEvents {
   'tugOfWar:progress': (data: TugProgressSignal) => void
   /** 끝났을 때 팀 순위와 사람별 당긴 횟수 공개 */
   'tugOfWar:end': (data: TugEndSignal) => void
+  'recycling:start': (data: RecyclingStartSignal) => void
+  'recycling:event': (data: RecyclingEventSignal) => void
+  'recycling:progress': (data: RecyclingProgressSignal) => void
+  'recycling:end': (data: RecyclingEndSignal) => void
   'mazeEscape:start': (data: MazeStartSignal) => void
   /** 팀 캐릭터가 움직일 때마다 같은 팀에게만 오는 새 위치 */
   'mazeEscape:pos': (data: MazePoint) => void

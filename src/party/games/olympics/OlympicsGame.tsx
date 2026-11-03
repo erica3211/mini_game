@@ -98,10 +98,11 @@ export function OlympicsGame({ socket, roundKey, state, playerId, players, teams
   const sport = state.sport
   const myTeamId = myTeam?.id
   const iAmRep = myTeamId !== undefined && state.reps[myTeamId] === playerId
-  const positions = { ...serverPositions }
-  if (myTeamId !== undefined && iAmRep) positions[myTeamId] = Math.max(positions[myTeamId] ?? 0, myTaps)
   const finishTaps = state.track?.finishTaps ?? 60
-  const myFinished = myTeamId !== undefined && (positions[myTeamId] ?? 0) >= finishTaps
+  // 내가 누른 것은 바로 올려서 보여주되, 결승선(도착)은 서버가 센 값으로만 정한다 — 서버가 못 센 신호가 있으면 화면만 먼저 도착해 버리기 때문이다
+  const positions = { ...serverPositions }
+  if (myTeamId !== undefined && iAmRep) positions[myTeamId] = Math.max(positions[myTeamId] ?? 0, Math.min(myTaps, finishTaps - 1))
+  const myFinished = myTeamId !== undefined && (serverPositions[myTeamId] ?? 0) >= finishTaps
 
   const isTrack = sport.mode === 'simultaneous'
   const isDuel = sport.mode === 'duel'

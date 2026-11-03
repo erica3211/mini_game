@@ -10,6 +10,7 @@ import type { MemoryStateSignal } from '../games/memoryCards/protocol'
 import type { OlympicsStateSignal } from '../games/olympics/protocol'
 import type { OrderCardsEndSignal, OrderCardsStanding, OrderCardsStateSignal } from '../games/orderCards/protocol'
 import type { TugStartSignal } from '../games/tugOfWar/protocol'
+import type { RecyclingStartSignal } from '../games/recycling/protocol'
 import type { MouseHunterMouse } from '../games/mouseHunter/protocol'
 import type { ScavengerHuntRoundTarget } from '../games/scavengerHunt/protocol'
 import { reduceMaze, type MazeAction, type MazeViewState } from '../games/mazeEscape/protocol'
@@ -121,6 +122,7 @@ export function useGameSession(roomCodeFromUrl?: string) {
   const [findOddRound, setFindOddRound] = useState<FindOddRoundSignal | null>(null)
   const [stroopQuestion, setStroopQuestion] = useState<StroopQuestionSignal | null>(null)
   const [tugStart, setTugStart] = useState<TugStartSignal | null>(null)
+  const [recyclingStart, setRecyclingStart] = useState<RecyclingStartSignal | null>(null)
   const [memoryCardsState, setMemoryCardsState] = useState<MemoryStateSignal | null>(null)
   const [olympicsState, setOlympicsState] = useState<OlympicsStateSignal | null>(null)
   const [orderCardsState, setOrderCardsState] = useState<OrderCardsStateSignal | null>(null)
@@ -210,6 +212,7 @@ export function useGameSession(roomCodeFromUrl?: string) {
         setFindOddRound(null)
         setStroopQuestion(null)
         setTugStart(null)
+        setRecyclingStart(null)
         setMemoryCardsState(null)
         setOlympicsState(null)
         setOrderCardsState(null)
@@ -265,6 +268,7 @@ export function useGameSession(roomCodeFromUrl?: string) {
     const onFindOddRound = (data: FindOddRoundSignal) => setFindOddRound(data)
     const onStroopQuestion = (data: StroopQuestionSignal) => setStroopQuestion(data)
     const onTugStart = (data: TugStartSignal) => setTugStart(data)
+    const onRecyclingStart = (data: RecyclingStartSignal) => setRecyclingStart(data)
     const onMemoryCardsState = (data: MemoryStateSignal) => setMemoryCardsState(data)
     const onOlympicsState = (data: OlympicsStateSignal) => setOlympicsState(data)
     const onOrderCardsState = (data: OrderCardsStateSignal) => setOrderCardsState(data)
@@ -363,6 +367,7 @@ export function useGameSession(roomCodeFromUrl?: string) {
     socket.on('findOdd:roundStart', onFindOddRound)
     socket.on('stroop:question', onStroopQuestion)
     socket.on('tugOfWar:start', onTugStart)
+    socket.on('recycling:start', onRecyclingStart)
     socket.on('memoryCards:state', onMemoryCardsState)
     socket.on('olympics:state', onOlympicsState)
     socket.on('orderCards:state', onOrderCardsState)
@@ -428,6 +433,7 @@ export function useGameSession(roomCodeFromUrl?: string) {
       socket.off('findOdd:roundStart', onFindOddRound)
       socket.off('stroop:question', onStroopQuestion)
       socket.off('tugOfWar:start', onTugStart)
+      socket.off('recycling:start', onRecyclingStart)
       socket.off('memoryCards:state', onMemoryCardsState)
       socket.off('olympics:state', onOlympicsState)
       socket.off('orderCards:state', onOrderCardsState)
@@ -617,6 +623,7 @@ export function useGameSession(roomCodeFromUrl?: string) {
     findOddRound,
     stroopQuestion,
     tugStart,
+    recyclingStart,
     memoryCardsState,
     olympicsState,
     orderCardsState,
