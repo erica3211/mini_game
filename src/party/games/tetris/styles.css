@@ -101,8 +101,8 @@
 }
 
 .party-tt-grid {
-  /* 조작 버튼이 판 바로 아래에 같이 보이도록, 화면 높이에 맞춰 칸 크기를 줄인다 */
-  --tt-cell: clamp(0.75rem, calc((100dvh - 32rem) / 20), 1.5rem);
+  /* 조작 버튼이 판 바로 아래에 같이 보이도록, 화면 높이에 맞춰 칸 크기를 줄인다 (--stable-vh는 TetrisGame이 정한다. dvh를 쓰면 모바일 하단 바가 생길 때마다 크기가 바뀐다) */
+  --tt-cell: clamp(0.75rem, calc((var(--stable-vh, 800px) - 32rem) / 20), 1.5rem);
   display: grid;
   grid-template-columns: repeat(10, var(--tt-cell));
   grid-template-rows: repeat(20, var(--tt-cell));

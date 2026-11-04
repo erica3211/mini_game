@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import type { Socket } from 'socket.io-client'
 import { MazeBoard } from './MazeBoard'
-import { useStableViewportHeight } from './useStableViewportHeight'
+import { useStableViewportHeight } from '../../core/useStableViewportHeight'
 import {
   MAZE_DIRECTION_ARROW,
   MAZE_DIRECTION_LABEL,

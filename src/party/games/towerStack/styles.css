@@ -109,9 +109,8 @@
 }
 
 .party-tw-canvas {
-  /* 조작 버튼이 탑 바로 아래에 같이 보이도록, 화면 높이에 맞춰 너비를 줄인다 */
-  width: min(100%, 17rem, calc((100dvh - 31rem) * 0.77));
-  min-width: 10.5rem;
+  /* 너비는 바깥 칸(.party-tw-canvas-box)이 정한다 — 캔버스가 칸보다 좁아져 왼쪽에 붙는 일이 없게 */
+  width: 100%;
   aspect-ratio: 400 / 520;
   color: var(--text);
   border: 2px solid var(--border-strong);
@@ -171,6 +170,9 @@
 .party-tw-canvas-box {
   position: relative;
   display: grid;
+  /* 조작 버튼이 탑 바로 아래에 같이 보이도록, 화면 높이에 맞춰 너비를 줄인다 (--stable-vh는 TowerGame이 정한다. dvh를 쓰면 모바일 하단 바가 생길 때마다 크기가 바뀐다) */
+  width: min(100%, 17rem, calc((var(--stable-vh, 800px) - 31rem) * 0.77));
+  min-width: 10.5rem;
 }
 
 .party-tw-drop-timer {
