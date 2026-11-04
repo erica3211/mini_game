@@ -67,6 +67,8 @@ export interface FourCharsTurnSignal {
   scores?: FourCharsPlayerScore[]
   /** 개인전에서만: 모두가 같은 문제를 동시에 푼다 */
   everyone?: boolean
+  /** 개인전: 재접속한 사람이 이미 이번 문제의 답을 냈다 (새로고침해도 입력창이 다시 열리지 않게) */
+  mySubmitted?: boolean
   /** 개인전에서만: 지금까지 답을 낸 사람 수 */
   progress?: FourCharsProgress
   /** 결과를 공개하는 중이라면 그 결과 (턴이 끝나면 세션이 신호에 합쳐 둔다) */

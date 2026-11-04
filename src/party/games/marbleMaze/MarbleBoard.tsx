@@ -12,6 +12,8 @@ interface Props {
   world: MarbleWorld
   /** 달리는 중이다 (카운트다운이 끝났고, 탈출하지 않았고, 라운드가 끝나지 않았다) */
   running: boolean
+  /** 이미 탈출했다 (새로고침으로 돌아온 경우에도 구슬은 출구에 있다) */
+  done: boolean
   /** 지금 기울인 정도(-1~1) — 센서·터치·방향키 중 쓰는 쪽에서 읽어 온다 */
   getTilt: () => { x: number; y: number }
   onFall: (falls: number) => void
@@ -20,11 +22,11 @@ interface Props {
 }
 
 /** 미로와 구슬 — 구슬은 매 프레임 이 안에서 굴리고, 서버에는 진행·구멍에 빠진 횟수·탈출만 알린다 */
-export function MarbleBoard({ world, running, getTilt, onFall, onFinish, onProgress }: Props) {
+export function MarbleBoard({ world, running, done, getTilt, onFall, onFinish, onProgress }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   // 매 프레임 쓰는 값은 ref에 담아서, 값이 바뀔 때마다 루프를 다시 만들지 않는다
-  const live = useRef({ running, getTilt, onFall, onFinish, onProgress })
-  live.current = { running, getTilt, onFall, onFinish, onProgress }
+  const live = useRef({ running, done, getTilt, onFall, onFinish, onProgress })
+  live.current = { running, done, getTilt, onFall, onFinish, onProgress }
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -48,7 +50,7 @@ export function MarbleBoard({ world, running, getTilt, onFall, onFinish, onProgr
       const state = live.current
 
       // 굴리기
-      if (finished) {
+      if (finished || state.done) {
         marble.x += (world.exit.x - marble.x) * Math.min(1, dt * 12)
         marble.y += (world.exit.y - marble.y) * Math.min(1, dt * 12)
       } else if (fallingSince) {

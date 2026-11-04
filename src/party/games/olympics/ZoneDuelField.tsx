@@ -273,6 +273,7 @@ export function ZoneDuelField({ duel, roundId, socket, teams, myTeamId, iAmRep, 
             role={iAmAttacker ? 'atk' : 'def'}
             startedAt={startedAt}
             maxMs={duel.maxMs}
+            alreadySent={iAmAttacker ? duel.attackerReady : duel.defenderReady}
             hint={iAmAttacker ? text.attackHint : text.defendHint}
             button={iAmAttacker ? text.attackButton : text.defendButton}
             attackIcon={text.attackIcon}
@@ -318,6 +319,7 @@ function PickControls({
   role,
   startedAt,
   maxMs,
+  alreadySent,
   hint,
   button,
   attackIcon,
@@ -328,13 +330,15 @@ function PickControls({
   role: 'atk' | 'def'
   startedAt: number | null
   maxMs: number
+  alreadySent: boolean
   hint: string
   button: string
   attackIcon: string
   defendIcon: string
 }) {
   const [zone, setZone] = useState<number | null>(null)
-  const [sent, setSent] = useState(false)
+  // 새로고침으로 돌아온 경우에도 팀이 이미 보냈으면 보낸 상태로 시작한다
+  const [sent, setSent] = useState(alreadySent)
   // 고를 때마다 서버에 알려 둔다 — 버튼을 누르기 전에 시간이 다 되어도 고른 대로 진행된다
   const choose = (next: number) => {
     setZone(next)

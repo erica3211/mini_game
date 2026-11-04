@@ -147,8 +147,8 @@ export function TowerGame({ socket, roundKey, state, progress, end, playerId, pl
           <div className="party-tw-pad-row">
             <TowerPadButton action="left" enabled={allowed('left')} onPress={press} onRelease={release} />
             <TowerPadButton action="rotate" enabled={allowed('rotate')} onPress={press} onRelease={release} />
-            <TowerPadButton action="drop" enabled={allowed('drop')} onPress={press} onRelease={release} />
             <TowerPadButton action="right" enabled={allowed('right')} onPress={press} onRelease={release} />
+            <TowerPadButton action="drop" enabled={allowed('drop')} onPress={press} onRelease={release} />
           </div>
           <TowerRoles roles={state.roles} playerId={playerId} nicknameOf={nicknameOf} />
           <p className="party-tw-note">내 담당 버튼만 눌려요. ◀ ▶는 누르는 동안 움직여요. 받침대 밖으로 떨어지면 기회가 줄어요. (키보드: 방향키 · A D W S · X · 스페이스)</p>

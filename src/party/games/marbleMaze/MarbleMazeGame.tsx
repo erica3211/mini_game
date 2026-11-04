@@ -60,7 +60,10 @@ export function MarbleMazeGame({ socket, roundKey, state, progress, end, playerI
   }, [])
   const elapsed = startedAt === null ? null : now - startedAt
   const countingDown = elapsed !== null && elapsed < 0
-  const running = state?.phase === 'run' && elapsed !== null && elapsed >= 0 && !finished && !end
+  // 새로고침해서 돌아오면 로컬 상태는 사라지지만, 서버가 알려 주는 내 탈출 기록은 남아 있다
+  const myFinishedMs = progress?.players.find((row) => row.playerId === playerId)?.finishedMs ?? null
+  const done = finished || myFinishedMs !== null
+  const running = state?.phase === 'run' && elapsed !== null && elapsed >= 0 && !done && !end
 
   // 준비 단계가 끝나기까지 남은 시간 (상태를 받을 때마다 서버가 알려 준 값으로 다시 맞춘다)
   const prepEndsInMs = state?.prepEndsInMs ?? 0
@@ -74,6 +77,15 @@ export function MarbleMazeGame({ socket, roundKey, state, progress, end, playerI
   useEffect(() => {
     if (phase === 'run') setMode((current) => current ?? 'touch')
   }, [phase])
+
+  // 손가락으로 쓰는 기기(모바일)에서는 달리기가 시작될 때 시간·진행률·미로·조종 버튼이 한 화면에 보이도록 위치를 맞춘다.
+  // 움직임을 줄이는 설정을 켠 사람에게는 애니메이션 없이 바로 옮긴다
+  const playRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (phase !== 'run' || !window.matchMedia('(pointer: coarse)').matches) return
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    playRef.current?.scrollIntoView({ block: 'start', behavior: reduceMotion ? 'auto' : 'smooth' })
+  }, [phase, roundKey])
 
   // ---- 조종: 센서 / 터치로 끌기 / 방향키 ----
   const touchVector = useRef({ x: 0, y: 0 })
@@ -170,12 +182,12 @@ export function MarbleMazeGame({ socket, roundKey, state, progress, end, playerI
     )
   }
 
-  const myFinishedMs = progress?.players.find((row) => row.playerId === playerId)?.finishedMs ?? null
   const board = (
     <div className="party-mb-board" onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onPointerCancel={onPointerUp}>
       <MarbleBoard
         world={world}
         running={running}
+        done={done}
         getTilt={getTilt}
         onFall={setFalls}
         onFinish={(count) => {
@@ -249,25 +261,25 @@ export function MarbleMazeGame({ socket, roundKey, state, progress, end, playerI
 
   // ---- 달리는 중 ----
   return (
-    <div className="party-round-stage party-mb-stage">
-      {startedAt !== null && !countingDown && !end && !finished && <RemainingTime startedAt={startedAt} timeoutMs={state.durationMs} />}
+    <div ref={playRef} className="party-round-stage party-mb-stage">
+      {startedAt !== null && !countingDown && !end && !done && <RemainingTime startedAt={startedAt} timeoutMs={state.durationMs} />}
 
       <MarblePlayers players={players} progress={progress?.players ?? []} myId={playerId} />
 
       {board}
 
-      {!end && finished && (
+      {!end && done && (
         <p className="party-mb-banner party-mb-banner-win">
           🏁 탈출했어요!{myFinishedMs !== null ? ` ${formatMarbleTime(myFinishedMs)}` : ''} 다른 사람이 끝나길 기다려요
         </p>
       )}
-      {!end && !finished && (
+      {!end && !done && (
         <p className="party-mb-note">
           구멍에 빠진 횟수 {falls}번
         </p>
       )}
 
-      {!end && !finished && mode === 'sensor' && (
+      {!end && !done && mode === 'sensor' && (
         <div className="party-mb-actions">
           {calibration === 'shaky' && <p className="party-mb-error">기준을 잴 때 폰이 흔들렸어요. 폰을 평평하게 들고 다시 잡아 주세요.</p>}
           <button type="button" className={`btn ${calibration === 'shaky' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => { tilt.recalibrate(); setCalibration('steady') }}>
@@ -275,7 +287,7 @@ export function MarbleMazeGame({ socket, roundKey, state, progress, end, playerI
           </button>
         </div>
       )}
-      {!end && !finished && mode === 'touch' && (
+      {!end && !done && mode === 'touch' && (
         <div className="party-mb-actions">
           <MarbleDpad onKey={pressKey} />
           <p className="party-mb-note">버튼을 누르고 있으면 그쪽으로 굴러가요. 미로를 손가락으로 끌어도 돼요. (컴퓨터는 방향키)</p>

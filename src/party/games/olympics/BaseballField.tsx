@@ -227,9 +227,9 @@ export function BaseballField({ baseball, roundId, socket, teams, myTeamId, iAmR
 
       {phase === 'pick' &&
         (iAmPitcher ? (
-          <PitchControls key={stepKey} socket={socket} startedAt={startedAt} maxMs={baseball.maxMs} />
+          <PitchControls key={stepKey} socket={socket} startedAt={startedAt} maxMs={baseball.maxMs} alreadySent={baseball.pitcherReady} />
         ) : iAmBatter ? (
-          <SwingControls key={stepKey} socket={socket} startedAt={startedAt} maxMs={baseball.maxMs} />
+          <SwingControls key={stepKey} socket={socket} startedAt={startedAt} maxMs={baseball.maxMs} alreadySent={baseball.batterReady} />
         ) : (
           <div className="party-oly-bb-wait">
             <BaseballScene view="watch">
@@ -263,10 +263,11 @@ export function BaseballField({ baseball, roundId, socket, teams, myTeamId, iAmR
 }
 
 /** 투수: 구종(모양)과 목표 칸 — 고르면 칠해질 모양이 바로 그려진다 */
-function PitchControls({ socket, startedAt, maxMs }: { socket: Socket<ServerToClientEvents, ClientToServerEvents>; startedAt: number | null; maxMs: number }) {
+function PitchControls({ socket, startedAt, maxMs, alreadySent }: { socket: Socket<ServerToClientEvents, ClientToServerEvents>; startedAt: number | null; maxMs: number; alreadySent: boolean }) {
   const [pitch, setPitch] = useState<BaseballPitchType | null>(null)
   const [cell, setCell] = useState<number | null>(null)
-  const [sent, setSent] = useState(false)
+  // 새로고침으로 돌아온 경우에도 팀이 이미 보냈으면 보낸 상태로 시작한다
+  const [sent, setSent] = useState(alreadySent)
   // 고를 때마다 서버에 알려 둔다 — 버튼을 누르기 전에 시간이 다 되어도 고른 대로 진행된다
   const choosePitch = (next: BaseballPitchType) => {
     setPitch(next)
@@ -313,10 +314,11 @@ function PitchControls({ socket, startedAt, maxMs }: { socket: Socket<ServerToCl
 }
 
 /** 타자: 스윙 모양과 기준 칸 — 고르면 휘두를 모양이 바로 그려진다 */
-function SwingControls({ socket, startedAt, maxMs }: { socket: Socket<ServerToClientEvents, ClientToServerEvents>; startedAt: number | null; maxMs: number }) {
+function SwingControls({ socket, startedAt, maxMs, alreadySent }: { socket: Socket<ServerToClientEvents, ClientToServerEvents>; startedAt: number | null; maxMs: number; alreadySent: boolean }) {
   const [swing, setSwing] = useState<BaseballSwingType | null>(null)
   const [cell, setCell] = useState<number | null>(null)
-  const [sent, setSent] = useState(false)
+  // 새로고침으로 돌아온 경우에도 팀이 이미 보냈으면 보낸 상태로 시작한다
+  const [sent, setSent] = useState(alreadySent)
   // 고를 때마다 서버에 알려 둔다 — 버튼을 누르기 전에 시간이 다 되어도 고른 대로 진행된다
   const chooseSwing = (next: BaseballSwingType) => {
     setSwing(next)

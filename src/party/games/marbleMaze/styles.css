@@ -2,6 +2,7 @@
 .party-mb-stage {
   gap: 0.7rem;
   width: 100%;
+  scroll-margin-top: 0.5rem;
 }
 
 .party-mb-title {

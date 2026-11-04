@@ -25,6 +25,16 @@ export function ConnectionsGame({ socket, roundKey, state, progress, end, player
   // 지금 고르는 중인 칸 — 낼 때까지는 내 화면에만 있다
   const [selected, setSelected] = useState<number[]>([])
   useEffect(() => setSelected([]), [roundKey])
+
+  // 손가락으로 쓰는 기기(모바일)에서는 퍼즐이 시작될 때 시간·진행률·단어판·제출 버튼이 한 화면에 보이도록 위치를 맞춘다.
+  // 움직임을 줄이는 설정을 켠 사람에게는 애니메이션 없이 바로 옮긴다
+  const playRef = useRef<HTMLDivElement>(null)
+  const hasState = state !== null
+  useEffect(() => {
+    if (!hasState || !window.matchMedia('(pointer: coarse)').matches) return
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    playRef.current?.scrollIntoView({ block: 'start', behavior: reduceMotion ? 'auto' : 'smooth' })
+  }, [hasState, roundKey])
   // 맞히거나 틀리면 고른 것을 비운다
   const solvedCount = state?.solved.length ?? 0
   const wrongs = state?.wrongs ?? 0
@@ -78,7 +88,7 @@ export function ConnectionsGame({ socket, roundKey, state, progress, end, player
   }
 
   return (
-    <div className="party-round-stage party-cn-stage">
+    <div ref={playRef} className="party-round-stage party-cn-stage">
       {startedAt !== null && !end && <RemainingTime startedAt={startedAt} timeoutMs={state.durationMs} />}
 
       <ConnectionsPlayers players={players} progress={progress?.players.map((row) => (row.playerId === playerId ? { ...row, solved: state.solved.length, wrongs: state.wrongs, finishedMs: state.finishedMs } : row)) ?? []} myId={playerId} />

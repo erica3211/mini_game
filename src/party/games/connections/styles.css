@@ -2,6 +2,7 @@
 .party-cn-stage {
   gap: 0.7rem;
   width: 100%;
+  scroll-margin-top: 0.5rem;
 }
 
 /* 묶음 색 — 0이 가장 쉽고 4가 가장 어렵다. 어느 테마에서도 글씨가 잘 보이도록 연한 바탕에 진한 글씨 */
@@ -60,7 +61,13 @@
 .party-cn-solved-slot {
   width: 100%;
   max-width: 420px;
-  min-height: 9.8rem;
+  min-height: calc(9.8rem + 0.6rem + 4px); /* 안쪽 9.8rem은 그대로 두고 패딩·테두리만큼 더한다 */
+  box-sizing: border-box;
+  padding: 0.3rem;
+  /* 아직 맞힌 묶음이 없어도 빈 화면처럼 보이지 않게, 묶음이 들어올 자리를 옅은 바탕으로 보여 준다 */
+  border: 2px dashed var(--border);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--border) 25%, var(--surface));
 }
 
 /* 방금 있었던 일 알림 */

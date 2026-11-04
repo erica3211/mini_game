@@ -27,7 +27,7 @@ export function useFourCharsRound(socket: PartySocket, roundKey: string, signal:
 
   // 개인전(everyone)은 모두가 동시에 푸니 누구나 답할 수 있고, 팀전은 이번 답변자만 답할 수 있다
   const canAnswer =
-    signal !== null && signal.result === null && (signal.everyone === true || signal.answererId === playerId) && submittedKey !== turnKey
+    signal !== null && signal.result === null && (signal.everyone === true || signal.answererId === playerId) && submittedKey !== turnKey && !signal.mySubmitted
 
   useEffect(() => {
     const onTyping = (data: { turnIndex: number; text: string }) => setLiveTyping({ turnIndex: data.turnIndex, text: data.text })
@@ -76,5 +76,5 @@ export function useFourCharsRound(socket: PartySocket, roundKey: string, signal:
   // 이번 턴에 다른 사람이 쓰고 있는 글자 (답할 사람 본인이거나 결과가 나온 뒤에는 보여주지 않는다)
   const typingNow = signal !== null && signal.result === null && signal.answererId !== playerId && liveTyping?.turnIndex === signal.turnIndex ? liveTyping.text : ''
 
-  return { text, changeText, canAnswer, submit, startedAt, hasSubmitted: signal !== null && submittedKey === turnKey, typingNow }
+  return { text, changeText, canAnswer, submit, startedAt, hasSubmitted: signal !== null && (submittedKey === turnKey || signal.mySubmitted === true), typingNow }
 }
