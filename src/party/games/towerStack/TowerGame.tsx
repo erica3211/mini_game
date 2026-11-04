@@ -1,8 +1,7 @@
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { Socket } from 'socket.io-client'
 import type { ClientToServerEvents, PlayerInfo, ServerToClientEvents, TeamInfo } from '../../../shared/lib/partyProtocol'
 import { RemainingTime } from '../../../shared/components/RemainingTime'
-import { useStableViewportHeight } from '../../core/useStableViewportHeight'
 import { teamOf } from '../../core/PartyTeamBanner'
 import { TOWER_ROLE_LABEL, type TowerEndSignal, type TowerProgressSignal, type TowerRole, type TowerStateSignal } from './protocol'
 import { TowerCanvas } from './TowerCanvas'
@@ -30,8 +29,6 @@ export function TowerGame({ socket, roundKey, state, progress, end, playerId, pl
   const { startedAt, myRole, allowed, press, release } = useTowerRound(socket, roundKey, state, end, playerId)
   const nicknameOf = (id: string) => players.find((p) => p.id === id)?.nickname ?? '???'
   const myTeam = teamOf(teams, playerId)
-  // 탑 크기를 정하는 화면 높이 — 모바일 하단 바가 나타났다 사라져도 크기가 바뀌지 않게, 지금까지 본 가장 작은 높이를 쓴다 (styles.css의 --stable-vh)
-  const viewportHeight = useStableViewportHeight()
 
   // 한가운데에서 내 역할이 바뀌면 크게 알려 준다
   const [swapped, setSwapped] = useState<TowerRole | null>(null)
@@ -88,7 +85,7 @@ export function TowerGame({ socket, roundKey, state, progress, end, playerId, pl
   const chances = { ...(progress?.chances ?? {}), ...(myTeam ? { [myTeam.id]: state.chances } : {}) }
 
   return (
-    <div className="party-round-stage party-tw-stage" style={{ '--stable-vh': `${viewportHeight}px` } as CSSProperties}>
+    <div className="party-round-stage party-tw-stage">
       {startedAt !== null && !end && <RemainingTime startedAt={startedAt} timeoutMs={state.durationMs} />}
 
       <TowerScores mode={state.mode} teams={teams} scores={scores} chances={chances} total={TOTAL_CHANCES} myTeamId={myTeam?.id} />

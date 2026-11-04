@@ -1,9 +1,8 @@
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { Socket } from 'socket.io-client'
 import type { ClientToServerEvents, PlayerInfo, ServerToClientEvents, TeamInfo } from '../../../shared/lib/partyProtocol'
 import { RemainingTime } from '../../../shared/components/RemainingTime'
 import { teamOf } from '../../core/PartyTeamBanner'
-import { useStableViewportHeight } from '../../core/useStableViewportHeight'
 import { ghostOf } from './pieces'
 import { TETRIS_ROLE_LABEL, type TetrisEndSignal, type TetrisProgressSignal, type TetrisRole, type TetrisStateSignal } from './protocol'
 import { TetrisBoard, TetrisEnd, TetrisNext, TetrisPadButton, TetrisRoles, TetrisScores } from './TetrisView'
@@ -27,8 +26,6 @@ export function TetrisGame({ socket, roundKey, state, progress, end, playerId, p
   const { startedAt, myRole, allowed, press, release } = useTetrisRound(socket, roundKey, state, end, playerId)
   const nicknameOf = (id: string) => players.find((p) => p.id === id)?.nickname ?? '???'
   const myTeam = teamOf(teams, playerId)
-  // 판 크기를 정하는 화면 높이 — 모바일 하단 바가 나타났다 사라져도 크기가 바뀌지 않게, 지금까지 본 가장 작은 높이를 쓴다 (styles.css의 --stable-vh)
-  const viewportHeight = useStableViewportHeight()
 
   // 한가운데에서 내 역할이 바뀌면 크게 알려 준다
   const [swapped, setSwapped] = useState<TetrisRole | null>(null)
@@ -61,7 +58,7 @@ export function TetrisGame({ socket, roundKey, state, progress, end, playerId, p
   const otherTeams = teams.filter((team) => team.id !== myTeam?.id)
 
   return (
-    <div className="party-round-stage party-tt-stage" style={{ '--stable-vh': `${viewportHeight}px` } as CSSProperties}>
+    <div className="party-round-stage party-tt-stage">
       {startedAt !== null && !end && <RemainingTime startedAt={startedAt} timeoutMs={state.durationMs} />}
 
       <TetrisScores teams={teams} scores={scores} myTeamId={myTeam?.id} />
