@@ -23,6 +23,7 @@ import type { OrderCardsEndSignal, OrderCardsStandingsSignal, OrderCardsStateSig
 import type { TugEndSignal, TugProgressSignal, TugStartSignal } from '../../party/games/tugOfWar/protocol'
 import type { SpyWordsEndSignal, SpyWordsStateSignal } from '../../party/games/spyWords/protocol'
 import type { RecyclingEndSignal, RecyclingEventSignal, RecyclingProgressSignal, RecyclingStartSignal } from '../../party/games/recycling/protocol'
+import type { TetrisAction, TetrisEndSignal, TetrisProgressSignal, TetrisStateSignal } from '../../party/games/tetris/protocol'
 import type { StroopQuestionResult, StroopQuestionSignal } from '../../party/games/stroop/protocol'
 import type { MouseHunterMouse } from '../../party/games/mouseHunter/protocol'
 import type { ScavengerHuntRoundTarget } from '../../party/games/scavengerHunt/protocol'
@@ -91,6 +92,7 @@ export type GameId =
   | 'olympics'
   | 'recycling'
   | 'spyWords'
+  | 'tetris'
 
 /** 방의 진행 방식 — backend/types.ts와 같아야 한다. /party는 개인전, /teamParty는 팀전 방이다 */
 export type RoomMode = 'individual' | 'team'
@@ -370,6 +372,7 @@ export interface ClientToServerEvents {
   /** 줄다리기: 줄을 한 번 당겼다 — 몇 번째인지는 서버가 센다 */
   'tugOfWar:pull': () => void
   'recycling:tap': (data: { itemId: number }) => void
+  'tetris:input': (data: { action: TetrisAction }) => void
   'spyWords:hint': (data: { word: string; count: number }) => void
   'spyWords:toggle': (data: { index: number }) => void
   'spyWords:confirm': () => void
@@ -624,6 +627,9 @@ export interface ServerToClientEvents {
   'recycling:event': (data: RecyclingEventSignal) => void
   'recycling:progress': (data: RecyclingProgressSignal) => void
   'recycling:end': (data: RecyclingEndSignal) => void
+  'tetris:state': (data: TetrisStateSignal) => void
+  'tetris:progress': (data: TetrisProgressSignal) => void
+  'tetris:end': (data: TetrisEndSignal) => void
   'spyWords:state': (data: SpyWordsStateSignal) => void
   'spyWords:end': (data: SpyWordsEndSignal) => void
   'mazeEscape:start': (data: MazeStartSignal) => void

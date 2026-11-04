@@ -35,9 +35,11 @@ import { OrderCardsRecap } from '../games/orderCards/OrderCardsRecap'
 import type { OrderCardsRoundMeta } from '../games/orderCards/protocol'
 import { TugRecap } from '../games/tugOfWar/TugRecap'
 import { RecyclingRecap } from '../games/recycling/RecyclingRecap'
+import { TetrisRecap } from '../games/tetris/TetrisRecap'
 import { SpyWordsRecap } from '../games/spyWords/SpyWordsRecap'
 import type { SpyWordsRoundMeta } from '../games/spyWords/protocol'
 import type { RecyclingRoundMeta } from '../games/recycling/protocol'
+import type { TetrisRoundMeta } from '../games/tetris/protocol'
 import type { TugRoundMeta } from '../games/tugOfWar/protocol'
 import type { MazeRoundMeta } from '../games/mazeEscape/protocol'
 import type { CharacterRoundMeta } from '../games/characterDescribe/protocol'
@@ -86,6 +88,7 @@ export function PartyRoundResults({ session }: Props) {
   const orderCardsMeta = lastRound.gameId === 'orderCards' ? (lastRound.meta as OrderCardsRoundMeta | undefined) : undefined
   const tugMeta = lastRound.gameId === 'tugOfWar' ? (lastRound.meta as TugRoundMeta | undefined) : undefined
   const recyclingMeta = lastRound.gameId === 'recycling' ? (lastRound.meta as RecyclingRoundMeta | undefined) : undefined
+  const tetrisMeta = lastRound.gameId === 'tetris' ? (lastRound.meta as TetrisRoundMeta | undefined) : undefined
   const spyWordsMeta = lastRound.gameId === 'spyWords' ? (lastRound.meta as SpyWordsRoundMeta | undefined) : undefined
   const characterDescribeMeta =
     lastRound.gameId === 'characterDescribe' ? (lastRound.meta as CharacterRoundMeta | undefined) : undefined
@@ -118,6 +121,9 @@ export function PartyRoundResults({ session }: Props) {
       return ` (팀 1인당 평균 ${entry.value.toFixed(1)}번)`
     }
     if (lastRound.gameId === 'recycling' && entry.value !== undefined) {
+      return ` (팀 ${entry.value}점)`
+    }
+    if (lastRound.gameId === 'tetris' && entry.value !== undefined) {
       return ` (팀 ${entry.value}점)`
     }
     if (lastRound.gameId === 'spyWords' && entry.value !== undefined) {
@@ -227,6 +233,7 @@ export function PartyRoundResults({ session }: Props) {
     if (lastRound.gameId === 'orderCards') return `${Math.floor(row.score / 10)}라운드 클리어 · 목숨 ${row.score % 10}개`
     if (lastRound.gameId === 'tugOfWar') return `1인당 평균 ${row.score.toFixed(1)}번 누름`
     if (lastRound.gameId === 'recycling') return `${row.score}점`
+    if (lastRound.gameId === 'tetris') return `${row.score}점`
     if (lastRound.gameId === 'spyWords') return spyWordsMeta?.end.teams.find((end) => end.teamId === row.teamId)?.eliminated ? '함정을 열어 탈락' : row.score === 0 ? '단어를 모두 찾음' : `남은 단어 ${row.score}개`
     if (lastRound.gameId === 'mazeEscape') return row.dnf ? `${row.score}%까지 도착` : `${(row.score / 1000).toFixed(1)}초에 탈출`
     if (lastRound.gameId === 'emojiCharades' || lastRound.gameId === 'characterDescribe') return row.score ? '정답을 맞혔어요' : '못 맞혔어요'
@@ -243,6 +250,8 @@ export function PartyRoundResults({ session }: Props) {
       ? '팀이 누른 횟수를 팀 인원으로 나눈 값(1인당 평균)이 큰 팀이 1등이에요. 순위에 따라 받는 점수(초록색)가 누적 점수에 더해져요.'
       : lastRound.gameId === 'spyWords'
       ? '자기 팀 단어를 먼저 모두 찾은 팀이 1등이에요. 함정을 연 팀은 꼴등이고, 시간이 다 되면 남은 단어가 적은 팀이 앞서요. 순위에 따라 받는 점수(초록색)가 누적 점수에 더해져요.'
+      : lastRound.gameId === 'tetris'
+      ? '줄을 지우면 1줄 100점·2줄 300점·3줄 500점·4줄 800점이고, 빠르게 내리면 한 칸에 1점이에요. 점수가 높은 팀이 1등이고, 순위에 따라 받는 점수(초록색)가 누적 점수에 더해져요.'
       : lastRound.gameId === 'recycling'
       ? '쓰레기를 맞게 치우면 +1점, 담당이 아닌 걸 누르거나 놓치면 -1점이에요. 점수가 높은 팀이 1등이고, 순위에 따라 받는 점수(초록색)가 누적 점수에 더해져요.'
       : lastRound.gameId === 'mazeEscape'
@@ -560,6 +569,7 @@ export function PartyRoundResults({ session }: Props) {
       {orderCardsMeta && <OrderCardsRecap meta={orderCardsMeta} teams={roundTeams} />}
       {tugMeta && <TugRecap meta={tugMeta} teams={roundTeams} playerId={session.playerId} nicknameOf={plainNicknameOf} />}
       {recyclingMeta && <RecyclingRecap meta={recyclingMeta} teams={roundTeams} playerId={session.playerId} players={state.players} />}
+      {tetrisMeta && <TetrisRecap meta={tetrisMeta} teams={roundTeams} playerId={session.playerId} players={state.players} />}
       {spyWordsMeta && <SpyWordsRecap meta={spyWordsMeta} teams={roundTeams} />}
 
       {characterDescribeMeta && <CharacterDescribeRecap meta={characterDescribeMeta} teams={roundTeams} nicknameOf={plainNicknameOf} />}

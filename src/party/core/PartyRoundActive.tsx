@@ -15,6 +15,7 @@ import { OlympicsGame } from '../games/olympics/OlympicsGame'
 import { OrderCardsGame } from '../games/orderCards/OrderCardsGame'
 import { TugOfWarGame } from '../games/tugOfWar/TugOfWarGame'
 import { RecyclingGame } from '../games/recycling/RecyclingGame'
+import { TetrisGame } from '../games/tetris/TetrisGame'
 import { SpyWordsGame } from '../games/spyWords/SpyWordsGame'
 import { MouseHunterGame } from '../games/mouseHunter/MouseHunterGame'
 import { OneToTwentyFiveGame } from '../games/oneToTwentyFive/OneToTwentyFiveGame'
@@ -133,6 +134,19 @@ function renderGame(session: GameSession, roundKey: string) {
           socket={session.socket}
           roundKey={roundKey}
           startSignal={session.recyclingStart}
+          playerId={session.playerId}
+          players={state.players}
+          teams={state.teams}
+        />
+      )
+    case 'tetris':
+      return (
+        <TetrisGame
+          socket={session.socket}
+          roundKey={roundKey}
+          state={session.tetrisState}
+          progress={session.tetrisProgress}
+          end={session.tetrisEnd}
           playerId={session.playerId}
           players={state.players}
           teams={state.teams}

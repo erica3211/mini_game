@@ -1,0 +1,368 @@
+/* 테트리스 팀전 */
+.party-tt-stage {
+  gap: 0.7rem;
+  width: 100%;
+}
+
+/* 블록 색 — 7종류 (I O T S Z J L) */
+.party-tt-c1 { --tt-fill: #5ec8e0; }
+.party-tt-c2 { --tt-fill: #f3d34a; }
+.party-tt-c3 { --tt-fill: #b783e0; }
+.party-tt-c4 { --tt-fill: #6cc96f; }
+.party-tt-c5 { --tt-fill: #ee6f6f; }
+.party-tt-c6 { --tt-fill: #5b8def; }
+.party-tt-c7 { --tt-fill: #f0993f; }
+
+/* 팀별 점수 */
+.party-tt-scores {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.4rem;
+  width: 100%;
+  max-width: 420px;
+}
+
+.party-tt-scores li {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.2rem 0.6rem;
+  border-width: 2px;
+  border-style: solid;
+  border-radius: 999px;
+  color: var(--text);
+  font-size: 0.85rem;
+}
+
+.party-tt-score-mine {
+  font-weight: 800;
+}
+
+/* 내 담당 — 게임 내내 보인다 */
+.party-tt-mine {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  font-size: 0.9rem;
+}
+
+.party-tt-mine .party-tt-role-chip {
+  padding: 0.25rem 0.9rem;
+  font-size: 1.15rem;
+  font-weight: 900;
+}
+
+.party-tt-role-chip {
+  padding: 0.1rem 0.6rem;
+  border: 2px solid var(--border-strong);
+  border-radius: 999px;
+  background: var(--tint-info);
+  color: var(--text);
+  font-size: 0.85rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* 역할이 바뀐 걸 알려 주는 안내 */
+.party-tt-swap {
+  margin: 0;
+  padding: 0.35rem 0.9rem;
+  border: 2px solid var(--text-success);
+  border-radius: 999px;
+  background: var(--tint-strike);
+  font-weight: 800;
+  animation: party-tt-swap-pop 0.4s ease-out;
+}
+
+@keyframes party-tt-swap-pop {
+  from {
+    opacity: 0;
+    scale: 0.8;
+  }
+  to {
+    opacity: 1;
+    scale: 1;
+  }
+}
+
+/* 판 + 옆 정보 */
+.party-tt-play {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.party-tt-grid {
+  /* 조작 버튼이 판 바로 아래에 같이 보이도록, 화면 높이에 맞춰 칸 크기를 줄인다 */
+  --tt-cell: clamp(0.75rem, calc((100dvh - 32rem) / 20), 1.5rem);
+  display: grid;
+  grid-template-columns: repeat(10, var(--tt-cell));
+  grid-template-rows: repeat(20, var(--tt-cell));
+  gap: 1px;
+  padding: 2px;
+  border: 2px solid var(--border-strong);
+  border-radius: 0.4rem;
+  background: color-mix(in srgb, var(--border) 55%, var(--surface));
+}
+
+.party-tt-grid-mini {
+  --tt-cell: 0.32rem;
+  gap: 0;
+  padding: 1px;
+  border-width: 1px;
+}
+
+.party-tt-cell {
+  display: block;
+  border-radius: 2px;
+  background: var(--surface);
+  box-shadow: none;
+}
+
+.party-tt-grid-mini .party-tt-cell {
+  border-radius: 0;
+}
+
+.party-tt-fill {
+  background: var(--tt-fill);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.45), inset 0 -2px 0 rgba(0, 0, 0, 0.18);
+}
+
+/* 착지 그림자 */
+.party-tt-ghost {
+  background: color-mix(in srgb, var(--text) 14%, var(--surface));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--text) 30%, transparent);
+}
+
+.party-tt-side {
+  display: grid;
+  gap: 0.5rem;
+  width: 5rem;
+}
+
+.party-tt-stat {
+  display: grid;
+  gap: 0.1rem;
+  padding: 0.3rem 0.4rem;
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  text-align: center;
+  font-size: 0.75rem;
+}
+
+.party-tt-stat strong {
+  font-size: 1.15rem;
+}
+
+/* 다음 블록 */
+.party-tt-next {
+  display: grid;
+  gap: 0.3rem;
+  padding: 0.3rem;
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.party-tt-next-box {
+  position: relative;
+  width: 3.2rem;
+  height: 1.6rem;
+  margin: 0 auto;
+}
+
+.party-tt-next-cell {
+  position: absolute;
+  width: 25%;
+  height: 50%;
+  border-radius: 2px;
+  background: var(--tt-fill);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.45);
+}
+
+/* 조작 버튼 */
+.party-tt-pad-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.5rem;
+  width: 100%;
+  max-width: 420px;
+}
+
+.party-tt-pad {
+  min-height: 3.6rem;
+  border: 2px solid var(--border-strong);
+  border-radius: var(--radius);
+  background: var(--tint-info);
+  color: var(--text);
+  font-size: 1.6rem;
+  font-weight: 900;
+  cursor: pointer;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.party-tt-pad:active:not(:disabled) {
+  scale: 0.94;
+}
+
+.party-tt-pad-off {
+  opacity: 0.35;
+  cursor: not-allowed;
+  background: var(--surface);
+}
+
+/* 팀원 담당표 */
+.party-tt-roles {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.25rem;
+  width: 100%;
+  max-width: 420px;
+}
+
+.party-tt-roles li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius);
+  font-size: 0.85rem;
+}
+
+.party-tt-role-mine {
+  background: var(--tint-info);
+  font-weight: 700;
+}
+
+.party-tt-note {
+  margin: 0;
+  max-width: 420px;
+  color: var(--text-muted, var(--text));
+  font-size: 0.8rem;
+  text-align: center;
+}
+
+/* 다른 팀의 작은 판 */
+.party-tt-others {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.party-tt-other {
+  margin: 0;
+  display: grid;
+  justify-items: center;
+  gap: 0.2rem;
+  font-size: 0.75rem;
+}
+
+/* 끝난 뒤 결과 */
+.party-tt-end {
+  display: grid;
+  gap: 0.6rem;
+  width: 100%;
+  max-width: 420px;
+  padding: 0.75rem 1rem;
+  border: 2px solid var(--text-success);
+  border-radius: var(--radius);
+  background: var(--tint-strike);
+  text-align: center;
+}
+
+.party-tt-end-title {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 800;
+}
+
+.party-tt-end-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.4rem;
+}
+
+.party-tt-end-list li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.2rem 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border-width: 2px;
+  border-style: solid;
+  border-radius: var(--radius);
+  color: var(--text);
+  font-size: 0.9rem;
+  text-align: left;
+}
+
+.party-tt-end-detail {
+  font-size: 0.8rem;
+}
+
+.party-tt-recap {
+  display: grid;
+  justify-items: center;
+  width: 100%;
+}
+
+/* 가득 찬 줄이 깜박이다가 사라진다 — 서버가 줄을 지우기 전 잠깐(0.45초) 멈춰 두는 동안 보인다 */
+.party-tt-clearing {
+  animation: party-tt-blink 0.45s linear forwards;
+}
+
+@keyframes party-tt-blink {
+  0% {
+    opacity: 1;
+    filter: brightness(2.2);
+  }
+  16% {
+    opacity: 0.1;
+  }
+  33% {
+    opacity: 1;
+    filter: brightness(2.2);
+  }
+  50% {
+    opacity: 0.1;
+  }
+  66% {
+    opacity: 1;
+    filter: brightness(2.2);
+  }
+  83% {
+    opacity: 0.1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .party-tt-swap {
+    animation: none;
+  }
+
+  .party-tt-clearing {
+    animation: none;
+    opacity: 0.35;
+  }
+}

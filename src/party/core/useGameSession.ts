@@ -11,6 +11,7 @@ import type { OlympicsStateSignal } from '../games/olympics/protocol'
 import type { OrderCardsEndSignal, OrderCardsStanding, OrderCardsStateSignal } from '../games/orderCards/protocol'
 import type { TugStartSignal } from '../games/tugOfWar/protocol'
 import type { RecyclingStartSignal } from '../games/recycling/protocol'
+import type { TetrisEndSignal, TetrisProgressSignal, TetrisStateSignal } from '../games/tetris/protocol'
 import type { SpyWordsEndSignal, SpyWordsStateSignal } from '../games/spyWords/protocol'
 import type { MouseHunterMouse } from '../games/mouseHunter/protocol'
 import type { ScavengerHuntRoundTarget } from '../games/scavengerHunt/protocol'
@@ -126,6 +127,9 @@ export function useGameSession(roomCodeFromUrl?: string) {
   const [stroopQuestion, setStroopQuestion] = useState<StroopQuestionSignal | null>(null)
   const [tugStart, setTugStart] = useState<TugStartSignal | null>(null)
   const [recyclingStart, setRecyclingStart] = useState<RecyclingStartSignal | null>(null)
+  const [tetrisState, setTetrisState] = useState<TetrisStateSignal | null>(null)
+  const [tetrisProgress, setTetrisProgress] = useState<TetrisProgressSignal | null>(null)
+  const [tetrisEnd, setTetrisEnd] = useState<TetrisEndSignal | null>(null)
   const [spyWordsState, setSpyWordsState] = useState<SpyWordsStateSignal | null>(null)
   const [spyWordsEnd, setSpyWordsEnd] = useState<SpyWordsEndSignal | null>(null)
   const [memoryCardsState, setMemoryCardsState] = useState<MemoryStateSignal | null>(null)
@@ -218,6 +222,9 @@ export function useGameSession(roomCodeFromUrl?: string) {
         setStroopQuestion(null)
         setTugStart(null)
         setRecyclingStart(null)
+        setTetrisState(null)
+        setTetrisProgress(null)
+        setTetrisEnd(null)
         setSpyWordsState(null)
         setSpyWordsEnd(null)
         setMemoryCardsState(null)
@@ -276,6 +283,9 @@ export function useGameSession(roomCodeFromUrl?: string) {
     const onStroopQuestion = (data: StroopQuestionSignal) => setStroopQuestion(data)
     const onTugStart = (data: TugStartSignal) => setTugStart(data)
     const onRecyclingStart = (data: RecyclingStartSignal) => setRecyclingStart(data)
+    const onTetrisState = (data: TetrisStateSignal) => setTetrisState(data)
+    const onTetrisProgress = (data: TetrisProgressSignal) => setTetrisProgress(data)
+    const onTetrisEnd = (data: TetrisEndSignal) => setTetrisEnd(data)
     const onSpyWordsState = (data: SpyWordsStateSignal) => setSpyWordsState(data)
     const onSpyWordsEnd = (data: SpyWordsEndSignal) => setSpyWordsEnd(data)
     const onMemoryCardsState = (data: MemoryStateSignal) => setMemoryCardsState(data)
@@ -377,6 +387,9 @@ export function useGameSession(roomCodeFromUrl?: string) {
     socket.on('stroop:question', onStroopQuestion)
     socket.on('tugOfWar:start', onTugStart)
     socket.on('recycling:start', onRecyclingStart)
+    socket.on('tetris:state', onTetrisState)
+    socket.on('tetris:progress', onTetrisProgress)
+    socket.on('tetris:end', onTetrisEnd)
     socket.on('spyWords:state', onSpyWordsState)
     socket.on('spyWords:end', onSpyWordsEnd)
     socket.on('memoryCards:state', onMemoryCardsState)
@@ -445,6 +458,9 @@ export function useGameSession(roomCodeFromUrl?: string) {
       socket.off('stroop:question', onStroopQuestion)
       socket.off('tugOfWar:start', onTugStart)
       socket.off('recycling:start', onRecyclingStart)
+      socket.off('tetris:state', onTetrisState)
+      socket.off('tetris:progress', onTetrisProgress)
+      socket.off('tetris:end', onTetrisEnd)
       socket.off('spyWords:state', onSpyWordsState)
       socket.off('spyWords:end', onSpyWordsEnd)
       socket.off('memoryCards:state', onMemoryCardsState)
@@ -659,6 +675,9 @@ export function useGameSession(roomCodeFromUrl?: string) {
     stroopQuestion,
     tugStart,
     recyclingStart,
+    tetrisState,
+    tetrisProgress,
+    tetrisEnd,
     spyWordsState,
     spyWordsEnd,
     memoryCardsState,
