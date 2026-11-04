@@ -1,0 +1,278 @@
+/* 커넥션스 팀전 */
+.party-cn-stage {
+  gap: 0.7rem;
+  width: 100%;
+}
+
+/* 묶음 색 — 0이 가장 쉽고 4가 가장 어렵다. 어느 테마에서도 글씨가 잘 보이도록 연한 바탕에 진한 글씨 */
+.party-cn-level-0 { --cn-fill: #f6e27a; }
+.party-cn-level-1 { --cn-fill: #a8dba9; }
+.party-cn-level-2 { --cn-fill: #a5c9f3; }
+.party-cn-level-3 { --cn-fill: #cdaef0; }
+.party-cn-level-4 { --cn-fill: #f3a9a9; }
+
+/* 모두의 진행 */
+.party-cn-players {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.4rem;
+  width: 100%;
+  max-width: 420px;
+}
+
+.party-cn-players li {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.2rem 0.6rem;
+  border: 2px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.8rem;
+}
+
+.party-cn-player-mine {
+  border-color: var(--text-success) !important;
+  background: var(--tint-strike) !important;
+  font-weight: 800;
+}
+
+.party-cn-player-sub {
+  font-size: 0.7rem;
+  opacity: 0.8;
+}
+
+/* 알림 칸 — 알림이 있든 없든 같은 높이다 */
+.party-cn-toast-slot {
+  display: grid;
+  align-items: center;
+  justify-items: center;
+  width: 100%;
+  min-height: 2.5rem;
+}
+
+/* 맞힌 묶음 칸 — 맞히기 전부터 자리를 잡아 둔다 (묶음 이름이 길면 4줄까지 늘어난다) */
+.party-cn-solved-slot {
+  width: 100%;
+  max-width: 420px;
+  min-height: 9.8rem;
+}
+
+/* 방금 있었던 일 알림 */
+.party-cn-toast {
+  margin: 0;
+  padding: 0.35rem 0.9rem;
+  border: 2px solid var(--border-strong);
+  border-radius: 999px;
+  background: var(--surface);
+  font-size: 0.9rem;
+  font-weight: 800;
+  text-align: center;
+  animation: party-cn-pop 0.3s ease-out;
+}
+
+.party-cn-toast-right {
+  border-color: var(--text-success);
+  background: var(--tint-strike);
+}
+
+.party-cn-toast-wrong {
+  border-color: #e04848;
+}
+
+@keyframes party-cn-pop {
+  from {
+    opacity: 0;
+    scale: 0.85;
+  }
+  to {
+    opacity: 1;
+    scale: 1;
+  }
+}
+
+/* 안내 문구 */
+.party-cn-turn {
+  margin: 0;
+  padding: 0.35rem 0.9rem;
+  border: 2px solid var(--text-success);
+  border-radius: var(--radius);
+  background: var(--tint-strike);
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+/* 맞혀서 없앤 묶음 — 세로 열로 나란히(위에 이름, 아래로 단어 5개). 열 너비는 늘 5등분이라 묶음이 늘어도 자리가 흔들리지 않는다 */
+.party-cn-solved-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.3rem;
+  width: 100%;
+  max-width: 420px;
+}
+
+.party-cn-solved {
+  display: grid;
+  align-content: start;
+  gap: 0.1rem;
+  padding: 0.35rem 0.15rem;
+  border-radius: var(--radius);
+  background: var(--cn-fill);
+  color: #2b2b2b;
+  text-align: center;
+  animation: party-cn-pop 0.3s ease-out;
+}
+
+.party-cn-solved strong {
+  margin-bottom: 0.15rem;
+  padding-bottom: 0.2rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.18);
+  font-size: 0.68rem;
+  line-height: 1.2;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+.party-cn-solved-word {
+  font-size: 0.74rem;
+  font-weight: 600;
+  line-height: 1.25;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+/* 단어판 — 5열 */
+.party-cn-board {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  align-content: start;
+  gap: 0.35rem;
+  width: 100%;
+  max-width: 420px;
+  /* 단어가 줄어도 판 높이는 그대로(5줄) — 아래 제출 버튼이 올라오지 않는다 */
+  min-height: calc(5 * 3.1rem + 4 * 0.35rem);
+}
+
+.party-cn-cell {
+  display: grid;
+  place-items: center;
+  min-height: 3.1rem;
+  padding: 0.15rem;
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.8rem;
+  font-weight: 700;
+  line-height: 1.15;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.party-cn-cell-selected {
+  border-color: var(--text-success);
+  background: var(--tint-strike);
+  scale: 1.04;
+}
+
+/* 내 차례가 아닐 때 — 누를 수는 없지만 차례인 사람이 고른 것은 그대로 보인다 */
+.party-cn-cell-locked {
+  cursor: default;
+}
+
+.party-cn-cell-locked:not(.party-cn-cell-selected) {
+  opacity: 0.85;
+}
+
+.party-cn-actions {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  max-width: 420px;
+}
+
+.party-cn-note {
+  margin: 0;
+  max-width: 420px;
+  color: var(--text-muted, var(--text));
+  font-size: 0.8rem;
+  text-align: center;
+}
+
+/* 끝난 뒤 결과 */
+.party-cn-end {
+  display: grid;
+  gap: 0.6rem;
+  width: 100%;
+  max-width: 420px;
+  padding: 0.75rem 1rem;
+  border: 2px solid var(--text-success);
+  border-radius: var(--radius);
+  background: var(--tint-strike);
+  text-align: center;
+}
+
+.party-cn-end-title {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 800;
+}
+
+.party-cn-end-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.4rem;
+}
+
+.party-cn-end-list li {
+  border-color: var(--border);
+  background: var(--surface);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.2rem 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border-width: 2px;
+  border-style: solid;
+  border-radius: var(--radius);
+  color: var(--text);
+  font-size: 0.9rem;
+  text-align: left;
+}
+
+.party-cn-end-detail {
+  font-size: 0.8rem;
+}
+
+.party-cn-answer {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.party-cn-recap {
+  display: grid;
+  justify-items: center;
+  width: 100%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .party-cn-toast,
+  .party-cn-solved {
+    animation: none;
+  }
+}

@@ -12,6 +12,8 @@ import type { OrderCardsEndSignal, OrderCardsStanding, OrderCardsStateSignal } f
 import type { TugStartSignal } from '../games/tugOfWar/protocol'
 import type { RecyclingStartSignal } from '../games/recycling/protocol'
 import type { TetrisEndSignal, TetrisProgressSignal, TetrisStateSignal } from '../games/tetris/protocol'
+import type { MarbleEndSignal, MarbleProgressSignal, MarbleStateSignal } from '../games/marbleMaze/protocol'
+import type { ConnectionsEndSignal, ConnectionsProgressSignal, ConnectionsStateSignal } from '../games/connections/protocol'
 import type { TowerEndSignal, TowerProgressSignal, TowerStateSignal } from '../games/towerStack/protocol'
 import type { SpyWordsEndSignal, SpyWordsStateSignal } from '../games/spyWords/protocol'
 import type { MouseHunterMouse } from '../games/mouseHunter/protocol'
@@ -131,6 +133,12 @@ export function useGameSession(roomCodeFromUrl?: string) {
   const [tetrisState, setTetrisState] = useState<TetrisStateSignal | null>(null)
   const [tetrisProgress, setTetrisProgress] = useState<TetrisProgressSignal | null>(null)
   const [tetrisEnd, setTetrisEnd] = useState<TetrisEndSignal | null>(null)
+  const [marbleState, setMarbleState] = useState<MarbleStateSignal | null>(null)
+  const [marbleProgress, setMarbleProgress] = useState<MarbleProgressSignal | null>(null)
+  const [marbleEnd, setMarbleEnd] = useState<MarbleEndSignal | null>(null)
+  const [connectionsState, setConnectionsState] = useState<ConnectionsStateSignal | null>(null)
+  const [connectionsProgress, setConnectionsProgress] = useState<ConnectionsProgressSignal | null>(null)
+  const [connectionsEnd, setConnectionsEnd] = useState<ConnectionsEndSignal | null>(null)
   const [towerState, setTowerState] = useState<TowerStateSignal | null>(null)
   const [towerProgress, setTowerProgress] = useState<TowerProgressSignal | null>(null)
   const [towerEnd, setTowerEnd] = useState<TowerEndSignal | null>(null)
@@ -229,6 +237,12 @@ export function useGameSession(roomCodeFromUrl?: string) {
         setTetrisState(null)
         setTetrisProgress(null)
         setTetrisEnd(null)
+        setMarbleState(null)
+        setMarbleProgress(null)
+        setMarbleEnd(null)
+        setConnectionsState(null)
+        setConnectionsProgress(null)
+        setConnectionsEnd(null)
         setTowerState(null)
         setTowerProgress(null)
         setTowerEnd(null)
@@ -293,6 +307,12 @@ export function useGameSession(roomCodeFromUrl?: string) {
     const onTetrisState = (data: TetrisStateSignal) => setTetrisState(data)
     const onTetrisProgress = (data: TetrisProgressSignal) => setTetrisProgress(data)
     const onTetrisEnd = (data: TetrisEndSignal) => setTetrisEnd(data)
+    const onMarbleState = (data: MarbleStateSignal) => setMarbleState(data)
+    const onMarbleProgress = (data: MarbleProgressSignal) => setMarbleProgress(data)
+    const onMarbleEnd = (data: MarbleEndSignal) => setMarbleEnd(data)
+    const onConnectionsState = (data: ConnectionsStateSignal) => setConnectionsState(data)
+    const onConnectionsProgress = (data: ConnectionsProgressSignal) => setConnectionsProgress(data)
+    const onConnectionsEnd = (data: ConnectionsEndSignal) => setConnectionsEnd(data)
     const onTowerState = (data: TowerStateSignal) => setTowerState(data)
     const onTowerProgress = (data: TowerProgressSignal) => setTowerProgress(data)
     const onTowerEnd = (data: TowerEndSignal) => setTowerEnd(data)
@@ -400,6 +420,12 @@ export function useGameSession(roomCodeFromUrl?: string) {
     socket.on('tetris:state', onTetrisState)
     socket.on('tetris:progress', onTetrisProgress)
     socket.on('tetris:end', onTetrisEnd)
+    socket.on('marbleMaze:state', onMarbleState)
+    socket.on('marbleMaze:progress', onMarbleProgress)
+    socket.on('marbleMaze:end', onMarbleEnd)
+    socket.on('connections:state', onConnectionsState)
+    socket.on('connections:progress', onConnectionsProgress)
+    socket.on('connections:end', onConnectionsEnd)
     socket.on('tower:state', onTowerState)
     socket.on('tower:progress', onTowerProgress)
     socket.on('tower:end', onTowerEnd)
@@ -474,6 +500,12 @@ export function useGameSession(roomCodeFromUrl?: string) {
       socket.off('tetris:state', onTetrisState)
       socket.off('tetris:progress', onTetrisProgress)
       socket.off('tetris:end', onTetrisEnd)
+      socket.off('marbleMaze:state', onMarbleState)
+      socket.off('marbleMaze:progress', onMarbleProgress)
+      socket.off('marbleMaze:end', onMarbleEnd)
+      socket.off('connections:state', onConnectionsState)
+      socket.off('connections:progress', onConnectionsProgress)
+      socket.off('connections:end', onConnectionsEnd)
       socket.off('tower:state', onTowerState)
       socket.off('tower:progress', onTowerProgress)
       socket.off('tower:end', onTowerEnd)
@@ -694,6 +726,12 @@ export function useGameSession(roomCodeFromUrl?: string) {
     tetrisState,
     tetrisProgress,
     tetrisEnd,
+    marbleState,
+    marbleProgress,
+    marbleEnd,
+    connectionsState,
+    connectionsProgress,
+    connectionsEnd,
     towerState,
     towerProgress,
     towerEnd,

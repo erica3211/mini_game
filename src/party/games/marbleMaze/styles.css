@@ -1,0 +1,320 @@
+/* 구슬 탈출 */
+.party-mb-stage {
+  gap: 0.7rem;
+  width: 100%;
+}
+
+.party-mb-title {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 800;
+}
+
+/* 모두의 진행 */
+.party-mb-players {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.25rem;
+  width: 100%;
+  max-width: 22rem;
+}
+
+.party-mb-players li {
+  display: grid;
+  grid-template-columns: 4.5rem 1fr 4.8rem;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--radius);
+  color: var(--text);
+  font-size: 0.8rem;
+}
+
+.party-mb-player-mine {
+  background: var(--tint-strike);
+  font-weight: 800;
+}
+
+.party-mb-player-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.party-mb-bar {
+  height: 0.55rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--border) 60%, var(--surface));
+  overflow: hidden;
+}
+
+.party-mb-bar-fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: #4f9cf5;
+  transition: width 0.3s ease-out;
+}
+
+.party-mb-player-sub {
+  font-size: 0.72rem;
+  text-align: right;
+}
+
+/* 미로 — 손가락으로 끌어서 굴릴 때 화면이 스크롤되지 않도록 touch-action을 막는다 */
+.party-mb-board {
+  position: relative;
+  width: min(100%, 22rem);
+  aspect-ratio: 1;
+  border: 2px solid var(--border-strong);
+  border-radius: 0.5rem;
+  overflow: hidden;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.party-mb-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* 출발 전 카운트다운 */
+.party-mb-overlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 0.4rem;
+  padding: 1rem;
+  background: rgba(20, 24, 40, 0.5);
+  color: #fff;
+  text-align: center;
+  pointer-events: none;
+}
+
+.party-mb-overlay strong {
+  font-size: 3.5rem;
+  line-height: 1;
+}
+
+/* 출발 카운트다운 — 숫자가 크게 뜬다 */
+.party-mb-overlay-count strong {
+  font-size: 6rem;
+  font-weight: 900;
+  animation: party-mb-count 1s ease-out both;
+}
+
+@keyframes party-mb-count {
+  0% {
+    opacity: 0;
+    scale: 1.8;
+  }
+  25% {
+    opacity: 1;
+    scale: 1;
+  }
+  100% {
+    opacity: 0.85;
+    scale: 0.85;
+  }
+}
+
+.party-mb-overlay span {
+  font-size: 0.95rem;
+  font-weight: 800;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+}
+
+/* 기준 자세를 재는 3초 — 막대가 차오른다 (숫자 카운트다운이 아니다. JS의 CALIBRATION_MS와 같은 시간) */
+.party-mb-measure {
+  display: block;
+  width: 70%;
+  height: 0.5rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.3);
+  overflow: hidden;
+}
+
+.party-mb-measure i {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 999px;
+  background: #7fe0a0;
+  transform-origin: left center;
+  animation: party-mb-measure 3s linear both;
+}
+
+@keyframes party-mb-measure {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.party-mb-prep,
+.party-mb-actions {
+  display: grid;
+  gap: 0.5rem;
+  justify-items: center;
+  width: 100%;
+  max-width: 22rem;
+}
+
+.party-mb-note {
+  margin: 0;
+  max-width: 22rem;
+  color: var(--text-muted, var(--text));
+  font-size: 0.82rem;
+  text-align: center;
+}
+
+.party-mb-error {
+  margin: 0;
+  max-width: 22rem;
+  color: #c0392b;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.party-mb-banner {
+  margin: 0;
+  padding: 0.4rem 0.9rem;
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  font-weight: 800;
+  text-align: center;
+}
+
+.party-mb-banner-win {
+  border-color: var(--text-success);
+  background: var(--tint-strike);
+}
+
+/* 끝난 뒤 결과 */
+.party-mb-end {
+  display: grid;
+  gap: 0.6rem;
+  width: 100%;
+  max-width: 22rem;
+  padding: 0.75rem 1rem;
+  border: 2px solid var(--text-success);
+  border-radius: var(--radius);
+  background: var(--tint-strike);
+  text-align: center;
+}
+
+.party-mb-end-title {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 800;
+}
+
+.party-mb-end-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.party-mb-end-list li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.2rem 0.5rem;
+  padding: 0.45rem 0.7rem;
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.88rem;
+  text-align: left;
+}
+
+.party-mb-end-list .party-mb-player-mine {
+  border-color: var(--text-success);
+}
+
+.party-mb-end-detail {
+  font-size: 0.78rem;
+}
+
+.party-mb-recap {
+  display: grid;
+  justify-items: center;
+  width: 100%;
+}
+
+/* 상하좌우 버튼 */
+.party-mb-dpad {
+  display: grid;
+  /* 키보드 방향키처럼 ㅗ 모양: 위쪽 한 칸 + 아래 줄에 왼쪽·아래·오른쪽 */
+  grid-template-columns: repeat(3, 3.6rem);
+  grid-template-rows: repeat(2, 3.6rem);
+  gap: 0.35rem;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.party-mb-dpad-btn {
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--border-strong);
+  border-radius: var(--radius);
+  background: var(--tint-info);
+  color: var(--text);
+  font-size: 1.5rem;
+  font-weight: 900;
+  cursor: pointer;
+  touch-action: none;
+}
+
+.party-mb-dpad-btn:active {
+  scale: 0.94;
+  background: var(--tint-strike);
+}
+
+.party-mb-dpad-up {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.party-mb-dpad-left {
+  grid-column: 1;
+  grid-row: 2;
+}
+
+.party-mb-dpad-right {
+  grid-column: 3;
+  grid-row: 2;
+}
+
+.party-mb-dpad-down {
+  grid-column: 2;
+  grid-row: 2;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .party-mb-overlay-count strong {
+    animation: none;
+  }
+
+  .party-mb-measure i {
+    animation-duration: 0.01s;
+  }
+
+  .party-mb-bar-fill {
+    transition: none;
+  }
+}

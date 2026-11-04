@@ -17,6 +17,8 @@ import { TugOfWarGame } from '../games/tugOfWar/TugOfWarGame'
 import { RecyclingGame } from '../games/recycling/RecyclingGame'
 import { TetrisGame } from '../games/tetris/TetrisGame'
 import { TowerGame } from '../games/towerStack/TowerGame'
+import { ConnectionsGame } from '../games/connections/ConnectionsGame'
+import { MarbleMazeGame } from '../games/marbleMaze/MarbleMazeGame'
 import { SpyWordsGame } from '../games/spyWords/SpyWordsGame'
 import { MouseHunterGame } from '../games/mouseHunter/MouseHunterGame'
 import { OneToTwentyFiveGame } from '../games/oneToTwentyFive/OneToTwentyFiveGame'
@@ -151,6 +153,30 @@ function renderGame(session: GameSession, roundKey: string) {
           playerId={session.playerId}
           players={state.players}
           teams={state.teams}
+        />
+      )
+    case 'marbleMaze':
+      return (
+        <MarbleMazeGame
+          socket={session.socket}
+          roundKey={roundKey}
+          state={session.marbleState}
+          progress={session.marbleProgress}
+          end={session.marbleEnd}
+          playerId={session.playerId}
+          players={state.players}
+        />
+      )
+    case 'connections':
+      return (
+        <ConnectionsGame
+          socket={session.socket}
+          roundKey={roundKey}
+          state={session.connectionsState}
+          progress={session.connectionsProgress}
+          end={session.connectionsEnd}
+          playerId={session.playerId}
+          players={state.players}
         />
       )
     case 'towerStack':

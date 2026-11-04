@@ -37,6 +37,10 @@ import { TugRecap } from '../games/tugOfWar/TugRecap'
 import { RecyclingRecap } from '../games/recycling/RecyclingRecap'
 import { TetrisRecap } from '../games/tetris/TetrisRecap'
 import { TowerRecap } from '../games/towerStack/TowerRecap'
+import { ConnectionsRecap } from '../games/connections/ConnectionsRecap'
+import { MarbleMazeRecap } from '../games/marbleMaze/MarbleMazeRecap'
+import { formatMarbleTime, type MarbleRoundMeta } from '../games/marbleMaze/protocol'
+import { formatConnectionsTime, type ConnectionsRoundMeta } from '../games/connections/protocol'
 import { SpyWordsRecap } from '../games/spyWords/SpyWordsRecap'
 import type { SpyWordsRoundMeta } from '../games/spyWords/protocol'
 import type { RecyclingRoundMeta } from '../games/recycling/protocol'
@@ -92,6 +96,8 @@ export function PartyRoundResults({ session }: Props) {
   const recyclingMeta = lastRound.gameId === 'recycling' ? (lastRound.meta as RecyclingRoundMeta | undefined) : undefined
   const tetrisMeta = lastRound.gameId === 'tetris' ? (lastRound.meta as TetrisRoundMeta | undefined) : undefined
   const towerMeta = lastRound.gameId === 'towerStack' || lastRound.gameId === 'towerCount' ? (lastRound.meta as TowerRoundMeta | undefined) : undefined
+  const marbleMeta = lastRound.gameId === 'marbleMaze' ? (lastRound.meta as MarbleRoundMeta | undefined) : undefined
+  const connectionsMeta = lastRound.gameId === 'connections' ? (lastRound.meta as ConnectionsRoundMeta | undefined) : undefined
   const spyWordsMeta = lastRound.gameId === 'spyWords' ? (lastRound.meta as SpyWordsRoundMeta | undefined) : undefined
   const characterDescribeMeta =
     lastRound.gameId === 'characterDescribe' ? (lastRound.meta as CharacterRoundMeta | undefined) : undefined
@@ -128,6 +134,16 @@ export function PartyRoundResults({ session }: Props) {
     }
     if (lastRound.gameId === 'tetris' && entry.value !== undefined) {
       return ` (팀 ${entry.value}점)`
+    }
+    if (lastRound.gameId === 'marbleMaze' && entry.value !== undefined) {
+      const row = marbleMeta?.end.players.find((player) => player.playerId === entry.playerId)
+      if (!row) return ''
+      return row.finishedMs !== null ? ` (${formatMarbleTime(row.finishedMs)} · 구멍 ${row.falls}번)` : ` (출구까지 ${Math.round(row.progress * 100)}% · 구멍 ${row.falls}번)`
+    }
+    if (lastRound.gameId === 'connections' && entry.value !== undefined) {
+      const row = connectionsMeta?.end.players.find((player) => player.playerId === entry.playerId)
+      if (!row) return ''
+      return row.timeMs !== null ? ` (${formatConnectionsTime(row.timeMs)} · 실수 ${row.wrongs})` : ` (${row.solved}/5묶음 · 실수 ${row.wrongs})`
     }
     if (lastRound.gameId === 'towerCount' && entry.value !== undefined) {
       return ` (탑에 ${entry.value}개 남김)`
@@ -584,6 +600,8 @@ export function PartyRoundResults({ session }: Props) {
       {orderCardsMeta && <OrderCardsRecap meta={orderCardsMeta} teams={roundTeams} />}
       {tugMeta && <TugRecap meta={tugMeta} teams={roundTeams} playerId={session.playerId} nicknameOf={plainNicknameOf} />}
       {recyclingMeta && <RecyclingRecap meta={recyclingMeta} teams={roundTeams} playerId={session.playerId} players={state.players} />}
+      {marbleMeta && <MarbleMazeRecap meta={marbleMeta} playerId={session.playerId} players={state.players} />}
+      {connectionsMeta && <ConnectionsRecap meta={connectionsMeta} playerId={session.playerId} players={state.players} />}
       {towerMeta && <TowerRecap meta={towerMeta} teams={roundTeams} playerId={session.playerId} players={state.players} />}
       {tetrisMeta && <TetrisRecap meta={tetrisMeta} teams={roundTeams} playerId={session.playerId} players={state.players} />}
       {spyWordsMeta && <SpyWordsRecap meta={spyWordsMeta} teams={roundTeams} />}

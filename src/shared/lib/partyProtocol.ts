@@ -24,6 +24,8 @@ import type { TugEndSignal, TugProgressSignal, TugStartSignal } from '../../part
 import type { SpyWordsEndSignal, SpyWordsStateSignal } from '../../party/games/spyWords/protocol'
 import type { RecyclingEndSignal, RecyclingEventSignal, RecyclingProgressSignal, RecyclingStartSignal } from '../../party/games/recycling/protocol'
 import type { TetrisAction, TetrisEndSignal, TetrisProgressSignal, TetrisStateSignal } from '../../party/games/tetris/protocol'
+import type { MarbleEndSignal, MarbleProgressSignal, MarbleStateSignal } from '../../party/games/marbleMaze/protocol'
+import type { ConnectionsEndSignal, ConnectionsProgressSignal, ConnectionsStateSignal } from '../../party/games/connections/protocol'
 import type { TowerAction, TowerEndSignal, TowerProgressSignal, TowerStateSignal } from '../../party/games/towerStack/protocol'
 import type { StroopQuestionResult, StroopQuestionSignal } from '../../party/games/stroop/protocol'
 import type { MouseHunterMouse } from '../../party/games/mouseHunter/protocol'
@@ -96,6 +98,8 @@ export type GameId =
   | 'tetris'
   | 'towerStack'
   | 'towerCount'
+  | 'connections'
+  | 'marbleMaze'
 
 /** 방의 진행 방식 — backend/types.ts와 같아야 한다. /party는 개인전, /teamParty는 팀전 방이다 */
 export type RoomMode = 'individual' | 'team'
@@ -377,6 +381,10 @@ export interface ClientToServerEvents {
   'recycling:tap': (data: { itemId: number }) => void
   'tetris:input': (data: { action: TetrisAction }) => void
   'tower:input': (data: { action: TowerAction }) => void
+  'connections:submit': (data: { cells: number[] }) => void
+  'marbleMaze:ready': () => void
+  'marbleMaze:progress': (data: { progress: number; falls: number }) => void
+  'marbleMaze:finish': (data: { falls: number }) => void
   'spyWords:hint': (data: { word: string; count: number }) => void
   'spyWords:toggle': (data: { index: number }) => void
   'spyWords:confirm': () => void
@@ -637,6 +645,12 @@ export interface ServerToClientEvents {
   'tower:state': (data: TowerStateSignal) => void
   'tower:progress': (data: TowerProgressSignal) => void
   'tower:end': (data: TowerEndSignal) => void
+  'connections:state': (data: ConnectionsStateSignal) => void
+  'connections:progress': (data: ConnectionsProgressSignal) => void
+  'connections:end': (data: ConnectionsEndSignal) => void
+  'marbleMaze:state': (data: MarbleStateSignal) => void
+  'marbleMaze:progress': (data: MarbleProgressSignal) => void
+  'marbleMaze:end': (data: MarbleEndSignal) => void
   'spyWords:state': (data: SpyWordsStateSignal) => void
   'spyWords:end': (data: SpyWordsEndSignal) => void
   'mazeEscape:start': (data: MazeStartSignal) => void
