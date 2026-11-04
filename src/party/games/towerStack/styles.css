@@ -1,0 +1,462 @@
+/* 타워쌓기 팀전 */
+.party-tw-stage {
+  gap: 0.7rem;
+  width: 100%;
+}
+
+/* 팀별 최고 높이와 남은 기회 */
+.party-tw-scores {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.4rem;
+  width: 100%;
+  max-width: 420px;
+}
+
+.party-tw-scores li {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.2rem 0.6rem;
+  border-width: 2px;
+  border-style: solid;
+  border-radius: 999px;
+  color: var(--text);
+  font-size: 0.85rem;
+}
+
+.party-tw-score-mine {
+  font-weight: 800;
+}
+
+.party-tw-chances {
+  font-size: 0.7rem;
+  letter-spacing: -0.05em;
+}
+
+/* 내 담당 — 게임 내내 보인다 */
+.party-tw-mine {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  font-size: 0.9rem;
+}
+
+.party-tw-mine .party-tw-role-chip {
+  padding: 0.25rem 0.9rem;
+  font-size: 1.05rem;
+  font-weight: 900;
+}
+
+.party-tw-role-chip {
+  padding: 0.1rem 0.6rem;
+  border: 2px solid var(--border-strong);
+  border-radius: 999px;
+  background: var(--tint-info);
+  color: var(--text);
+  font-size: 0.85rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* 역할이 바뀐 걸 알려 주는 안내 */
+.party-tw-swap {
+  margin: 0;
+  padding: 0.35rem 0.9rem;
+  border: 2px solid var(--text-success);
+  border-radius: 999px;
+  background: var(--tint-strike);
+  font-weight: 800;
+  animation: party-tw-pop 0.4s ease-out;
+}
+
+.party-tw-over {
+  margin: 0;
+  padding: 0.35rem 0.9rem;
+  border: 2px solid var(--border-strong);
+  border-radius: var(--radius);
+  background: var(--surface);
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+@keyframes party-tw-pop {
+  from {
+    opacity: 0;
+    scale: 0.8;
+  }
+  to {
+    opacity: 1;
+    scale: 1;
+  }
+}
+
+/* 탑 + 옆 정보 */
+.party-tw-play {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 0.6rem;
+  width: 100%;
+}
+
+.party-tw-canvas {
+  /* 조작 버튼이 탑 바로 아래에 같이 보이도록, 화면 높이에 맞춰 너비를 줄인다 */
+  width: min(100%, 17rem, calc((100dvh - 31rem) * 0.77));
+  min-width: 10.5rem;
+  aspect-ratio: 400 / 520;
+  color: var(--text);
+  border: 2px solid var(--border-strong);
+  border-radius: 0.5rem;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--tint-info) 55%, var(--surface)), var(--surface));
+  touch-action: manipulation;
+}
+
+.party-tw-side {
+  display: grid;
+  gap: 0.5rem;
+  width: 4.6rem;
+}
+
+.party-tw-stat {
+  display: grid;
+  gap: 0.1rem;
+  padding: 0.3rem 0.4rem;
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  text-align: center;
+  font-size: 0.72rem;
+}
+
+.party-tw-stat strong {
+  font-size: 1.05rem;
+}
+
+/* 다음 블록 */
+.party-tw-next {
+  display: grid;
+  justify-items: center;
+  gap: 0.3rem;
+  padding: 0.3rem;
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  font-size: 0.72rem;
+}
+
+.party-tw-next-box {
+  position: relative;
+  width: 3.2rem;
+  height: 1.6rem;
+}
+
+.party-tw-next-cell {
+  position: absolute;
+  width: 25%;
+  height: 50%;
+  border-radius: 2px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+}
+
+/* 블록이 저절로 떨어질 때까지 남은 시간 — 5초부터 주황색, 3초부터 빨간색으로 흔들린다 */
+.party-tw-canvas-box {
+  position: relative;
+  display: grid;
+}
+
+.party-tw-drop-timer {
+  position: absolute;
+  top: 0.4rem;
+  left: 50%;
+  translate: -50% 0;
+  padding: 0.15rem 0.7rem;
+  border: 2px solid var(--border-strong);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  color: var(--text);
+  font-size: 0.95rem;
+  font-weight: 800;
+  white-space: nowrap;
+  pointer-events: none;
+  transition: background-color 0.2s, border-color 0.2s;
+}
+
+.party-tw-drop-warn {
+  border-color: #f0993f;
+  background: #fde3c4;
+  color: #8a4b00;
+}
+
+.party-tw-drop-danger {
+  border-color: #e04848;
+  background: #fbd0d0;
+  color: #b01818;
+  animation: party-tw-timer-shake 0.4s ease-in-out infinite;
+}
+
+@keyframes party-tw-timer-shake {
+  0%,
+  100% {
+    translate: -50% 0;
+    rotate: 0deg;
+  }
+  20% {
+    translate: calc(-50% - 4px) 0;
+    rotate: -4deg;
+  }
+  40% {
+    translate: calc(-50% + 4px) 0;
+    rotate: 4deg;
+  }
+  60% {
+    translate: calc(-50% - 3px) 0;
+    rotate: -3deg;
+  }
+  80% {
+    translate: calc(-50% + 3px) 0;
+    rotate: 3deg;
+  }
+}
+
+/* 끝나기 전 3·2·1 카운트다운 — 탑 위에 큰 숫자가 뜨고, 그동안 아무 조작도 안 된다 */
+.party-tw-ending {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 0.5rem;
+  background: color-mix(in srgb, #e04848 14%, transparent);
+  pointer-events: none;
+}
+
+.party-tw-ending strong {
+  color: #d03030;
+  font-size: 5.5rem;
+  font-weight: 900;
+  line-height: 1;
+  text-shadow: 0 0 0.4rem var(--surface), 0 0.2rem 0.6rem rgba(0, 0, 0, 0.25);
+  animation: party-tw-count 1s ease-out both;
+}
+
+@keyframes party-tw-count {
+  0% {
+    opacity: 0;
+    scale: 1.8;
+  }
+  25% {
+    opacity: 1;
+    scale: 1;
+  }
+  100% {
+    opacity: 0.85;
+    scale: 0.85;
+  }
+}
+
+/* 블록이 떨어졌을 때 */
+.party-tw-shake .party-tw-canvas {
+  animation: party-tw-shake 0.6s ease-in-out;
+  border-color: #ee6f6f;
+}
+
+@keyframes party-tw-shake {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  15% {
+    translate: -6px 0;
+  }
+  30% {
+    translate: 6px 0;
+  }
+  45% {
+    translate: -4px 0;
+  }
+  60% {
+    translate: 4px 0;
+  }
+  80% {
+    translate: -2px 0;
+  }
+}
+
+.party-tw-fall-pop {
+  position: absolute;
+  left: 50%;
+  top: 28%;
+  translate: -50% 0;
+  padding: 0.35rem 0.8rem;
+  border: 2px solid #ee6f6f;
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.85rem;
+  font-weight: 800;
+  white-space: nowrap;
+  pointer-events: none;
+  animation: party-tw-pop 0.25s ease-out;
+}
+
+/* 조작 버튼 */
+.party-tw-pad-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.5rem;
+  width: 100%;
+  max-width: 420px;
+}
+
+.party-tw-pad {
+  display: grid;
+  place-items: center;
+  gap: 0.05rem;
+  min-height: 3.6rem;
+  padding: 0.2rem;
+  border: 2px solid var(--border-strong);
+  border-radius: var(--radius);
+  background: var(--tint-info);
+  color: var(--text);
+  cursor: pointer;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.party-tw-pad-icon {
+  font-size: 1.5rem;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.party-tw-pad-name {
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.party-tw-pad:active:not(:disabled) {
+  scale: 0.94;
+}
+
+.party-tw-pad-off {
+  opacity: 0.35;
+  cursor: not-allowed;
+  background: var(--surface);
+}
+
+/* 팀원 담당표 */
+.party-tw-roles {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.25rem;
+  width: 100%;
+  max-width: 420px;
+}
+
+.party-tw-roles li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius);
+  font-size: 0.85rem;
+}
+
+.party-tw-role-mine {
+  background: var(--tint-info);
+  font-weight: 700;
+}
+
+.party-tw-note {
+  margin: 0;
+  max-width: 420px;
+  color: var(--text-muted, var(--text));
+  font-size: 0.8rem;
+  text-align: center;
+}
+
+/* 끝난 뒤 결과 */
+.party-tw-end {
+  display: grid;
+  gap: 0.6rem;
+  width: 100%;
+  max-width: 420px;
+  padding: 0.75rem 1rem;
+  border: 2px solid var(--text-success);
+  border-radius: var(--radius);
+  background: var(--tint-strike);
+  text-align: center;
+}
+
+.party-tw-end-title {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 800;
+}
+
+.party-tw-end-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr));
+  gap: 0.5rem;
+}
+
+.party-tw-end-list li {
+  display: grid;
+  justify-items: center;
+  align-content: start;
+  gap: 0.35rem;
+  padding: 0.5rem 0.5rem 0.6rem;
+  border-width: 2px;
+  border-style: solid;
+  border-radius: var(--radius);
+  color: var(--text);
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.party-tw-end-head {
+  font-weight: 800;
+}
+
+.party-tw-end-detail {
+  font-size: 0.8rem;
+}
+
+/* 끝난 시점의 탑 모습 */
+.party-tw-snapshot {
+  max-width: 100%;
+  border: 2px solid var(--border);
+  border-radius: 0.4rem;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--tint-info) 55%, var(--surface)), var(--surface));
+}
+
+.party-tw-recap {
+  display: grid;
+  justify-items: center;
+  width: 100%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .party-tw-swap,
+  .party-tw-fall-pop,
+  .party-tw-drop-danger,
+  .party-tw-ending strong,
+  .party-tw-shake .party-tw-canvas {
+    animation: none;
+  }
+}

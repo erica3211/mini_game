@@ -16,6 +16,7 @@ import { OrderCardsGame } from '../games/orderCards/OrderCardsGame'
 import { TugOfWarGame } from '../games/tugOfWar/TugOfWarGame'
 import { RecyclingGame } from '../games/recycling/RecyclingGame'
 import { TetrisGame } from '../games/tetris/TetrisGame'
+import { TowerGame } from '../games/towerStack/TowerGame'
 import { SpyWordsGame } from '../games/spyWords/SpyWordsGame'
 import { MouseHunterGame } from '../games/mouseHunter/MouseHunterGame'
 import { OneToTwentyFiveGame } from '../games/oneToTwentyFive/OneToTwentyFiveGame'
@@ -147,6 +148,20 @@ function renderGame(session: GameSession, roundKey: string) {
           state={session.tetrisState}
           progress={session.tetrisProgress}
           end={session.tetrisEnd}
+          playerId={session.playerId}
+          players={state.players}
+          teams={state.teams}
+        />
+      )
+    case 'towerStack':
+    case 'towerCount':
+      return (
+        <TowerGame
+          socket={session.socket}
+          roundKey={roundKey}
+          state={session.towerState}
+          progress={session.towerProgress}
+          end={session.towerEnd}
           playerId={session.playerId}
           players={state.players}
           teams={state.teams}

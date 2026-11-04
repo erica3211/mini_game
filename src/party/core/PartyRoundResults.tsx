@@ -36,10 +36,12 @@ import type { OrderCardsRoundMeta } from '../games/orderCards/protocol'
 import { TugRecap } from '../games/tugOfWar/TugRecap'
 import { RecyclingRecap } from '../games/recycling/RecyclingRecap'
 import { TetrisRecap } from '../games/tetris/TetrisRecap'
+import { TowerRecap } from '../games/towerStack/TowerRecap'
 import { SpyWordsRecap } from '../games/spyWords/SpyWordsRecap'
 import type { SpyWordsRoundMeta } from '../games/spyWords/protocol'
 import type { RecyclingRoundMeta } from '../games/recycling/protocol'
 import type { TetrisRoundMeta } from '../games/tetris/protocol'
+import type { TowerRoundMeta } from '../games/towerStack/protocol'
 import type { TugRoundMeta } from '../games/tugOfWar/protocol'
 import type { MazeRoundMeta } from '../games/mazeEscape/protocol'
 import type { CharacterRoundMeta } from '../games/characterDescribe/protocol'
@@ -89,6 +91,7 @@ export function PartyRoundResults({ session }: Props) {
   const tugMeta = lastRound.gameId === 'tugOfWar' ? (lastRound.meta as TugRoundMeta | undefined) : undefined
   const recyclingMeta = lastRound.gameId === 'recycling' ? (lastRound.meta as RecyclingRoundMeta | undefined) : undefined
   const tetrisMeta = lastRound.gameId === 'tetris' ? (lastRound.meta as TetrisRoundMeta | undefined) : undefined
+  const towerMeta = lastRound.gameId === 'towerStack' || lastRound.gameId === 'towerCount' ? (lastRound.meta as TowerRoundMeta | undefined) : undefined
   const spyWordsMeta = lastRound.gameId === 'spyWords' ? (lastRound.meta as SpyWordsRoundMeta | undefined) : undefined
   const characterDescribeMeta =
     lastRound.gameId === 'characterDescribe' ? (lastRound.meta as CharacterRoundMeta | undefined) : undefined
@@ -125,6 +128,12 @@ export function PartyRoundResults({ session }: Props) {
     }
     if (lastRound.gameId === 'tetris' && entry.value !== undefined) {
       return ` (팀 ${entry.value}점)`
+    }
+    if (lastRound.gameId === 'towerCount' && entry.value !== undefined) {
+      return ` (탑에 ${entry.value}개 남김)`
+    }
+    if (lastRound.gameId === 'towerStack' && entry.value !== undefined) {
+      return ` (종료 때 탑 높이 ${entry.value}cm)`
     }
     if (lastRound.gameId === 'spyWords' && entry.value !== undefined) {
       const myTeamId = state.teams.find((team) => team.memberIds.includes(entry.playerId))?.id
@@ -234,6 +243,8 @@ export function PartyRoundResults({ session }: Props) {
     if (lastRound.gameId === 'tugOfWar') return `1인당 평균 ${row.score.toFixed(1)}번 누름`
     if (lastRound.gameId === 'recycling') return `${row.score}점`
     if (lastRound.gameId === 'tetris') return `${row.score}점`
+    if (lastRound.gameId === 'towerCount') return `탑에 블록 ${row.score}개 남김`
+    if (lastRound.gameId === 'towerStack') return `종료 때 높이 ${row.score}cm`
     if (lastRound.gameId === 'spyWords') return spyWordsMeta?.end.teams.find((end) => end.teamId === row.teamId)?.eliminated ? '함정을 열어 탈락' : row.score === 0 ? '단어를 모두 찾음' : `남은 단어 ${row.score}개`
     if (lastRound.gameId === 'mazeEscape') return row.dnf ? `${row.score}%까지 도착` : `${(row.score / 1000).toFixed(1)}초에 탈출`
     if (lastRound.gameId === 'emojiCharades' || lastRound.gameId === 'characterDescribe') return row.score ? '정답을 맞혔어요' : '못 맞혔어요'
@@ -250,6 +261,10 @@ export function PartyRoundResults({ session }: Props) {
       ? '팀이 누른 횟수를 팀 인원으로 나눈 값(1인당 평균)이 큰 팀이 1등이에요. 순위에 따라 받는 점수(초록색)가 누적 점수에 더해져요.'
       : lastRound.gameId === 'spyWords'
       ? '자기 팀 단어를 먼저 모두 찾은 팀이 1등이에요. 함정을 연 팀은 꼴등이고, 시간이 다 되면 남은 단어가 적은 팀이 앞서요. 순위에 따라 받는 점수(초록색)가 누적 점수에 더해져요.'
+      : lastRound.gameId === 'towerCount'
+      ? '게임이 끝난 순간 탑에 남아 있는 블록이 가장 많은 팀이 1등이에요. 블록 12개를 모두 쌓은 팀끼리는 함께 1등이에요. 순위에 따라 받는 점수(초록색)가 누적 점수에 더해져요.'
+      : lastRound.gameId === 'towerStack'
+      ? '게임이 끝난 순간의 탑 높이(cm)가 가장 높은 팀이 1등이에요. 블록이 탑에서 세 번 떨어져 먼저 끝난 팀은 그때의 높이로 겨뤄요. 순위에 따라 받는 점수(초록색)가 누적 점수에 더해져요.'
       : lastRound.gameId === 'tetris'
       ? '줄을 지우면 1줄 100점·2줄 300점·3줄 500점·4줄 800점이고, 빠르게 내리면 한 칸에 1점이에요. 점수가 높은 팀이 1등이고, 순위에 따라 받는 점수(초록색)가 누적 점수에 더해져요.'
       : lastRound.gameId === 'recycling'
@@ -569,6 +584,7 @@ export function PartyRoundResults({ session }: Props) {
       {orderCardsMeta && <OrderCardsRecap meta={orderCardsMeta} teams={roundTeams} />}
       {tugMeta && <TugRecap meta={tugMeta} teams={roundTeams} playerId={session.playerId} nicknameOf={plainNicknameOf} />}
       {recyclingMeta && <RecyclingRecap meta={recyclingMeta} teams={roundTeams} playerId={session.playerId} players={state.players} />}
+      {towerMeta && <TowerRecap meta={towerMeta} teams={roundTeams} playerId={session.playerId} players={state.players} />}
       {tetrisMeta && <TetrisRecap meta={tetrisMeta} teams={roundTeams} playerId={session.playerId} players={state.players} />}
       {spyWordsMeta && <SpyWordsRecap meta={spyWordsMeta} teams={roundTeams} />}
 
