@@ -714,8 +714,8 @@
   align-items: center;
   justify-content: center;
   padding: 0;
-  background: var(--surface);
-  border: 2px solid transparent;
+  background: var(--bb-cell-bg, color-mix(in srgb, var(--surface) 52%, transparent));
+  border: 2px solid var(--bb-cell-border, transparent);
   border-radius: 0.5rem;
   font-size: 1.5rem;
   touch-action: manipulation;
@@ -734,7 +734,7 @@
 }
 
 .party-oly-bb-sel-pitch {
-  background: rgb(var(--pitch-rgb));
+  background: rgba(var(--pitch-rgb), 0.82);
   border-color: var(--text);
 }
 
@@ -743,7 +743,7 @@
 }
 
 .party-oly-bb-sel-swing {
-  background: rgb(var(--swing-rgb));
+  background: rgba(var(--swing-rgb), 0.82);
   border-color: var(--text);
 }
 
@@ -753,7 +753,7 @@
 }
 
 .party-oly-bb-target {
-  background: rgb(var(--pitch-rgb));
+  background: rgba(var(--pitch-rgb), 0.85);
 }
 
 .party-oly-bb-swing {
@@ -775,8 +775,9 @@
 
 @keyframes party-oly-bb-late {
   from {
-    background: var(--surface);
-    border-color: transparent;
+    /* 공이 닿기 전에는 평소(반투명) 칸 그대로 — 장면 위에서도 배경이 가려지지 않게 */
+    background: var(--bb-cell-bg, var(--zd-cell-bg, var(--surface)));
+    border-color: var(--bb-cell-border, var(--zd-cell-border, transparent));
     box-shadow: none;
   }
 }
@@ -785,6 +786,97 @@
   from {
     opacity: 0;
   }
+}
+
+/* 야구 장면: 투수 화면(pitch)은 홈 플레이트 쪽, 타자 화면(bat)은 홈에서 본 야구장 — 칸은 그 위에 반투명으로 겹친다 */
+.party-oly-bb-sc {
+  --bb-cell-bg: color-mix(in srgb, #ffffff 14%, transparent);
+  --bb-cell-border: rgba(255, 255, 255, 0.78);
+  position: relative;
+  width: min(100%, 22rem);
+  aspect-ratio: 5 / 4;
+  overflow: hidden;
+  border: 2px solid var(--border-strong);
+  border-radius: var(--radius);
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+}
+
+.party-oly-bb-sc-pitch {
+  background-image: url('./assets/scene-baseball-pitch.svg');
+}
+
+.party-oly-bb-sc-bat {
+  background-image: url('./assets/scene-baseball-bat.svg');
+}
+
+.party-oly-bb-sc-grid {
+  position: absolute;
+  z-index: 2;
+}
+
+/* 투수: 스트라이크존 — 포수와 타자 앞의 3x3 / 타자·구경: 화면 전체 */
+.party-oly-bb-sc-pitch .party-oly-bb-sc-grid {
+  left: 27%;
+  top: 36%;
+  width: 46%;
+  height: 42%;
+}
+
+.party-oly-bb-sc-bat .party-oly-bb-sc-grid {
+  left: calc(var(--gl) * 1%);
+  top: calc(var(--gt) * 1%);
+  width: calc(var(--gw) * 1%);
+  height: calc(var(--gh) * 1%);
+}
+
+.party-oly-bb-sc-grid .party-oly-bb-grid,
+.party-oly-bb-sc-grid .party-oly-bb-stage {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+}
+
+.party-oly-bb-sc-grid .party-oly-bb-grid {
+  grid-template-rows: repeat(3, 1fr);
+  gap: 0.25rem;
+  padding: 0.25rem;
+}
+
+.party-oly-bb-sc-grid .party-oly-bb-cell {
+  aspect-ratio: auto;
+  min-height: 0;
+}
+
+.party-oly-bb-sc img {
+  position: absolute;
+  left: 50%;
+  z-index: 1;
+  transform: translateX(-50%);
+  pointer-events: none;
+  user-select: none;
+}
+
+/* 포수와 타자 — 투수 화면에서는 크게, 타자 쪽 장면(구경·공개)에서는 앞쪽 홈 플레이트에 작게 선다 */
+.party-oly-bb-sc-pitch .party-oly-bb-sc-pair {
+  bottom: 13%;
+  left: 58%;
+  height: 62%;
+}
+
+.party-oly-bb-sc-bat .party-oly-bb-sc-pair {
+  bottom: 2%;
+  left: 55%;
+  height: 36%;
+}
+
+/* 마운드의 투수 */
+.party-oly-bb-sc-pitcher {
+  bottom: 49%;
+  height: 26%;
 }
 
 /* 결과 연출: 격자 위에 겹치는 층 — 공이 날아온다 */
@@ -806,68 +898,415 @@
 
 .party-oly-bb-fly {
   position: absolute;
-  left: var(--x);
-  top: var(--y);
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
   font-size: 1.7rem;
   line-height: 1;
-  transform: translate(-50%, -50%);
+  will-change: translate, scale, opacity;
 }
 
-/* 위에서 날아와 고른 칸에 닿는다(0.65초). 그 뒤 안타·홈런은 날아가고, 헛스윙·파울은 그 칸에 1초 남았다가 사라진다 */
+/* 공의 몸통 — 바깥(.party-oly-bb-fly)이 장면 위의 경로를 옮겨 다니고, 안쪽은 포물선 같은 위아래 움직임만 맡는다 */
+.party-oly-bb-arc {
+  position: absolute;
+  left: 0;
+  top: 0;
+  white-space: nowrap;
+  transform: translate(-50%, -50%);
+  will-change: translate;
+}
+
+/* 장면 안에서는 공을 놓는 층이 칸 영역과 똑같은 크기다 */
+.party-oly-bb-sc .party-oly-bb-fx,
+.party-oly-sc .party-oly-bb-fx,
+.party-oly-pp .party-oly-bb-fx {
+  inset: 0;
+}
+
+/* 공의 경로는 장면 크기에 비례하는 단위(cqw·cqh)로 계산한 translate로만 움직인다.
+   --sw·--sh: 칸 영역의 너비·높이(장면의 %), --sfx·--sfy: 공이 출발하는 곳, --fx·--fy: 고른 칸의 가운데 (모두 칸 영역 안의 비율 0~1).
+   공이 출발하는 곳은 장면 그림 속 선수 위치에 맞춘 값이다 — 야구(타자 쪽 야구장): 마운드의 투수 손 / 축구: 키커 발 / 탁구: 파란 선수(치는 쪽) 라켓과 빨간 선수(받는 쪽) 라켓.
+   cq 단위를 쓰려면 장면이 크기 컨테이너여야 한다 */
+.party-oly-bb-sc,
+.party-oly-sc,
+.party-oly-pp {
+  container-type: size;
+}
+
+/* 야구(타자 쪽 야구장): 칸 영역과 마운드 투수의 손 */
+.party-oly-bb-sc-bat {
+  --gl: 2;
+  --gt: 3;
+  --gw: 96;
+  --gh: 94;
+  --bx: 51;
+  --by: 35;
+  --sw: var(--gw);
+  --sh: var(--gh);
+  --sfx: calc((var(--bx) - var(--gl)) / var(--gw));
+  --sfy: calc((var(--by) - var(--gt)) / var(--gh));
+}
+
+/* 축구(골대 정면): 칸 영역(골대 입구)과 키커의 발 */
+.party-oly-sc-kick {
+  --gl: 20;
+  --gt: 26.4;
+  --gw: 60;
+  --gh: 30.6;
+  --bx: 52;
+  --by: 94;
+  --sw: var(--gw);
+  --sh: var(--gh);
+  --sfx: calc((var(--bx) - var(--gl)) / var(--gw));
+  --sfy: calc((var(--by) - var(--gt)) / var(--gh));
+}
+
+/* 탁구(구경·공개): 칸 영역(탁구대 상판 위), 공격하는 빨간 선수 라켓(--bx·--by), 받는 파란 선수 라켓의 기본 자리(--rx0·--ry0, 고른 줄 따라 옮겨 간 만큼 --rshift가 더해진다),
+   공이 튕기는 먼 쪽·가까운 쪽 코트의 높이(--far-y·--near-y) */
+.party-oly-pp-watch {
+  --gl: 7;
+  --gt: 26;
+  --gw: 86;
+  --gh: 26;
+  --bx: 91.6;
+  --by: 57.4;
+  --rx0: 19;
+  --ry0: 38;
+  --far-y: 52;
+  --near-y: 66;
+  --sw: var(--gw);
+  --sh: var(--gh);
+  --sfx: calc((var(--bx) - var(--gl)) / var(--gw));
+  --sfy: calc((var(--by) - var(--gt)) / var(--gh));
+  --rfy: calc((var(--ry0) - var(--gt)) / var(--gh));
+  --bfar: calc((var(--far-y) - var(--gt)) / var(--gh));
+  --bnear: calc((var(--near-y) - var(--gt)) / var(--gh));
+  /* 받는 쪽(파란 선수)이 고른 줄(--dcol, 공격하는 쪽 기준 0·1·2)의 가운데 쪽으로 옮겨 가는 거리(장면 너비의 %) — 줄 가운데까지의 90%만 간다 */
+  --rshift: calc((var(--gl) + var(--gw) * (var(--dcol, 1) + 0.5) / 3 - var(--rx0)) * 0.9);
+}
+
+/* 받는 쪽 라켓의 가로 위치는 선수가 옮겨 간 만큼(--rshift) 따라가야 해서, 공의 층에서 계산한다 */
+.party-oly-pp-watch .party-oly-bb-fx {
+  --rfx: calc((var(--rx0) + var(--rshift, 0) - var(--gl)) / var(--gw));
+}
+
+/* ---- 야구: 투수 손에서 날아와 고른 칸에 닿는다(0.65초, 멀리서 커지며 다가온다). 안타·홈런은 필드 쪽으로 날아가고, 헛스윙은 그 칸(포수 미트)에 남았다 사라지고, 파울은 옆으로 빠진다 */
 .party-oly-bb-fly-hit {
-  animation: party-oly-bb-flight 0.65s cubic-bezier(0.3, 0, 0.7, 1) both, party-oly-bb-ball-hit 0.8s ease-out 0.65s both;
+  animation: party-oly-bb-pitch 0.65s cubic-bezier(0.3, 0, 0.7, 1) both, party-oly-bb-ball-hit 0.9s ease-out 0.65s both;
 }
 
 .party-oly-bb-fly-homerun {
-  animation: party-oly-bb-flight 0.65s cubic-bezier(0.3, 0, 0.7, 1) both, party-oly-bb-ball-homerun 1.2s ease-out 0.65s both;
+  animation: party-oly-bb-pitch 0.65s cubic-bezier(0.3, 0, 0.7, 1) both, party-oly-bb-ball-homerun 1.4s ease-out 0.65s both;
 }
 
-.party-oly-bb-fly-strike,
+.party-oly-bb-fly-strike {
+  animation: party-oly-bb-pitch 0.65s cubic-bezier(0.3, 0, 0.7, 1) both, party-oly-bb-ball-vanish 0.25s ease-in 1.65s both;
+}
+
 .party-oly-bb-fly-foul {
-  animation: party-oly-bb-flight 0.65s cubic-bezier(0.3, 0, 0.7, 1) both, party-oly-bb-ball-vanish 0.25s ease-in 1.65s both;
+  animation: party-oly-bb-pitch 0.65s cubic-bezier(0.3, 0, 0.7, 1) both, party-oly-bb-ball-foul 0.6s ease-out 0.65s both;
 }
 
-@keyframes party-oly-bb-flight {
+@keyframes party-oly-bb-pitch {
   from {
-    top: -45%;
-    scale: 0.4;
-    opacity: 0.2;
+    translate: calc(var(--sfx) * var(--sw) * 1cqw) calc(var(--sfy) * var(--sh) * 1cqh);
+    scale: 0.35;
+    opacity: 1;
   }
   to {
-    top: var(--y);
-    scale: 1;
+    translate: calc(var(--fx) * var(--sw) * 1cqw) calc(var(--fy) * var(--sh) * 1cqh);
+    scale: 1.15;
     opacity: 1;
   }
 }
 
-/* 안타: 앞으로 날아간다 */
+/* 안타: 맞고 필드 쪽(위)으로 뻗어 나간다 */
 @keyframes party-oly-bb-ball-hit {
-  to {
-    translate: 3.5rem -9rem;
-    scale: 0.45;
-    opacity: 0;
-  }
-}
-
-/* 홈런: 더 크고 높게 멀리 날아간다 */
-@keyframes party-oly-bb-ball-homerun {
   40% {
-    scale: 2;
+    scale: 0.95;
   }
   to {
-    translate: 6rem -19rem;
-    rotate: 720deg;
+    translate: calc(var(--fx) * var(--sw) * 1cqw + var(--dx, 0rem)) calc(var(--fy) * var(--sh) * 1cqh - 9rem);
     scale: 0.3;
     opacity: 0;
   }
 }
 
-/* 헛스윙·파울: 칸에 남아 있다가 사라진다 */
+/* 홈런: 더 크게 떠올라 펜스 너머로 멀리 날아간다 */
+@keyframes party-oly-bb-ball-homerun {
+  30% {
+    scale: 1.7;
+  }
+  to {
+    translate: calc(var(--fx) * var(--sw) * 1cqw + var(--dx, 0rem) * 1.6) calc(var(--fy) * var(--sh) * 1cqh - 15rem);
+    rotate: 540deg;
+    scale: 0.2;
+    opacity: 0;
+  }
+}
+
+/* 파울: 맞고 옆으로 튕겨 나간다 */
+@keyframes party-oly-bb-ball-foul {
+  to {
+    translate: calc(var(--fx) * var(--sw) * 1cqw + var(--dxf, 7rem)) calc(var(--fy) * var(--sh) * 1cqh + 1.5rem);
+    rotate: 360deg;
+    scale: 0.7;
+    opacity: 0;
+  }
+}
+
+/* 헛스윙: 칸에 남아 있다가 사라진다 */
 @keyframes party-oly-bb-ball-vanish {
   to {
     opacity: 0;
     scale: 0.6;
   }
+}
+
+/* ---- 축구: 키커 발에서 골대로 날아간다(0.65초). 골이면 그물에 박혀 흔들리다 사라지고, 선방이면 골키퍼 손에 맞고 위·옆으로 튕겨 나왔다가 앞쪽으로 떨어진다 */
+.party-oly-sc-ball-goal {
+  animation: party-oly-sc-shot 0.65s cubic-bezier(0.2, 0.6, 0.4, 1) both, party-oly-sc-net 0.5s ease-out 0.65s both, party-oly-bb-ball-vanish 0.25s ease-in 1.65s both;
+}
+
+.party-oly-sc-ball-saved {
+  animation: party-oly-sc-shot 0.65s cubic-bezier(0.2, 0.6, 0.4, 1) both, party-oly-sc-parry 1s ease-out 0.65s both;
+}
+
+@keyframes party-oly-sc-shot {
+  from {
+    translate: calc(var(--sfx) * var(--sw) * 1cqw) calc(var(--sfy) * var(--sh) * 1cqh);
+    scale: 1.25;
+  }
+  to {
+    translate: calc(var(--fx) * var(--sw) * 1cqw) calc(var(--fy) * var(--sh) * 1cqh);
+    scale: 0.85;
+  }
+}
+
+@keyframes party-oly-sc-net {
+  40% {
+    scale: 1.1;
+  }
+  to {
+    scale: 0.95;
+  }
+}
+
+@keyframes party-oly-sc-parry {
+  40% {
+    translate: calc(var(--fx) * var(--sw) * 1cqw + var(--dx, 0rem)) calc(var(--fy) * var(--sh) * 1cqh - 4rem);
+    scale: 1.05;
+  }
+  to {
+    translate: calc(var(--fx) * var(--sw) * 1cqw + var(--dx, 0rem) * 1.8) calc(var(--fy) * var(--sh) * 1cqh + 3.5rem);
+    scale: 1.7;
+    opacity: 0;
+  }
+}
+
+/* ---- 탁구(구경·공개): 공격하는 쪽(빨간 선수) 라켓에서 높이 떠올라 탁구대의 고른 줄에 찍힌다(0.65초).
+   막으면 → 받는 쪽(파란 선수) 라켓에 맞고 → 같은 모양의 포물선으로 빨간 선수에게 돌아온다. 못 막으면 → 찍힌 뒤 위쪽으로 튕겨 나가 사라진다.
+   위치(바깥 .party-oly-bb-fly)는 구간마다 일정한 속도로 옮기고, 포물선(안쪽 .party-oly-bb-arc)은 위아래로만 따로 맡는다 — 둘을 합치면 던진 공의 궤적이 된다.
+   --ah: 포물선 높이(장면 높이의 %), --ox·--oy: 못 막았을 때 찍힌 뒤 튕겨 나가는 방향(장면 너비·높이의 %) */
+.party-oly-pp-ball-return {
+  animation: party-oly-pp-return 2.1s linear both;
+}
+
+.party-oly-pp-ball-point {
+  animation: party-oly-pp-point 2.1s linear both;
+}
+
+.party-oly-pp-ball-return .party-oly-bb-arc {
+  animation: party-oly-pp-arc-return 2.1s both;
+}
+
+.party-oly-pp-ball-point .party-oly-bb-arc {
+  animation: party-oly-pp-arc-point 2.1s both;
+}
+
+@keyframes party-oly-pp-return {
+  0% {
+    translate: calc(var(--sfx) * var(--sw) * 1cqw) calc(var(--sfy) * var(--sh) * 1cqh);
+    scale: 0.8;
+    opacity: 1;
+  }
+  31% {
+    translate: calc(var(--fx) * var(--sw) * 1cqw) calc(var(--bfar) * var(--sh) * 1cqh);
+    scale: 1;
+  }
+  38% {
+    translate: calc(var(--rfx) * var(--sw) * 1cqw) calc(var(--rfy) * var(--sh) * 1cqh);
+    scale: 0.95;
+  }
+  69% {
+    translate: calc(var(--sfx) * var(--sw) * 1cqw) calc(var(--sfy) * var(--sh) * 1cqh);
+    scale: 0.8;
+    opacity: 1;
+  }
+  76%,
+  100% {
+    translate: calc(var(--sfx) * var(--sw) * 1cqw) calc(var(--sfy) * var(--sh) * 1cqh);
+    scale: 0.7;
+    opacity: 0;
+  }
+}
+
+@keyframes party-oly-pp-point {
+  0% {
+    translate: calc(var(--sfx) * var(--sw) * 1cqw) calc(var(--sfy) * var(--sh) * 1cqh);
+    scale: 0.8;
+    opacity: 1;
+  }
+  31% {
+    translate: calc(var(--fx) * var(--sw) * 1cqw) calc(var(--bfar) * var(--sh) * 1cqh);
+    scale: 1;
+    opacity: 1;
+    animation-timing-function: cubic-bezier(0.2, 0.7, 0.5, 1);
+  }
+  62%,
+  100% {
+    translate: calc(var(--fx) * var(--sw) * 1cqw + var(--ox) * 1cqw) calc(var(--bfar) * var(--sh) * 1cqh + var(--oy) * 1cqh);
+    scale: 0.55;
+    opacity: 0;
+  }
+}
+
+/* 포물선: 구간 가운데에서 가장 높고(올라갈 때 ease-out, 떨어질 때 ease-in — 이차 곡선) 양 끝에서 0(탁구대에 닿거나 라켓에 맞는 순간) */
+@keyframes party-oly-pp-arc-return {
+  0% {
+    translate: 0 0;
+    animation-timing-function: cubic-bezier(0.5, 1, 0.89, 1);
+  }
+  15.5% {
+    translate: 0 calc(var(--ah) * -1cqh);
+    animation-timing-function: cubic-bezier(0.11, 0, 0.5, 0);
+  }
+  31% {
+    translate: 0 0;
+    animation-timing-function: ease-out;
+  }
+  34.5% {
+    translate: 0 -0.7rem;
+    animation-timing-function: ease-in;
+  }
+  38% {
+    translate: 0 0;
+    animation-timing-function: cubic-bezier(0.5, 1, 0.89, 1);
+  }
+  53.5% {
+    translate: 0 calc(var(--ah) * -1cqh);
+    animation-timing-function: cubic-bezier(0.11, 0, 0.5, 0);
+  }
+  69%,
+  100% {
+    translate: 0 0;
+  }
+}
+
+@keyframes party-oly-pp-arc-point {
+  0% {
+    translate: 0 0;
+    animation-timing-function: cubic-bezier(0.5, 1, 0.89, 1);
+  }
+  15.5% {
+    translate: 0 calc(var(--ah) * -1cqh);
+    animation-timing-function: cubic-bezier(0.11, 0, 0.5, 0);
+  }
+  31%,
+  100% {
+    translate: 0 0;
+  }
+}
+
+/* ---- 막는 쪽이 고른 쪽으로 움직인다 (결과 공개 · 구경 화면): 골키퍼는 왼쪽·오른쪽으로 몸을 날리고 가운데면 제자리에서 뛰어오른다, 탁구 받는 쪽 선수는 그 줄 쪽으로 옮겨 간다.
+   서버가 저장한 방향(공격하는 쪽 기준)이라 화면에 보이는 결과와 같다. 위·아래 칸은 상관없다. 이동량은 장면 너비의 %(cqw) */
+.party-oly-sc-keeper {
+  will-change: translate, rotate;
+}
+
+.party-oly-sc-def-0 .party-oly-sc-keeper {
+  animation: party-oly-sc-dive-left 0.55s ease-out 0.1s both;
+}
+
+.party-oly-sc-def-1 .party-oly-sc-keeper {
+  animation: party-oly-sc-hop 0.55s ease-out 0.1s both;
+}
+
+.party-oly-sc-def-2 .party-oly-sc-keeper {
+  animation: party-oly-sc-dive-right 0.55s ease-out 0.1s both;
+}
+
+@keyframes party-oly-sc-dive-left {
+  to {
+    translate: -17cqw 0.7rem;
+    rotate: -18deg;
+  }
+}
+
+@keyframes party-oly-sc-dive-right {
+  to {
+    translate: 17cqw 0.7rem;
+    rotate: 18deg;
+  }
+}
+
+@keyframes party-oly-sc-hop {
+  40% {
+    translate: 0 -1.3rem;
+  }
+  to {
+    translate: 0 0;
+  }
+}
+
+/* 탁구: 받는 쪽(파란 선수)은 고른 줄 쪽으로 옮겨 간다 — 공이 찍히기 전에 도착하도록 살짝 뛰듯이 움직이고 몸을 기울였다 선다 (이동량 --rshift는 장면 변수에서 계산) */
+.party-oly-pp-watch .party-oly-pp-blue {
+  animation: party-oly-pp-step 0.75s ease-in-out 0.1s both;
+  will-change: translate, rotate;
+}
+
+.party-oly-pp-def-0 { --lean: -3; }
+.party-oly-pp-def-1 { --lean: 4; }
+.party-oly-pp-def-2 { --lean: 6; }
+
+@keyframes party-oly-pp-step {
+  35% {
+    translate: calc(var(--rshift) * 0.45 * 1cqw) -0.5rem;
+    rotate: calc(var(--lean, 0) * 1deg);
+  }
+  70% {
+    translate: calc(var(--rshift) * 0.9 * 1cqw) 0;
+    rotate: calc(var(--lean, 0) * 0.5deg);
+  }
+  to {
+    translate: calc(var(--rshift) * 1cqw) 0;
+    rotate: 0deg;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .party-oly-sc-def-0 .party-oly-sc-keeper,
+  .party-oly-sc-def-1 .party-oly-sc-keeper,
+  .party-oly-sc-def-2 .party-oly-sc-keeper,
+  .party-oly-pp-watch .party-oly-pp-blue {
+    animation: none;
+  }
+}
+
+/* 키커 그림은 공이 있는 것과 없는 것 두 장을 겹쳐 두고 보이는 쪽만 바꾼다 — 슛하는 순간 그림 파일을 새로 불러오느라 깜빡이는 일이 없다 */
+.party-oly-sc-swap-off {
+  visibility: hidden;
+}
+
+/* 탁구공 (이모티콘 대신 그린다) */
+.party-oly-pp-ballshape {
+  width: 1.3rem;
+  height: 1.3rem;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #ffffff 0, #fff0cf 45%, #f0b04a 100%);
+  box-shadow: 0 0 0 1.5px rgba(70, 40, 10, 0.45), 0 2px 4px rgba(0, 0, 0, 0.4);
+  font-size: 0;
 }
 
 .party-oly-bb-options {
@@ -1049,11 +1488,220 @@
 }
 
 .party-oly-zd-grid-soccer .party-oly-zd-cell {
-  aspect-ratio: 1.2;
+  aspect-ratio: 1.5;
 }
 
 .party-oly-zd-grid-pingpong .party-oly-zd-cell {
   min-height: 7rem;
+}
+
+/* 칸은 반투명 — 뒤의 그림(골키퍼·탁구대)이 비쳐 보인다. 축구는 골키퍼가 또렷하게 보이도록 더 투명하게 하고 칸 테두리를 흰 선으로 그린다 */
+.party-oly-zd-cell {
+  background: var(--zd-cell-bg, color-mix(in srgb, var(--surface) 55%, transparent));
+  border-color: var(--zd-cell-border, transparent);
+}
+
+/* 탁구 장면: 체육관 배경 → 선수(탁구대 뒤) → 탁구대(앞 레이어) → 칸 순서로 겹친다.
+   치는 쪽 화면(kicker)은 파란 유니폼 선수와 탁구대 위의 작은 칸, 받는 쪽 화면(keeper)은 빨간 유니폼 선수와 화면 전체를 덮는 칸, 구경·공개(watch)는 둘 다 보인다 */
+.party-oly-pp {
+  --zd-cell-bg: color-mix(in srgb, #ffffff 16%, transparent);
+  --zd-cell-border: rgba(255, 255, 255, 0.78);
+  position: relative;
+  width: min(100%, 22rem);
+  aspect-ratio: 5 / 4;
+  overflow: hidden;
+  border: 2px solid var(--border-strong);
+  border-radius: var(--radius);
+  background: url('./assets/scene-pingpong-hall.svg') 0 0 / 100% 100% no-repeat;
+}
+
+.party-oly-pp-player {
+  position: absolute;
+  bottom: 38%;
+  z-index: 1;
+  height: 60%;
+  transform: translateX(-50%);
+  pointer-events: none;
+  user-select: none;
+}
+
+.party-oly-pp-kicker .party-oly-pp-blue,
+.party-oly-pp-keeper .party-oly-pp-red {
+  left: 50%;
+}
+
+.party-oly-pp-watch .party-oly-pp-red {
+  left: 80%;
+  bottom: 2%;
+  z-index: 3;
+  height: 52%;
+}
+
+/* 구경하는 화면의 파란 선수(치는 쪽)만 탁구대 바깥, 오른쪽 아래에 선다 — 탁구대 앞 레이어보다 위에 그려서 가려지지 않는다 */
+.party-oly-pp-watch .party-oly-pp-blue {
+  left: 31%;
+  height: 54%;
+}
+
+.party-oly-pp-table {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  user-select: none;
+}
+
+.party-oly-pp-grid {
+  position: absolute;
+  z-index: 3;
+}
+
+/* 구경·공개: 탁구대 위 */
+.party-oly-pp-watch .party-oly-pp-grid {
+  left: calc(var(--gl) * 1%);
+  top: calc(var(--gt) * 1%);
+  width: calc(var(--gw) * 1%);
+  height: calc(var(--gh) * 1%);
+}
+
+/* 치는 쪽: 탁구대 기준 위쪽(건너편 코트 쪽)으로 올린다 */
+.party-oly-pp-kicker .party-oly-pp-grid {
+  left: 7%;
+  top: 26%;
+  width: 86%;
+  height: 26%;
+}
+
+/* 받는 쪽: 탁구대 기준 아래쪽(내 코트 쪽)으로 내려서, 위의 선수는 가리지 않고 바닥까지 칸이 이어진다 */
+.party-oly-pp-keeper .party-oly-pp-grid {
+  left: 2%;
+  top: 40%;
+  width: 96%;
+  height: 50%;
+}
+
+.party-oly-pp-grid .party-oly-zd-grid,
+.party-oly-pp-grid .party-oly-zd-stage {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+}
+
+.party-oly-pp-grid .party-oly-zd-grid {
+  grid-template-rows: 1fr;
+  gap: 0.25rem;
+  padding: 0.25rem;
+}
+
+.party-oly-pp-grid .party-oly-zd-grid .party-oly-zd-cell {
+  min-height: 0;
+}
+
+/* 축구 장면: 키커 화면(kick)은 골대 정면 그림, 골키퍼 화면(save)은 골대 안에서 내다본 경기장 그림 — 칸은 그 위에 반투명으로 겹친다 */
+.party-oly-sc {
+  --zd-cell-bg: color-mix(in srgb, #ffffff 14%, transparent);
+  --zd-cell-border: rgba(255, 255, 255, 0.75);
+  position: relative;
+  width: min(100%, 22rem);
+  aspect-ratio: 10 / 9;
+  overflow: hidden;
+  border: 2px solid var(--border-strong);
+  border-radius: var(--radius);
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+}
+
+.party-oly-sc-kick {
+  background-image: url('./assets/scene-soccer-kick.svg');
+}
+
+.party-oly-sc-save {
+  background-image: url('./assets/scene-soccer-save.svg');
+}
+
+/* 칸이 놓이는 곳 — 골대 입구(kick) 또는 골대 안쪽 시야(save) */
+.party-oly-sc-grid {
+  position: absolute;
+  z-index: 2;
+}
+
+.party-oly-sc-kick .party-oly-sc-grid {
+  left: calc(var(--gl) * 1%);
+  top: calc(var(--gt) * 1%);
+  width: calc(var(--gw) * 1%);
+  height: calc(var(--gh) * 1%);
+}
+
+.party-oly-sc-save .party-oly-sc-grid {
+  /* 골대 안에서 내다보는 시야 전체 — 양쪽 골대(좌우)와 가로대(위)를 뺀 모든 곳이 골문이다 */
+  left: 3.5%;
+  top: 4.5%;
+  width: 93%;
+  height: 92%;
+}
+
+.party-oly-sc-grid .party-oly-zd-grid,
+.party-oly-sc-grid .party-oly-zd-stage {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+}
+
+.party-oly-sc-grid .party-oly-zd-grid {
+  grid-template-rows: repeat(2, 1fr);
+  gap: 0.25rem;
+  padding: 0.25rem;
+}
+
+.party-oly-sc-grid .party-oly-zd-grid .party-oly-zd-cell {
+  aspect-ratio: auto;
+  min-height: 0;
+}
+
+.party-oly-sc img,
+.party-oly-sc-ball {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  pointer-events: none;
+  user-select: none;
+}
+
+/* 골대를 지키는 골키퍼 — 골대 안(칸 뒤)에 선다 */
+.party-oly-sc-keeper {
+  bottom: 42.5%;
+  z-index: 1;
+  height: 31.5%;
+}
+
+/* 차기 직전의 키커 — 골키퍼 화면에서는 크게, 골대 정면 장면(구경·공개)에서는 앞 잔디에 작게 선다 */
+.party-oly-sc-kicker {
+  z-index: 1;
+}
+
+.party-oly-sc-save .party-oly-sc-kicker {
+  bottom: 28%;
+  height: 44%;
+}
+
+.party-oly-sc-kick .party-oly-sc-kicker {
+  bottom: 2%;
+  height: 36%;
+}
+
+/* 키커 화면의 공 */
+.party-oly-sc-ball {
+  bottom: 6%;
+  z-index: 1;
+  width: 11%;
 }
 
 .party-oly-zd-cell:disabled {
@@ -1083,7 +1731,7 @@
   line-height: 1;
 }
 
-/* 축구 공개 연출: 공은 야구의 공(.party-oly-bb-fly)과 같은 연출을 쓴다 — 선방이면 날아가고, 골이면 그 칸에 남았다가 사라진다 */
+/* 축구·탁구 공개 연출: 칸 위에 공을 얹는 층(.party-oly-bb-fx)과 공(.party-oly-bb-fly)은 야구와 같은 구조이고, 공의 움직임만 종목별로 다르다 */
 .party-oly-zd-stage {
   position: relative;
   width: min(100%, 18rem);

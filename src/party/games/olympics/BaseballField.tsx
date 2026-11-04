@@ -1,11 +1,13 @@
-import { useEffect, useRef, useState, type CSSProperties } from 'react'
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import type { Socket } from 'socket.io-client'
 import type { ClientToServerEvents, ServerToClientEvents, TeamInfo } from '../../../shared/lib/partyProtocol'
 import { teamColorClass, teamEmoji, teamRgb } from '../../core/PartyTeamBanner'
 import { useMonotonicStartedAt } from '../../core/useMonotonicStartedAt'
 import { RemainingTime } from '../../../shared/components/RemainingTime'
 import type { BaseballOutcome, BaseballPitchType, BaseballSwingType, OlympicsBaseball } from './protocol'
-import { pitchZone, swingCells } from './sports'
+import { mirrorCell, mirrorSwing, pitchZone, swingCells } from './sports'
+import pitcherImg from './assets/baseball-pitcher.png'
+import catcherBatterImg from './assets/baseball-catcher-batter.png'
 
 // 야구 화면 — 투수는 구종(모양)과 칸을, 타자는 스윙 모양과 칸을 서로 모르게 고르고, 둘 다 고르면 함께 공개해 결과를 가린다.
 // 고르는 동안 고른 칸을 기준으로 모양이 어떻게 칠해지는지 바로 그려 준다 (고른 칸은 더 진하게)
@@ -73,16 +75,29 @@ interface GridProps {
 
 /** 공개 연출: 공이 날아와 투수가 고른 칸에 닿으면 칠해진 모양이 나타나고, 안타는 공이 날아가고 홈런은 더 크고 높게 날아가며, 헛스윙·파울은 공이 그 칸에 1초쯤 남았다가 사라진다 */
 function ReplayStage({ reveal, stepKey }: { reveal: NonNullable<OlympicsBaseball['reveal']>; stepKey: string }) {
-  const col = reveal.target % 3
-  const row = Math.floor(reveal.target / 3)
-  const style = { '--x': `${((col + 0.5) / 3) * 100}%`, '--y': `${((row + 0.5) / 3) * 100}%` } as CSSProperties
+  // 서버는 값을 투수 기준으로 저장하고, 이 화면은 홈에서 마운드를 보는 타자 시점이라 모두 좌우를 뒤집어 그린다
+  // (타자가 고른 칸·모양은 고른 그대로, 투수가 고른 칸은 타자 눈에 보이는 자리로)
+  const target = mirrorCell(reveal.target)
+  const col = target % 3
+  const row = Math.floor(target / 3)
+  // 타구가 뻗는 쪽: 고른 칸이 왼쪽 줄이면 왼쪽, 오른쪽 줄이면 오른쪽, 가운데면 곧게 앞으로 (파울은 가운데여도 한쪽으로 빠진다)
+  const style = {
+    '--fx': (col + 0.5) / 3,
+    '--fy': (row + 0.5) / 3,
+    '--dx': `${(col - 1) * 4}rem`,
+    '--dxf': col === 2 ? '7rem' : '-7rem',
+  } as CSSProperties
   return (
-    <div className="party-oly-bb-stage" key={stepKey}>
-      <ZoneGrid zone={reveal.zone} target={reveal.target} swing={reveal.swing} swingAnchor={reveal.swingCell} />
-      <div className="party-oly-bb-fx" style={style} aria-hidden="true">
-        <span className={`party-oly-bb-fly party-oly-bb-fly-${reveal.outcome}`}>⚾</span>
+    <BaseballScene view="watch">
+      <div className="party-oly-bb-stage" key={stepKey}>
+        <ZoneGrid zone={reveal.zone.map(mirrorCell)} target={target} swing={reveal.swing.map(mirrorCell)} swingAnchor={mirrorCell(reveal.swingCell)} />
+        <div className="party-oly-bb-fx" style={style} aria-hidden="true">
+          <span className={`party-oly-bb-fly party-oly-bb-fly-${reveal.outcome}`}>
+            <span className="party-oly-bb-arc">⚾</span>
+          </span>
+        </div>
       </div>
-    </div>
+    </BaseballScene>
   )
 }
 
@@ -107,6 +122,24 @@ function Rules() {
         <span>투수가 고른 칸과 같은 칸</span>
       </li>
     </ul>
+  )
+}
+
+/** 누구 화면인가 — 투수는 마운드에서 포수와 타자를, 타자는 홈에서 마운드의 투수를 본다. 구경하는 사람과 공개 연출은 타자 쪽 장면에 둘 다 나온다 */
+type SceneView = 'pitcher' | 'batter' | 'watch'
+
+/**
+ * 야구 장면 — 투수 화면은 홈 플레이트 쪽(백스톱·타석) 그림 위에 포수와 타자가 서 있고 스트라이크존 칸이 그 위에 겹친다.
+ * 타자 화면은 홈에서 본 야구장(조명탑·전광판·잔디·마운드) 위에 마운드의 투수가 서 있고, 칸이 화면 전체를 덮는다.
+ */
+function BaseballScene({ view, children }: { view: SceneView; children: ReactNode }) {
+  const scene = view === 'pitcher' ? 'pitch' : 'bat'
+  return (
+    <div className={`party-oly-bb-sc party-oly-bb-sc-${scene}`}>
+      {view !== 'pitcher' && <img className="party-oly-bb-sc-pitcher" src={pitcherImg} alt="" draggable={false} />}
+      {view !== 'batter' && <img className="party-oly-bb-sc-pair" src={catcherBatterImg} alt="" draggable={false} />}
+      <div className="party-oly-bb-sc-grid">{children}</div>
+    </div>
   )
 }
 
@@ -199,7 +232,9 @@ export function BaseballField({ baseball, roundId, socket, teams, myTeamId, iAmR
           <SwingControls key={stepKey} socket={socket} startedAt={startedAt} maxMs={baseball.maxMs} />
         ) : (
           <div className="party-oly-bb-wait">
-            <ZoneGrid />
+            <BaseballScene view="watch">
+              <ZoneGrid />
+            </BaseballScene>
             <p className="party-oly-stage-hint">
               투수 {baseball.pitcherReady ? '✔' : '…'} · 타자 {baseball.batterReady ? '✔' : '…'} 서로 모르게 고르는 중이에요
               {startedAt !== null && <RemainingTime startedAt={startedAt} timeoutMs={baseball.maxMs} />}
@@ -215,7 +250,7 @@ export function BaseballField({ baseball, roundId, socket, teams, myTeamId, iAmR
             {reveal.points > 0 && ` +${reveal.points}점`}
           </p>
           <p className="party-oly-bb-legend">
-            투수 {pitchOf(reveal.pitchType)?.label} {pitchOf(reveal.pitchType)?.glyph} · 타자 {swingOf(reveal.swingType)?.label} {swingOf(reveal.swingType)?.glyph} — {OUTCOME_REASON[reveal.outcome]}.
+            투수 {pitchOf(reveal.pitchType)?.label} {pitchOf(reveal.pitchType)?.glyph} · 타자 {swingOf(mirrorSwing(reveal.swingType))?.label} {swingOf(mirrorSwing(reveal.swingType))?.glyph} — {OUTCOME_REASON[reveal.outcome]}.
             <br />
             투수 팀 색으로 칠해진 칸이 존, 그중 진한 칸이 투수가 고른 칸, 타자 팀 색 테두리가 타자가 휘두른 곳이에요.
             {reveal.batterOut && ' 삼진 아웃! 이 팀의 공격은 끝났어요.'}
@@ -258,7 +293,9 @@ function PitchControls({ socket, startedAt, maxMs }: { socket: Socket<ServerToCl
         ))}
       </div>
       <p className="party-oly-bb-legend">{selected ? `${selected.label}: 고른 칸을 지나는 ${selected.glyph} 줄이 칠해져요. ${selected.glyph === '╲' || selected.glyph === '╱' ? WRAP_HINT : ''}` : '구종을 고르면 칠해지는 모양을 알려줘요'}</p>
-      <ZoneGrid tone="pitch" preview={preview} selected={cell} onSelect={sent ? undefined : chooseCell} />
+      <BaseballScene view="pitcher">
+        <ZoneGrid tone="pitch" preview={preview} selected={cell} onSelect={sent ? undefined : chooseCell} />
+      </BaseballScene>
       <button
         type="button"
         className="btn btn-primary party-oly-bb-confirm"
@@ -293,7 +330,7 @@ function SwingControls({ socket, startedAt, maxMs }: { socket: Socket<ServerToCl
   return (
     <div className="party-oly-bb-controls">
       <p className="party-oly-stage-hint">
-        투수는 어떤 모양(ㅡ ㅣ ╲ ╱)을 던질까요? 같은 모양, 같은 줄로 치면 안타! 투수가 고른 칸과 같은 칸이면 홈런!
+        투수는 어떤 모양(ㅡ ㅣ ╲ ╱)을 던질까요? 마주 보고 있어서 투수의 ╱는 내 눈에 ╲로 보여요. 같은 모양, 같은 줄로 치면 안타! 같은 칸이면 홈런!
         {startedAt !== null && <RemainingTime startedAt={startedAt} timeoutMs={maxMs} />}
       </p>
       <div className="party-oly-bb-options">
@@ -305,7 +342,9 @@ function SwingControls({ socket, startedAt, maxMs }: { socket: Socket<ServerToCl
         ))}
       </div>
       <p className="party-oly-bb-legend">{selected ? `고른 칸을 지나는 ${selected.glyph} 줄을 휘둘러요. ${selected.glyph === '╲' || selected.glyph === '╱' ? WRAP_HINT : ''}` : '모양을 고르고 칸을 누르세요'}</p>
-      <ZoneGrid tone="swing" preview={swing !== null && cell !== null ? swingCells(swing, cell) : []} selected={cell} onSelect={sent ? undefined : chooseCell} />
+      <BaseballScene view="batter">
+        <ZoneGrid tone="swing" preview={swing !== null && cell !== null ? swingCells(swing, cell) : []} selected={cell} onSelect={sent ? undefined : chooseCell} />
+      </BaseballScene>
       <button
         type="button"
         className="btn btn-primary party-oly-bb-confirm"

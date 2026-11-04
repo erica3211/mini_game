@@ -24,6 +24,18 @@ export function archeryPosition(gauge: OlympicsGauge, elapsedMs: number): { x: n
 
 /** 칸 cell을 기준으로 한 모양이 덮는 칸들 — 서버의 swingCells와 같아야 한다 (고르는 동안 모양을 미리 그려 주려고 화면에도 둔다).
  *  항상 3칸이고, 대각선은 판 끝에서 반대쪽으로 이어진다 */
+/**
+ * 마주 보는 쪽의 좌우 뒤집기 — 서버는 골키퍼·받는 쪽·타자가 고른 값을 공격하는 쪽(키커·치는 쪽·투수) 기준으로 뒤집어 저장한다.
+ * 결과 화면에서 저장된 값을 보는 사람의 시점으로 다시 그릴 때도 같은 식을 쓴다 (왼쪽 열 ↔ 오른쪽 열, 대각선 ╲ ↔ ╱)
+ */
+export function mirrorCell(cell: number): number {
+  return Math.floor(cell / 3) * 3 + (2 - (cell % 3))
+}
+
+export function mirrorSwing<T extends 'row' | 'column' | 'down' | 'up'>(type: T): T | 'down' | 'up' {
+  return type === 'down' ? 'up' : type === 'up' ? 'down' : type
+}
+
 export function swingCells(type: 'row' | 'column' | 'down' | 'up', cell: number): number[] {
   const row = Math.floor(cell / 3)
   const col = cell % 3
