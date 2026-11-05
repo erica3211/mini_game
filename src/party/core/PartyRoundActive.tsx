@@ -191,6 +191,9 @@ function renderGame(session: GameSession, roundKey: string) {
           stage={session.jjukkumiStage}
           redLight={{ state: session.jjukkumiState, positions: session.jjukkumiPositions }}
           dalgona={{ state: session.dalgonaState, traces: session.dalgonaTraces }}
+          tug={{ state: session.tugStageState, power: session.tugStagePower }}
+          marbles={session.marblesState}
+          bridge={session.bridgeState}
           end={session.jjukkumiEnd}
           playerId={session.playerId}
           players={state.players}

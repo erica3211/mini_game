@@ -134,6 +134,7 @@ export function DalgonaStage({ socket, roundKey, state, traces, end, playerId, p
             tolerance={state.tolerance}
             points={shownTrace?.points ?? []}
             progress={shownProgress}
+            reversed={shownTrace?.reversed ?? false}
             status={shownStatus}
             interactive={running && shownIsMe}
             onTrace={(points, newStroke) => socket.emit('jjukkumi:trace', { points, newStroke })}
@@ -142,12 +143,12 @@ export function DalgonaStage({ socket, roundKey, state, traces, end, playerId, p
         {countingDown && (
           <div className="jk-overlay" role="timer">
             <strong key={Math.ceil(-elapsed! / 1000)}>{Math.ceil(-elapsed! / 1000)}</strong>
-            <span>초록 점에서 시작해서 선을 따라 그려요!</span>
+            <span>초록 점에서 시작해서 선을 따라 그려요! (방향은 어느 쪽이든 OK)</span>
           </div>
         )}
       </div>
 
-      {!end && running && <p className="party-mb-note">초록 점을 짚고 손가락을 떼지 말고 선을 따라 그려요. 선에서 너무 벗어나면 달고나가 깨져요! (뗐다 다시 대도 돼요)</p>}
+      {!end && running && <p className="party-mb-note">초록 점에서 시작해서 선을 따라 그려요. 어느 방향으로 가도 괜찮지만 선에서 너무 벗어나면 달고나가 깨져요! (손가락을 뗐다 다시 대도 돼요)</p>}
       {!end && meInStage && myStatus === 'passed' && <p className="party-mb-banner party-mb-banner-win">🍪 성공! 다른 사람들이 끝나길 기다려요</p>}
       {!end && meInStage && myStatus === 'out' && <p className="party-mb-banner party-mb-banner-lose">💥 달고나가 깨졌어요! 이름을 눌러서 다른 사람을 구경해 보세요</p>}
       {!end && !meInStage && <p className="party-mb-banner">👀 앞에서 탈락해서 구경만 해요</p>}

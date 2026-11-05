@@ -16,6 +16,8 @@ interface Props {
   points: (DalgonaPoint | null)[]
   /** 얼마나 그렸는가 (0~1) */
   progress: number
+  /** 선의 끝에서부터 거꾸로 그리고 있다 — 지나온 부분을 그쪽 끝에서부터 칠한다 */
+  reversed: boolean
   status: JjukkumiPlayerState
   /** 내가 지금 그릴 수 있다 (소개가 끝났고 아직 깨지지도 끝나지도 않았다) */
   interactive: boolean
@@ -54,11 +56,11 @@ function strokePath(ctx: CanvasRenderingContext2D, points: (DalgonaPoint | null)
   }
 }
 
-export function DalgonaBoard({ path, tolerance, points, progress, status, interactive, onTrace }: Props) {
+export function DalgonaBoard({ path, tolerance, points, progress, reversed, status, interactive, onTrace }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   // 매 프레임 쓰는 값은 ref에 담아서, 값이 바뀔 때마다 루프를 다시 만들지 않는다
-  const live = useRef({ path, tolerance, points, progress, status, interactive, onTrace })
-  live.current = { path, tolerance, points, progress, status, interactive, onTrace }
+  const live = useRef({ path, tolerance, points, progress, reversed, status, interactive, onTrace })
+  live.current = { path, tolerance, points, progress, reversed, status, interactive, onTrace }
   /** 내가 지금 그리는 중인 점들 (null은 손가락을 뗀 곳) */
   const local = useRef<(DalgonaPoint | null)[]>([])
   const pending = useRef<DalgonaPoint[]>([])
@@ -140,40 +142,33 @@ export function DalgonaBoard({ path, tolerance, points, progress, status, intera
         // 지금까지 잘 따라온 부분
         const reached = Math.round(state.progress * (path.length - 1))
         if (reached > 0) {
-          strokePath(ctx, path.slice(0, reached + 1), W)
+          // 선의 끝에서부터 거꾸로 그리고 있으면 그쪽 끝에서부터 칠한다
+          strokePath(ctx, state.reversed ? path.slice(path.length - 1 - reached) : path.slice(0, reached + 1), W)
           ctx.strokeStyle = '#3ddc84'
           ctx.lineWidth = Math.max(2, W * 0.014)
           ctx.stroke()
         }
-        // 시작과 끝
-        const start = path[0]
-        const end = path[path.length - 1]
-        const sameSpot = Math.hypot(start[0] - end[0], start[1] - end[1]) < 0.03
-        if (!sameSpot) {
-          ctx.fillStyle = '#e5322d'
-          ctx.beginPath()
-          ctx.arc(end[0] * W, end[1] * W, W * 0.022, 0, Math.PI * 2)
-          ctx.fill()
-          ctx.strokeStyle = '#fff'
-          ctx.lineWidth = Math.max(1.5, W * 0.006)
-          ctx.stroke()
-        }
+        // 시작 자리 — 아직 안 시작했으면 초록 점으로 알려 준다. 어느 방향으로 그려도 되고, 처음과 끝이 만나지 않는 모양(우산)은 양쪽 끝 어디에서 시작해도 된다
         if (state.progress < 0.02) {
-          // 아직 시작 전 — 여기서부터 그리라고 알려 준다
+          const start = path[0]
+          const end = path[path.length - 1]
+          const sameSpot = Math.hypot(start[0] - end[0], start[1] - end[1]) < 0.03
           const pulse = 0.85 + 0.15 * Math.sin(performance.now() / 180)
-          ctx.fillStyle = '#2fbf71'
-          ctx.beginPath()
-          ctx.arc(start[0] * W, start[1] * W, W * 0.032 * pulse, 0, Math.PI * 2)
-          ctx.fill()
-          ctx.strokeStyle = '#fff'
-          ctx.lineWidth = Math.max(2, W * 0.008)
-          ctx.stroke()
-          ctx.fillStyle = '#fff'
-          ctx.font = `800 ${Math.round(W * 0.034)}px sans-serif`
-          ctx.textAlign = 'center'
-          ctx.textBaseline = 'middle'
-          ctx.fillText(sameSpot ? '시작·끝' : '시작', start[0] * W, start[1] * W - W * 0.062)
-        }
+          for (const spot of sameSpot ? [start] : [start, end]) {
+            ctx.fillStyle = '#2fbf71'
+            ctx.beginPath()
+            ctx.arc(spot[0] * W, spot[1] * W, W * 0.032 * pulse, 0, Math.PI * 2)
+            ctx.fill()
+            ctx.strokeStyle = '#fff'
+            ctx.lineWidth = Math.max(2, W * 0.008)
+            ctx.stroke()
+            ctx.fillStyle = '#fff'
+            ctx.font = `800 ${Math.round(W * 0.034)}px sans-serif`
+            ctx.textAlign = 'center'
+            ctx.textBaseline = 'middle'
+            ctx.fillText('시작', spot[0] * W, spot[1] * W - W * 0.062)
+          }
+      }
       }
 
       // 손가락이 지나간 자리 — 내가 그리는 중이면 내 손가락 점을 바로, 아니면 서버가 알려 준 점을 그린다

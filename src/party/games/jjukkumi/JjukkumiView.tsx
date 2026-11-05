@@ -25,12 +25,14 @@ interface PlayersProps {
   /** 이름을 눌러 그 사람을 구경(테두리로 표시)할 수 있는 사람이면 주어진다 — 아직 달리는 사람에게는 주지 않는다 */
   onWatch?: (playerId: string) => void
   watchingId: string | null
+  /** 얼마나 갔는지 보여 주는 막대를 그린다 (줄다리기처럼 막대가 필요 없는 스테이지는 끈다) */
+  showBar?: boolean
 }
 
 const STATUS_TEXT: Record<JjukkumiPlayerState, string> = { run: '달리는 중', passed: '✔ 통과', out: '✖ 탈락' }
 
 /** 참가자 목록 — 캐릭터 얼굴, 이름, 어디까지 갔는지(막대), 지금 상태. 통과한 사람(빠른 순) → 달리는 사람(멀리 간 순) → 탈락한 사람(멀리 간 순) */
-export function JjukkumiPlayers({ players, rows, myId, onWatch, watchingId }: PlayersProps) {
+export function JjukkumiPlayers({ players, rows, myId, onWatch, watchingId, showBar = true }: PlayersProps) {
   const order: Record<JjukkumiPlayerState, number> = { passed: 0, run: 1, out: 2 }
   const sorted = [...rows].sort((a, b) => {
     if (a.status !== b.status) return order[a.status] - order[b.status]
@@ -41,7 +43,7 @@ export function JjukkumiPlayers({ players, rows, myId, onWatch, watchingId }: Pl
     <ul className="jk-players">
       {sorted.map((row) => {
         const nickname = players.find((p) => p.id === row.playerId)?.nickname ?? '???'
-        const classes = ['jk-player', row.playerId === myId ? 'jk-player-mine' : '', onWatch ? 'jk-player-watchable' : '', watchingId === row.playerId ? 'jk-player-watching' : '', row.status === 'out' ? 'jk-player-out' : ''].filter(Boolean).join(' ')
+        const classes = ['jk-player', showBar ? '' : 'jk-player-nobar', row.playerId === myId ? 'jk-player-mine' : '', onWatch ? 'jk-player-watchable' : '', watchingId === row.playerId ? 'jk-player-watching' : '', row.status === 'out' ? 'jk-player-out' : ''].filter(Boolean).join(' ')
         const content = (
           <>
             {row.emoji ? (
@@ -52,9 +54,11 @@ export function JjukkumiPlayers({ players, rows, myId, onWatch, watchingId }: Pl
               <img className="jk-player-face" src={spriteUrl(playerSpriteName(row.character))} alt="" draggable={false} />
             )}
             <span className="jk-player-name">{row.playerId === myId ? `${nickname} (나)` : nickname}</span>
-            <span className="jk-player-bar" aria-hidden="true">
-              <span className="jk-player-bar-fill" style={{ width: `${Math.round(row.progress * 100)}%` }} />
-            </span>
+            {showBar && (
+              <span className="jk-player-bar" aria-hidden="true">
+                <span className="jk-player-bar-fill" style={{ width: `${Math.round(row.progress * 100)}%` }} />
+              </span>
+            )}
             <span className="jk-player-state">{row.label ?? (row.status === 'passed' && row.atMs !== null ? `✔ ${formatMarbleTime(row.atMs)}` : STATUS_TEXT[row.status])}</span>
           </>
         )

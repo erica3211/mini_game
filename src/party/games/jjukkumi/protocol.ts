@@ -67,9 +67,9 @@ export interface JjukkumiStageInfo {
 export const JJUKKUMI_STAGE_CATALOG: JjukkumiStageInfo[] = [
   { id: 'redLight', emoji: '🚦', title: '무궁화 꽃이 피었습니다', ready: true },
   { id: 'dalgona', emoji: '🍪', title: '달고나', ready: true },
-  { id: 'tugOfWar', emoji: '🪢', title: '줄다리기', ready: false },
-  { id: 'marbles', emoji: '🔮', title: '구슬치기', ready: false },
-  { id: 'bridge', emoji: '🌉', title: '징검다리', ready: false },
+  { id: 'tugOfWar', emoji: '🪢', title: '줄다리기', ready: true },
+  { id: 'marbles', emoji: '🔮', title: '구슬치기', ready: true },
+  { id: 'bridge', emoji: '🌉', title: '징검다리', ready: true },
 ]
 
 /** 스테이지 번호로 이름 찾기 — 모르는 번호면 번호를 그대로 돌려준다 */
@@ -136,13 +136,15 @@ export interface DalgonaStateSignal {
 export interface DalgonaTracesSignal {
   /** true면 지금까지 그린 전부(재접속), false면 마지막으로 알린 뒤에 새로 그린 점들 */
   full: boolean
-  players: { playerId: PlayerId; points: (DalgonaPoint | null)[]; progress: number; status: JjukkumiPlayerState }[]
+  players: { playerId: PlayerId; points: (DalgonaPoint | null)[]; progress: number; /** 선의 끝에서부터 거꾸로 그리고 있다 */ reversed: boolean; status: JjukkumiPlayerState }[]
 }
 
 /** 지금까지 받아 모은 한 사람의 그림 */
 export interface DalgonaTrace {
   points: (DalgonaPoint | null)[]
   progress: number
+  /** 선의 끝에서부터 거꾸로 그리고 있다 — 지나온 부분의 색을 어느 쪽 끝에서부터 칠할지 정한다 */
+  reversed: boolean
   status: JjukkumiPlayerState
 }
 
@@ -151,7 +153,133 @@ export function mergeDalgonaTraces(previous: Record<string, DalgonaTrace>, signa
   const next: Record<string, DalgonaTrace> = signal.full ? {} : { ...previous }
   for (const row of signal.players) {
     const before = signal.full ? [] : (next[row.playerId]?.points ?? [])
-    next[row.playerId] = { points: [...before, ...row.points], progress: row.progress, status: row.status }
+    next[row.playerId] = { points: [...before, ...row.points], progress: row.progress, reversed: row.reversed, status: row.status }
   }
   return next
+}
+
+// ---------------------------------------------------------------- 스테이지 3: 줄다리기
+
+/** 팀 색 — 팀 0은 초록, 팀 1은 빨강 */
+export type TugTeamColor = 'green' | 'red'
+
+/** 줄다리기 팀의 이름·이모지·색 (초록은 마음이 놓이는 색, 빨강은 불타는 색이라 한눈에 구분된다) */
+export const TUG_TEAM_STYLE: Record<TugTeamColor, { name: string; emoji: string; color: string }> = {
+  green: { name: '초록 팀', emoji: '🟢', color: '#2fa866' },
+  red: { name: '빨강 팀', emoji: '🔴', color: '#e5322d' },
+}
+
+export interface TugStageResult {
+  /** outcome: won 이긴 팀(통과), lost 진 팀(전원 탈락), tie 비겨서 두 팀 모두 통과 */
+  teams: { teamId: number; power: number; pulls: number; outcome: 'won' | 'lost' | 'tie' }[]
+  players: { playerId: PlayerId; pulls: number }[]
+}
+
+export interface TugStageStateSignal {
+  stage: JjukkumiStageSignal
+  /** intro 팀을 알려 준다(3·2·1) / run 줄을 당긴다 / ended 끝났다 */
+  phase: 'intro' | 'run' | 'ended'
+  durationMs: number
+  /** 당기기가 시작된 뒤 흐른 시간 — intro 동안은 음수(-3000 → 0) */
+  elapsedMs: number
+  teams: { teamId: number; color: TugTeamColor; memberIds: PlayerId[] }[]
+  /** 팀별 힘 — 팀이 당긴 횟수를 팀 인원으로 나눈 값(1인당 평균) */
+  power: Record<number, number>
+  /** 이 사람이 지금까지 당긴 횟수 — 재접속했을 때만 채워져 온다 */
+  myPulls: number
+  spectatorIds: PlayerId[]
+  statuses: JjukkumiPlayerStatus[]
+  /** 끝난 뒤의 결과 — 끝나기 전에는 null */
+  result: TugStageResult | null
+}
+
+export interface TugStagePowerSignal {
+  power: Record<number, number>
+}
+
+// ---------------------------------------------------------------- 스테이지 4: 구슬치기
+
+/** 시작할 때 가진 구슬 수와 통과하는 구슬 수 (서버의 MARBLES_START·MARBLES_GOAL과 같다) */
+export const MARBLES_START = 3
+export const MARBLES_GOAL = 5
+
+export type MarblesHand = 'left' | 'right'
+export type MarblesParity = 'even' | 'odd'
+
+export interface MarblesRoundResult {
+  playerId: PlayerId
+  /** 고른 손 (못 골랐으면 null) */
+  choice: MarblesHand | null
+  /** 짝수 개(2개)를 들고 있던 손 — 다른 손에는 홀수 개(1개)가 들어 있었다 */
+  evenHand: MarblesHand
+  correct: boolean
+  /** 이 판이 끝난 뒤 가진 구슬 수 */
+  marbles: number
+}
+
+export interface MarblesStateSignal {
+  stage: JjukkumiStageSignal
+  /** intro 규칙을 알려 준다(3·2·1) / pick 손을 고른다 / reveal 양손을 펼쳐 결과를 보여 준다 / ended 끝났다 */
+  phase: 'intro' | 'pick' | 'reveal' | 'ended'
+  durationMs: number
+  /** 첫 판이 시작된 뒤 흐른 시간 — intro 동안은 음수(-3000 → 0) */
+  elapsedMs: number
+  /** 지금이 몇 번째 판인가 (1부터) */
+  round: number
+  /** 이번 판에서 맞혀야 하는 것 — 짝수(2개)를 든 손인가, 홀수(1개)를 든 손인가. 모두에게 같다 */
+  prompt: MarblesParity | null
+  phaseEndsInMs: number
+  players: PlayerId[]
+  /** 아직 뛰고 있는 사람 */
+  active: PlayerId[]
+  /** 이번 판에서 이미 고른 사람 (어느 손인지는 결과를 보여 줄 때까지 모른다) */
+  chosenIds: PlayerId[]
+  marbles: Record<PlayerId, number>
+  /** reveal 단계에서만 — 이번 판의 결과 */
+  results: MarblesRoundResult[] | null
+  spectatorIds: PlayerId[]
+  statuses: JjukkumiPlayerStatus[]
+}
+
+// ---------------------------------------------------------------- 스테이지 5: 징검다리
+
+/** 다리 유리의 왼쪽·오른쪽 */
+export type BridgeSide = 'left' | 'right'
+
+/** 방금 일어난 일 — 화면이 유리가 깨지는 모습, 건너는 모습을 한 번씩만 보여 주려고 번호(seq)를 붙인다 */
+export interface BridgeLastEvent {
+  seq: number
+  playerId: PlayerId
+  /** 몇 번째 칸이었나 (0부터) */
+  step: number
+  /** 밟은 유리 — 시간 안에 못 골랐으면 null */
+  side: BridgeSide | null
+  /** 안전한 유리를 밟았다 */
+  ok: boolean
+}
+
+export interface BridgeStateSignal {
+  stage: JjukkumiStageSignal
+  /** intro 규칙과 차례를 알려 준다 / pick 지금 차례인 사람이 유리를 고른다 / result 밟은 결과를 보여 준다 / ended 끝났다 */
+  phase: 'intro' | 'pick' | 'result' | 'ended'
+  durationMs: number
+  /** 첫 차례가 시작된 뒤 흐른 시간 — intro 동안은 음수 */
+  elapsedMs: number
+  steps: number
+  /** 건너는 차례 */
+  order: PlayerId[]
+  /** 지금 차례인 사람 — 끝났으면 null */
+  current: PlayerId | null
+  /** 지금 차례인 사람이 고를 칸 (0부터) */
+  step: number
+  phaseEndsInMs: number
+  /** 사람별로 몇 칸을 건넜는가 */
+  progress: Record<PlayerId, number>
+  /** 칸마다 누군가 무사히 밟고 건넌 유리 — 아무도 안 밟았으면 null */
+  stepped: (BridgeSide | null)[]
+  /** 칸마다 이미 깨진 유리 — 누군가 틀린 유리를 밟았을 때만 있다. 깨진 채로 남는다 */
+  broken: (BridgeSide | null)[]
+  last: BridgeLastEvent | null
+  spectatorIds: PlayerId[]
+  statuses: JjukkumiPlayerStatus[]
 }

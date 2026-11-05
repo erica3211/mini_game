@@ -26,7 +26,7 @@ import type { RecyclingEndSignal, RecyclingEventSignal, RecyclingProgressSignal,
 import type { TetrisAction, TetrisEndSignal, TetrisProgressSignal, TetrisStateSignal } from '../../party/games/tetris/protocol'
 import type { MarbleEndSignal, MarblePositionsSignal, MarbleProgressSignal, MarbleStateSignal } from '../../party/games/marbleMaze/protocol'
 import type { TreasureEndSignal, TreasurePositionsSignal, TreasureProgressSignal, TreasureStateSignal } from '../../party/games/darkTreasure/protocol'
-import type { DalgonaStateSignal, DalgonaTracesSignal, JjukkumiEndSignal, JjukkumiPositionsSignal, JjukkumiStageSignal, JjukkumiStateSignal } from '../../party/games/jjukkumi/protocol'
+import type { BridgeStateSignal, DalgonaStateSignal, DalgonaTracesSignal, JjukkumiEndSignal, JjukkumiPositionsSignal, JjukkumiStageSignal, JjukkumiStateSignal, MarblesStateSignal, TugStagePowerSignal, TugStageStateSignal } from '../../party/games/jjukkumi/protocol'
 import type { ConnectionsEndSignal, ConnectionsProgressSignal, ConnectionsStateSignal } from '../../party/games/connections/protocol'
 import type { TowerAction, TowerEndSignal, TowerProgressSignal, TowerStateSignal } from '../../party/games/towerStack/protocol'
 import type { StroopQuestionResult, StroopQuestionSignal } from '../../party/games/stroop/protocol'
@@ -399,6 +399,9 @@ export interface ClientToServerEvents {
   'jjukkumi:level': (data: { level: number }) => void
   'jjukkumi:trace': (data: { points: [number, number][]; newStroke?: boolean }) => void
   'jjukkumi:dalgona:pick': (data: { button: number }) => void
+  'jjukkumi:pull': () => void
+  'jjukkumi:marbles:pick': (data: { hand: 'left' | 'right' }) => void
+  'jjukkumi:bridge:pick': (data: { side: 'left' | 'right' }) => void
   'spyWords:hint': (data: { word: string; count: number }) => void
   'spyWords:toggle': (data: { index: number }) => void
   'spyWords:confirm': () => void
@@ -674,6 +677,10 @@ export interface ServerToClientEvents {
   'jjukkumi:state': (data: JjukkumiStateSignal) => void
   'jjukkumi:dalgona:state': (data: DalgonaStateSignal) => void
   'jjukkumi:dalgona:traces': (data: DalgonaTracesSignal) => void
+  'jjukkumi:tug:state': (data: TugStageStateSignal) => void
+  'jjukkumi:tug:power': (data: TugStagePowerSignal) => void
+  'jjukkumi:marbles:state': (data: MarblesStateSignal) => void
+  'jjukkumi:bridge:state': (data: BridgeStateSignal) => void
   'jjukkumi:positions': (data: JjukkumiPositionsSignal) => void
   'jjukkumi:end': (data: JjukkumiEndSignal) => void
   'spyWords:state': (data: SpyWordsStateSignal) => void

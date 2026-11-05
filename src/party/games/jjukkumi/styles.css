@@ -472,3 +472,812 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* 스테이지 3: 줄다리기 — 내 팀 색(--jk-team-color)으로 화면 테두리·안내·버튼을 칠해서 내가 어느 팀인지 한눈에 알 수 있다 */
+.jk-tug {
+  width: min(100%, 24rem);
+  /* 이 상자가 스테이지 화면 자체라서, 넓은 화면(웹)에서 왼쪽으로 쏠리지 않게 가운데에 둔다 */
+  margin-right: auto;
+  margin-left: auto;
+  padding: 0.8rem;
+  border: 4px solid transparent;
+  border-radius: 1rem;
+}
+
+.jk-tug[data-team='green'],
+.jk-tug[data-team='red'] {
+  border-color: var(--jk-team-color);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--jk-team-color) 25%, transparent);
+}
+
+.jk-tug-mine {
+  margin: 0;
+  padding: 0.55rem 0.8rem;
+  border-radius: 0.8rem;
+  background: var(--jk-team-color);
+  color: #fff;
+  font-size: 1.25rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.jk-tug-mine strong {
+  font-weight: 900;
+}
+
+.jk-tug-mine-spectator {
+  background: var(--tint-info);
+  color: var(--text);
+  font-size: 1rem;
+}
+
+.jk-tug-rope {
+  position: relative;
+  width: 100%;
+  padding-top: 1.1rem;
+}
+
+.jk-tug-marker {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  line-height: 1;
+  transform: translateX(-50%);
+}
+
+.jk-tug-bar {
+  position: relative;
+  height: 3.2rem;
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.jk-tug-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  transition: width 0.15s ease-out;
+}
+
+.jk-tug-center {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 4px;
+  background: #000;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.7);
+  transform: translateX(-50%);
+}
+
+.jk-tug-name {
+  position: absolute;
+  top: 50%;
+  left: 0.6rem;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 800;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  transform: translateY(-50%);
+}
+
+.jk-tug-name-right {
+  right: 0.6rem;
+  left: auto;
+}
+
+/* 내 팀 표시 — 줄 위에서도 내 쪽이 어디인지 바로 보인다 */
+.jk-tug-me {
+  padding: 0.05rem 0.4rem;
+  border-radius: 999px;
+  background: #fff;
+  color: #222;
+  font-size: 0.7rem;
+  font-style: normal;
+  font-weight: 900;
+  text-shadow: none;
+}
+
+.jk-tug-powers {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.3rem;
+  width: 100%;
+}
+
+.jk-tug-powers li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.3rem 0.6rem;
+  border-left: 0.5rem solid var(--jk-team-color);
+  border-radius: var(--radius);
+  font-size: 0.9rem;
+}
+
+.jk-tug-power-mine {
+  background: color-mix(in srgb, var(--jk-team-color) 18%, transparent);
+  font-weight: 800;
+}
+
+.jk-tug-intro {
+  display: grid;
+  justify-items: center;
+  gap: 0.6rem;
+  width: 100%;
+}
+
+.jk-tug-intro > strong {
+  font-size: 3.4rem;
+  line-height: 1;
+}
+
+.jk-tug-teams {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.6rem;
+  width: 100%;
+}
+
+.jk-tug-team {
+  padding: 0.5rem;
+  border: 3px solid var(--jk-team-color);
+  border-radius: 0.8rem;
+  text-align: center;
+}
+
+.jk-tug-team-mine {
+  background: color-mix(in srgb, var(--jk-team-color) 20%, transparent);
+}
+
+.jk-tug-team p {
+  margin: 0 0 0.3rem;
+  font-weight: 900;
+  color: var(--jk-team-color);
+}
+
+.jk-tug-team ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 0.85rem;
+}
+
+/* 당기는 큰 버튼 — 내 팀 색이다. 손가락 연타가 잘 먹히도록 크고, 더블탭 확대와 롱프레스 메뉴·선택은 막는다 */
+.jk-tug-button {
+  width: 100%;
+  min-height: 10rem;
+  padding: 1rem;
+  border: none;
+  border-radius: 1.2rem;
+  background: var(--jk-team-color);
+  color: #fff;
+  font: inherit;
+  font-size: 2rem;
+  font-weight: 900;
+  cursor: pointer;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.05s;
+}
+
+.jk-tug-button:active:not(:disabled) {
+  transform: scale(0.96);
+}
+
+.jk-tug-button:disabled {
+  background: var(--border-strong);
+  cursor: default;
+}
+
+.jk-tug-count {
+  margin: 0;
+  text-align: center;
+}
+
+.jk-tug-count strong {
+  font-size: 1.5rem;
+}
+
+.jk-tug-end {
+  display: grid;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.75rem;
+  border: 2px solid var(--border-strong);
+  border-radius: var(--radius);
+  background: var(--surface);
+  text-align: center;
+}
+
+.jk-tug-end-title {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 900;
+}
+
+.jk-tug-end-me {
+  margin: 0;
+  padding: 0.35rem;
+  border-radius: var(--radius);
+  font-weight: 800;
+}
+
+.jk-tug-end-me-won {
+  background: var(--tint-strike);
+}
+
+.jk-tug-end-me-lost {
+  background: var(--tint-danger, rgba(229, 50, 45, 0.15));
+}
+
+.jk-tug-end-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.3rem;
+}
+
+.jk-tug-end-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.4rem 0.6rem;
+  border-left: 0.5rem solid var(--jk-team-color);
+  border-radius: var(--radius);
+  font-size: 0.9rem;
+  text-align: left;
+}
+
+/* 막대가 없는 참가자 목록 (줄다리기) */
+.jk-player-nobar {
+  grid-template-columns: 1.6rem 1fr 7.5rem;
+}
+
+/* 스테이지 4: 구슬치기 */
+.jk-marbles {
+  width: min(100%, 24rem);
+  margin-right: auto;
+  margin-left: auto;
+}
+
+/* 유리구슬 */
+.jk-bead {
+  display: block;
+  width: 1.6rem;
+  height: 1.6rem;
+  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.35));
+}
+
+.jk-marbles-count {
+  display: grid;
+  justify-items: center;
+  gap: 0.35rem;
+  width: 100%;
+}
+
+.jk-marbles-who {
+  margin: 0;
+  font-weight: 800;
+}
+
+.jk-beadrow {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.jk-beadslot {
+  display: grid;
+  place-items: center;
+  width: 2.1rem;
+  height: 2.1rem;
+  border: 2px dashed var(--border-strong);
+  border-radius: 50%;
+}
+
+.jk-beadslot-full {
+  border-style: solid;
+  border-color: #3a8fe0;
+  background: rgba(58, 143, 224, 0.12);
+}
+
+.jk-marbles-intro {
+  display: grid;
+  justify-items: center;
+  gap: 0.4rem;
+  text-align: center;
+}
+
+.jk-marbles-intro > strong {
+  font-size: 3.4rem;
+  line-height: 1;
+}
+
+.jk-marbles-intro p {
+  margin: 0;
+}
+
+/* 이번 판의 문제 */
+.jk-prompt {
+  display: grid;
+  gap: 0.15rem;
+  width: 100%;
+  padding: 0.6rem 0.8rem;
+  border-radius: 0.9rem;
+  text-align: center;
+  color: #fff;
+}
+
+.jk-prompt-even {
+  background: #3a8fe0;
+}
+
+.jk-prompt-odd {
+  background: #d9662b;
+}
+
+.jk-prompt-round {
+  margin: 0;
+  font-size: 0.8rem;
+  opacity: 0.9;
+}
+
+.jk-prompt-text {
+  margin: 0;
+  font-size: 1.7rem;
+  font-weight: 900;
+}
+
+.jk-prompt-sub {
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+/* 양손 — 주먹을 쥐고 있다가 결과가 나오면 펼쳐서 구슬을 보여 준다 */
+.jk-hands {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.8rem;
+  width: 100%;
+}
+
+.jk-hand {
+  display: grid;
+  justify-items: center;
+  gap: 0.3rem;
+  padding: 0.6rem 0.4rem;
+  border: 4px solid transparent;
+  border-radius: 1rem;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.jk-hand:disabled {
+  cursor: default;
+}
+
+.jk-hand:not(:disabled):active {
+  transform: scale(0.96);
+}
+
+.jk-hand-art {
+  position: relative;
+  display: block;
+  width: 7.2rem;
+  aspect-ratio: 248 / 360;
+}
+
+.jk-hand-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transition: opacity 0.35s ease;
+}
+
+.jk-hand-name {
+  font-weight: 800;
+}
+
+.jk-hand-picked {
+  border-color: #ffb300;
+  box-shadow: 0 0 0 4px rgba(255, 179, 0, 0.35);
+}
+
+.jk-hand-correct {
+  border-color: #2fbf71;
+  background: rgba(47, 191, 113, 0.14);
+}
+
+.jk-hand-wrong {
+  border-color: #e5322d;
+  background: rgba(229, 50, 45, 0.12);
+}
+
+/* 손바닥 위의 구슬 — 짝수는 2개, 홀수는 1개 */
+.jk-hand-beads .jk-bead {
+  width: 2.3rem;
+  height: 2.3rem;
+}
+
+.jk-hand-beads {
+  position: absolute;
+  top: 40%;
+  left: 50%;
+  display: flex;
+  gap: 0.2rem;
+  transform: translate(-50%, -50%);
+  animation: jk-bead-drop 0.4s ease-out;
+}
+
+@keyframes jk-bead-drop {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -140%);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+}
+
+.jk-marbles-status {
+  margin: 0;
+  min-height: 2.6rem;
+  font-weight: 800;
+  text-align: center;
+}
+
+.jk-marbles-status-win {
+  color: #1d8f55;
+}
+
+.jk-marbles-status-lose {
+  color: var(--text-danger);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .jk-hand-beads {
+    animation: none;
+  }
+
+  .jk-hand-img {
+    transition: none;
+  }
+}
+
+/* 스테이지 5: 징검다리 — 어두운 곳, 자주색 철판 사이의 유리, 양옆의 노란 조명 */
+.jk-bridge-stage {
+  width: min(100%, 24rem);
+  margin-right: auto;
+  margin-left: auto;
+}
+
+.jk-bridge-msg {
+  min-height: 2.6rem;
+  margin: 0;
+  font-weight: 800;
+  text-align: center;
+}
+
+.jk-bridge-msg-mine {
+  color: var(--accent);
+  font-size: 1.1rem;
+}
+
+.jk-bridge {
+  position: relative;
+  width: min(100%, 22rem);
+  aspect-ratio: 5 / 7;
+  border: 3px solid #2b2760;
+  border-radius: 0.8rem;
+  overflow: hidden;
+  background: linear-gradient(180deg, #16133f 0%, #0d0b2a 60%, #08071d 100%);
+  box-shadow: inset 0 0 3rem rgba(0, 0, 0, 0.65);
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.jk-bridge[data-turn='mine'] {
+  border-color: #ffd84a;
+}
+
+/* 양옆의 노란 조명 */
+.jk-bridge-lights {
+  position: absolute;
+  top: 3%;
+  bottom: 3%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  width: 6%;
+}
+
+.jk-bridge-lights-left {
+  left: 1.5%;
+}
+
+.jk-bridge-lights-right {
+  right: 1.5%;
+}
+
+.jk-bridge-lights i {
+  display: block;
+  width: 0.62rem;
+  height: 0.62rem;
+  border-radius: 50%;
+  background: #ffe066;
+  box-shadow: 0 0 0.55rem 0.18rem rgba(255, 224, 102, 0.75);
+  animation: jk-twinkle 2.2s ease-in-out infinite alternate;
+}
+
+@keyframes jk-twinkle {
+  from {
+    opacity: 0.55;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* 자주색 철판 */
+.jk-bridge-rail {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1.7%;
+  transform: translateX(-50%);
+  background: linear-gradient(90deg, #6d1a6a, #b3379f 50%, #6d1a6a);
+  box-shadow: 0 0 0.4rem rgba(0, 0, 0, 0.6);
+}
+
+.jk-bridge-bar {
+  position: absolute;
+  height: 1.1%;
+  transform: translateY(-50%);
+  background: linear-gradient(180deg, #b3379f, #7d2078);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+}
+
+.jk-bridge-plate {
+  position: absolute;
+  left: 12%;
+  right: 12%;
+  display: grid;
+  place-items: center;
+  border-radius: 0.3rem;
+  background: linear-gradient(180deg, #9a2d8b, #6d1a6a);
+  box-shadow: inset 0 0 0.5rem rgba(0, 0, 0, 0.5);
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+}
+
+/* 유리 — 살짝 불투명해서 뒤가 희미하게 비친다 */
+.jk-glass {
+  position: absolute;
+  padding: 0;
+  border: 2px solid rgba(255, 255, 255, 0.62);
+  border-radius: 0.35rem;
+  background: linear-gradient(135deg, rgba(214, 232, 255, 0.34), rgba(160, 190, 240, 0.14) 55%, rgba(255, 255, 255, 0.22));
+  box-shadow: inset 0 0 0.7rem rgba(255, 255, 255, 0.2);
+  cursor: default;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.jk-glass:disabled {
+  cursor: default;
+}
+
+/* 지금 건널 칸 — 어느 줄인지 모두가 알 수 있게 깜빡인다 */
+.jk-glass-turn {
+  animation: jk-turn-pulse 1.1s ease-in-out infinite alternate;
+}
+
+@keyframes jk-turn-pulse {
+  from {
+    box-shadow: inset 0 0 0.7rem rgba(255, 255, 255, 0.2), 0 0 0 0 rgba(255, 216, 74, 0);
+  }
+  to {
+    box-shadow: inset 0 0 0.9rem rgba(255, 255, 255, 0.4), 0 0 0.7rem 0.1rem rgba(255, 216, 74, 0.7);
+  }
+}
+
+.jk-glass-pick {
+  cursor: pointer;
+}
+
+.jk-glass-pick:hover {
+  background: linear-gradient(135deg, rgba(235, 244, 255, 0.5), rgba(190, 215, 255, 0.28) 55%, rgba(255, 255, 255, 0.34));
+}
+
+.jk-glass-pick:active {
+  transform: scale(0.96);
+}
+
+/* 누군가 무사히 밟은 유리 — 멀쩡히 남아 있고 발자국이 찍혀 있다 */
+.jk-glass-stepped {
+  border-color: rgba(130, 235, 170, 0.85);
+  background: linear-gradient(135deg, rgba(160, 240, 190, 0.34), rgba(120, 200, 160, 0.14) 55%, rgba(255, 255, 255, 0.2));
+}
+
+.jk-glass-mark {
+  font-size: 1.15rem;
+  opacity: 0.85;
+}
+
+/* 깨진 유리 — 깨진 채로 남아서 구멍이 뚫려 있다 */
+.jk-glass-broken {
+  border-color: rgba(255, 255, 255, 0.25);
+  border-style: dashed;
+  background: radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0.9) 35%, rgba(10, 8, 40, 0.8) 100%);
+  box-shadow: inset 0 0 0.8rem rgba(0, 0, 0, 0.9);
+  clip-path: polygon(0 14%, 12% 0, 34% 11%, 58% 0, 82% 9%, 100% 0, 95% 30%, 100% 54%, 91% 76%, 100% 100%, 72% 91%, 48% 100%, 26% 89%, 9% 100%, 0 82%, 6% 52%);
+}
+
+/* 깨지는 순간 — 유리는 사라지고 조각들이 흩어져 떨어진다 */
+.jk-glass-breaking {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+  animation: none;
+}
+
+.jk-shards {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.jk-shards i {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(228, 240, 255, 0.85), rgba(160, 190, 240, 0.5));
+  animation: jk-shard 1.1s ease-in forwards;
+}
+
+@keyframes jk-shard {
+  0% {
+    transform: translate(0, 0) rotate(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(var(--dx), var(--dy)) rotate(var(--rot));
+    opacity: 0;
+  }
+}
+
+/* 건너는 사람 */
+.jk-walker {
+  position: absolute;
+  display: grid;
+  justify-items: center;
+  transform: translate(-50%, -100%);
+  transition: left 0.45s ease, top 0.45s ease;
+  pointer-events: none;
+}
+
+.jk-walker-img {
+  display: block;
+  /* 크기는 rem 고정이다 — 다리 판의 크기가 달라져도 사람 크기가 흔들리지 않는다 */
+  height: 3.6rem;
+  width: auto;
+}
+
+.jk-walker-hop {
+  animation: jk-hop 0.45s ease-out;
+}
+
+@keyframes jk-hop {
+  0% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-30%);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+.jk-walker-fall {
+  animation: jk-fall 1.4s ease-in forwards;
+}
+
+@keyframes jk-fall {
+  0%,
+  25% {
+    transform: translateY(0) rotate(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(150%) rotate(28deg) scale(0.7);
+    opacity: 0;
+  }
+}
+
+.jk-walker-name {
+  position: absolute;
+  top: -0.9rem;
+  padding: 0 0.4rem;
+  border-radius: 999px;
+  background: rgba(255, 216, 74, 0.95);
+  color: #222;
+  font-size: 0.7rem;
+  font-style: normal;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+/* 건너는 차례 */
+.jk-bridge-queue {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.25rem;
+  width: 100%;
+}
+
+.jk-bridge-queue li {
+  display: grid;
+  grid-template-columns: 1.6rem 1fr auto;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0.5rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  font-size: 0.85rem;
+}
+
+.jk-bridge-queue-no {
+  display: inline-grid;
+  place-items: center;
+  width: 1.4rem;
+  height: 1.4rem;
+  border-radius: 50%;
+  background: var(--tint-info);
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.jk-bridge-queue-now {
+  border-color: #ffb300 !important;
+  background: rgba(255, 179, 0, 0.14);
+  font-weight: 800;
+}
+
+.jk-bridge-queue-mine .jk-bridge-queue-name {
+  font-weight: 800;
+}
+
+.jk-bridge-queue-out {
+  opacity: 0.55;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .jk-bridge-lights i,
+  .jk-glass-turn {
+    animation: none;
+  }
+
+  .jk-walker {
+    transition: none;
+  }
+}

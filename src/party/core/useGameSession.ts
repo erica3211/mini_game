@@ -14,7 +14,7 @@ import type { RecyclingStartSignal } from '../games/recycling/protocol'
 import type { TetrisEndSignal, TetrisProgressSignal, TetrisStateSignal } from '../games/tetris/protocol'
 import type { MarbleEndSignal, MarblePositionsSignal, MarbleProgressSignal, MarbleStateSignal } from '../games/marbleMaze/protocol'
 import type { TreasureEndSignal, TreasurePositionsSignal, TreasureProgressSignal, TreasureStateSignal } from '../games/darkTreasure/protocol'
-import { mergeDalgonaTraces, type DalgonaStateSignal, type DalgonaTrace, type DalgonaTracesSignal, type JjukkumiEndSignal, type JjukkumiPositionsSignal, type JjukkumiStageSignal, type JjukkumiStateSignal } from '../games/jjukkumi/protocol'
+import { mergeDalgonaTraces, type BridgeStateSignal, type DalgonaStateSignal, type DalgonaTrace, type DalgonaTracesSignal, type JjukkumiEndSignal, type JjukkumiPositionsSignal, type JjukkumiStageSignal, type JjukkumiStateSignal, type MarblesStateSignal, type TugStagePowerSignal, type TugStageStateSignal } from '../games/jjukkumi/protocol'
 import type { ConnectionsEndSignal, ConnectionsProgressSignal, ConnectionsStateSignal } from '../games/connections/protocol'
 import type { TowerEndSignal, TowerProgressSignal, TowerStateSignal } from '../games/towerStack/protocol'
 import type { SpyWordsEndSignal, SpyWordsStateSignal } from '../games/spyWords/protocol'
@@ -149,6 +149,10 @@ export function useGameSession(roomCodeFromUrl?: string) {
   const [jjukkumiStage, setJjukkumiStage] = useState<JjukkumiStageSignal | null>(null)
   const [dalgonaState, setDalgonaState] = useState<DalgonaStateSignal | null>(null)
   const [dalgonaTraces, setDalgonaTraces] = useState<Record<string, DalgonaTrace>>({})
+  const [tugStageState, setTugStageState] = useState<TugStageStateSignal | null>(null)
+  const [tugStagePower, setTugStagePower] = useState<TugStagePowerSignal['power'] | null>(null)
+  const [marblesState, setMarblesState] = useState<MarblesStateSignal | null>(null)
+  const [bridgeState, setBridgeState] = useState<BridgeStateSignal | null>(null)
   const [connectionsState, setConnectionsState] = useState<ConnectionsStateSignal | null>(null)
   const [connectionsProgress, setConnectionsProgress] = useState<ConnectionsProgressSignal | null>(null)
   const [connectionsEnd, setConnectionsEnd] = useState<ConnectionsEndSignal | null>(null)
@@ -264,6 +268,10 @@ export function useGameSession(roomCodeFromUrl?: string) {
         setJjukkumiStage(null)
         setDalgonaState(null)
         setDalgonaTraces({})
+        setTugStageState(null)
+        setTugStagePower(null)
+        setMarblesState(null)
+        setBridgeState(null)
         setConnectionsState(null)
         setConnectionsProgress(null)
         setConnectionsEnd(null)
@@ -344,6 +352,14 @@ export function useGameSession(roomCodeFromUrl?: string) {
     const onJjukkumiEnd = (data: JjukkumiEndSignal) => setJjukkumiEnd(data)
     const onJjukkumiStage = (data: JjukkumiStageSignal) => setJjukkumiStage(data)
     const onDalgonaState = (data: DalgonaStateSignal) => setDalgonaState(data)
+    const onTugStageState = (data: TugStageStateSignal) => {
+      setTugStageState(data)
+      // 새 신호의 팀별 힘이 가장 최신이니, 그 전에 받아 둔 힘 신호는 비운다
+      setTugStagePower(null)
+    }
+    const onTugStagePower = (data: TugStagePowerSignal) => setTugStagePower(data.power)
+    const onMarblesState = (data: MarblesStateSignal) => setMarblesState(data)
+    const onBridgeState = (data: BridgeStateSignal) => setBridgeState(data)
     const onDalgonaTraces = (data: DalgonaTracesSignal) => setDalgonaTraces((previous) => mergeDalgonaTraces(previous, data))
     const onConnectionsState = (data: ConnectionsStateSignal) => setConnectionsState(data)
     const onConnectionsProgress = (data: ConnectionsProgressSignal) => setConnectionsProgress(data)
@@ -469,6 +485,10 @@ export function useGameSession(roomCodeFromUrl?: string) {
     socket.on('jjukkumi:stage', onJjukkumiStage)
     socket.on('jjukkumi:dalgona:state', onDalgonaState)
     socket.on('jjukkumi:dalgona:traces', onDalgonaTraces)
+    socket.on('jjukkumi:tug:state', onTugStageState)
+    socket.on('jjukkumi:tug:power', onTugStagePower)
+    socket.on('jjukkumi:marbles:state', onMarblesState)
+    socket.on('jjukkumi:bridge:state', onBridgeState)
     socket.on('connections:state', onConnectionsState)
     socket.on('connections:progress', onConnectionsProgress)
     socket.on('connections:end', onConnectionsEnd)
@@ -560,6 +580,10 @@ export function useGameSession(roomCodeFromUrl?: string) {
       socket.off('jjukkumi:stage', onJjukkumiStage)
       socket.off('jjukkumi:dalgona:state', onDalgonaState)
       socket.off('jjukkumi:dalgona:traces', onDalgonaTraces)
+      socket.off('jjukkumi:tug:state', onTugStageState)
+      socket.off('jjukkumi:tug:power', onTugStagePower)
+      socket.off('jjukkumi:marbles:state', onMarblesState)
+      socket.off('jjukkumi:bridge:state', onBridgeState)
       socket.off('connections:state', onConnectionsState)
       socket.off('connections:progress', onConnectionsProgress)
       socket.off('connections:end', onConnectionsEnd)
@@ -797,6 +821,10 @@ export function useGameSession(roomCodeFromUrl?: string) {
     jjukkumiStage,
     dalgonaState,
     dalgonaTraces,
+    tugStageState,
+    tugStagePower,
+    marblesState,
+    bridgeState,
     connectionsState,
     connectionsProgress,
     connectionsEnd,
