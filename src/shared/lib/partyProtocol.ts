@@ -25,6 +25,7 @@ import type { SpyWordsEndSignal, SpyWordsStateSignal } from '../../party/games/s
 import type { RecyclingEndSignal, RecyclingEventSignal, RecyclingProgressSignal, RecyclingStartSignal } from '../../party/games/recycling/protocol'
 import type { TetrisAction, TetrisEndSignal, TetrisProgressSignal, TetrisStateSignal } from '../../party/games/tetris/protocol'
 import type { MarbleEndSignal, MarbleProgressSignal, MarbleStateSignal } from '../../party/games/marbleMaze/protocol'
+import type { TreasureEndSignal, TreasureProgressSignal, TreasureStateSignal } from '../../party/games/darkTreasure/protocol'
 import type { ConnectionsEndSignal, ConnectionsProgressSignal, ConnectionsStateSignal } from '../../party/games/connections/protocol'
 import type { TowerAction, TowerEndSignal, TowerProgressSignal, TowerStateSignal } from '../../party/games/towerStack/protocol'
 import type { StroopQuestionResult, StroopQuestionSignal } from '../../party/games/stroop/protocol'
@@ -100,6 +101,7 @@ export type GameId =
   | 'towerCount'
   | 'connections'
   | 'marbleMaze'
+  | 'darkTreasure'
 
 /** 방의 진행 방식 — backend/types.ts와 같아야 한다. /party는 개인전, /teamParty는 팀전 방이다 */
 export type RoomMode = 'individual' | 'team'
@@ -385,6 +387,8 @@ export interface ClientToServerEvents {
   'marbleMaze:ready': () => void
   'marbleMaze:progress': (data: { progress: number; falls: number }) => void
   'marbleMaze:finish': (data: { falls: number }) => void
+  'darkTreasure:ready': () => void
+  'darkTreasure:found': (data: { index: number }) => void
   'spyWords:hint': (data: { word: string; count: number }) => void
   'spyWords:toggle': (data: { index: number }) => void
   'spyWords:confirm': () => void
@@ -651,6 +655,9 @@ export interface ServerToClientEvents {
   'marbleMaze:state': (data: MarbleStateSignal) => void
   'marbleMaze:progress': (data: MarbleProgressSignal) => void
   'marbleMaze:end': (data: MarbleEndSignal) => void
+  'darkTreasure:state': (data: TreasureStateSignal) => void
+  'darkTreasure:progress': (data: TreasureProgressSignal) => void
+  'darkTreasure:end': (data: TreasureEndSignal) => void
   'spyWords:state': (data: SpyWordsStateSignal) => void
   'spyWords:end': (data: SpyWordsEndSignal) => void
   'mazeEscape:start': (data: MazeStartSignal) => void

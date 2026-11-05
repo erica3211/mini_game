@@ -19,6 +19,7 @@ import { TetrisGame } from '../games/tetris/TetrisGame'
 import { TowerGame } from '../games/towerStack/TowerGame'
 import { ConnectionsGame } from '../games/connections/ConnectionsGame'
 import { MarbleMazeGame } from '../games/marbleMaze/MarbleMazeGame'
+import { DarkTreasureGame } from '../games/darkTreasure/DarkTreasureGame'
 import { SpyWordsGame } from '../games/spyWords/SpyWordsGame'
 import { MouseHunterGame } from '../games/mouseHunter/MouseHunterGame'
 import { OneToTwentyFiveGame } from '../games/oneToTwentyFive/OneToTwentyFiveGame'
@@ -163,6 +164,18 @@ function renderGame(session: GameSession, roundKey: string) {
           state={session.marbleState}
           progress={session.marbleProgress}
           end={session.marbleEnd}
+          playerId={session.playerId}
+          players={state.players}
+        />
+      )
+    case 'darkTreasure':
+      return (
+        <DarkTreasureGame
+          socket={session.socket}
+          roundKey={roundKey}
+          state={session.treasureState}
+          progress={session.treasureProgress}
+          end={session.treasureEnd}
           playerId={session.playerId}
           players={state.players}
         />
