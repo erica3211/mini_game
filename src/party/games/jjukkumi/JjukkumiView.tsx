@@ -8,6 +8,10 @@ import { playerSpriteName, spriteUrl } from './sprites'
 export interface PlayerRow {
   playerId: string
   character: number
+  /** 얼굴 그림 대신 보여 줄 이모지 (예: 달고나에서 받은 모양) */
+  emoji?: string
+  /** 상태 글자를 직접 정한다 (없으면 달리는 중·통과·탈락) */
+  label?: string
   status: JjukkumiPlayerState
   progress: number
   /** 달리기가 시작된 뒤 통과·탈락한 시각(ms) */
@@ -40,12 +44,18 @@ export function JjukkumiPlayers({ players, rows, myId, onWatch, watchingId }: Pl
         const classes = ['jk-player', row.playerId === myId ? 'jk-player-mine' : '', onWatch ? 'jk-player-watchable' : '', watchingId === row.playerId ? 'jk-player-watching' : '', row.status === 'out' ? 'jk-player-out' : ''].filter(Boolean).join(' ')
         const content = (
           <>
-            <img className="jk-player-face" src={spriteUrl(playerSpriteName(row.character))} alt="" draggable={false} />
+            {row.emoji ? (
+              <span className="jk-player-face jk-player-face-emoji" aria-hidden="true">
+                {row.emoji}
+              </span>
+            ) : (
+              <img className="jk-player-face" src={spriteUrl(playerSpriteName(row.character))} alt="" draggable={false} />
+            )}
             <span className="jk-player-name">{row.playerId === myId ? `${nickname} (나)` : nickname}</span>
             <span className="jk-player-bar" aria-hidden="true">
               <span className="jk-player-bar-fill" style={{ width: `${Math.round(row.progress * 100)}%` }} />
             </span>
-            <span className="jk-player-state">{row.status === 'passed' && row.atMs !== null ? `✔ ${formatMarbleTime(row.atMs)}` : STATUS_TEXT[row.status]}</span>
+            <span className="jk-player-state">{row.label ?? (row.status === 'passed' && row.atMs !== null ? `✔ ${formatMarbleTime(row.atMs)}` : STATUS_TEXT[row.status])}</span>
           </>
         )
         return (

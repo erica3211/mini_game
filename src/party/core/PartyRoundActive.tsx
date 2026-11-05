@@ -188,8 +188,9 @@ function renderGame(session: GameSession, roundKey: string) {
         <JjukkumiGame
           socket={session.socket}
           roundKey={roundKey}
-          state={session.jjukkumiState}
-          positions={session.jjukkumiPositions}
+          stage={session.jjukkumiStage}
+          redLight={{ state: session.jjukkumiState, positions: session.jjukkumiPositions }}
+          dalgona={{ state: session.dalgonaState, traces: session.dalgonaTraces }}
           end={session.jjukkumiEnd}
           playerId={session.playerId}
           players={state.players}

@@ -14,7 +14,7 @@ import type { RecyclingStartSignal } from '../games/recycling/protocol'
 import type { TetrisEndSignal, TetrisProgressSignal, TetrisStateSignal } from '../games/tetris/protocol'
 import type { MarbleEndSignal, MarblePositionsSignal, MarbleProgressSignal, MarbleStateSignal } from '../games/marbleMaze/protocol'
 import type { TreasureEndSignal, TreasurePositionsSignal, TreasureProgressSignal, TreasureStateSignal } from '../games/darkTreasure/protocol'
-import type { JjukkumiEndSignal, JjukkumiPositionsSignal, JjukkumiStateSignal } from '../games/jjukkumi/protocol'
+import { mergeDalgonaTraces, type DalgonaStateSignal, type DalgonaTrace, type DalgonaTracesSignal, type JjukkumiEndSignal, type JjukkumiPositionsSignal, type JjukkumiStageSignal, type JjukkumiStateSignal } from '../games/jjukkumi/protocol'
 import type { ConnectionsEndSignal, ConnectionsProgressSignal, ConnectionsStateSignal } from '../games/connections/protocol'
 import type { TowerEndSignal, TowerProgressSignal, TowerStateSignal } from '../games/towerStack/protocol'
 import type { SpyWordsEndSignal, SpyWordsStateSignal } from '../games/spyWords/protocol'
@@ -146,6 +146,9 @@ export function useGameSession(roomCodeFromUrl?: string) {
   const [jjukkumiState, setJjukkumiState] = useState<JjukkumiStateSignal | null>(null)
   const [jjukkumiPositions, setJjukkumiPositions] = useState<JjukkumiPositionsSignal | null>(null)
   const [jjukkumiEnd, setJjukkumiEnd] = useState<JjukkumiEndSignal | null>(null)
+  const [jjukkumiStage, setJjukkumiStage] = useState<JjukkumiStageSignal | null>(null)
+  const [dalgonaState, setDalgonaState] = useState<DalgonaStateSignal | null>(null)
+  const [dalgonaTraces, setDalgonaTraces] = useState<Record<string, DalgonaTrace>>({})
   const [connectionsState, setConnectionsState] = useState<ConnectionsStateSignal | null>(null)
   const [connectionsProgress, setConnectionsProgress] = useState<ConnectionsProgressSignal | null>(null)
   const [connectionsEnd, setConnectionsEnd] = useState<ConnectionsEndSignal | null>(null)
@@ -258,6 +261,9 @@ export function useGameSession(roomCodeFromUrl?: string) {
         setJjukkumiState(null)
         setJjukkumiPositions(null)
         setJjukkumiEnd(null)
+        setJjukkumiStage(null)
+        setDalgonaState(null)
+        setDalgonaTraces({})
         setConnectionsState(null)
         setConnectionsProgress(null)
         setConnectionsEnd(null)
@@ -336,6 +342,9 @@ export function useGameSession(roomCodeFromUrl?: string) {
     const onJjukkumiState = (data: JjukkumiStateSignal) => setJjukkumiState(data)
     const onJjukkumiPositions = (data: JjukkumiPositionsSignal) => setJjukkumiPositions(data)
     const onJjukkumiEnd = (data: JjukkumiEndSignal) => setJjukkumiEnd(data)
+    const onJjukkumiStage = (data: JjukkumiStageSignal) => setJjukkumiStage(data)
+    const onDalgonaState = (data: DalgonaStateSignal) => setDalgonaState(data)
+    const onDalgonaTraces = (data: DalgonaTracesSignal) => setDalgonaTraces((previous) => mergeDalgonaTraces(previous, data))
     const onConnectionsState = (data: ConnectionsStateSignal) => setConnectionsState(data)
     const onConnectionsProgress = (data: ConnectionsProgressSignal) => setConnectionsProgress(data)
     const onConnectionsEnd = (data: ConnectionsEndSignal) => setConnectionsEnd(data)
@@ -457,6 +466,9 @@ export function useGameSession(roomCodeFromUrl?: string) {
     socket.on('jjukkumi:state', onJjukkumiState)
     socket.on('jjukkumi:positions', onJjukkumiPositions)
     socket.on('jjukkumi:end', onJjukkumiEnd)
+    socket.on('jjukkumi:stage', onJjukkumiStage)
+    socket.on('jjukkumi:dalgona:state', onDalgonaState)
+    socket.on('jjukkumi:dalgona:traces', onDalgonaTraces)
     socket.on('connections:state', onConnectionsState)
     socket.on('connections:progress', onConnectionsProgress)
     socket.on('connections:end', onConnectionsEnd)
@@ -545,6 +557,9 @@ export function useGameSession(roomCodeFromUrl?: string) {
       socket.off('jjukkumi:state', onJjukkumiState)
       socket.off('jjukkumi:positions', onJjukkumiPositions)
       socket.off('jjukkumi:end', onJjukkumiEnd)
+      socket.off('jjukkumi:stage', onJjukkumiStage)
+      socket.off('jjukkumi:dalgona:state', onDalgonaState)
+      socket.off('jjukkumi:dalgona:traces', onDalgonaTraces)
       socket.off('connections:state', onConnectionsState)
       socket.off('connections:progress', onConnectionsProgress)
       socket.off('connections:end', onConnectionsEnd)
@@ -779,6 +794,9 @@ export function useGameSession(roomCodeFromUrl?: string) {
     jjukkumiState,
     jjukkumiPositions,
     jjukkumiEnd,
+    jjukkumiStage,
+    dalgonaState,
+    dalgonaTraces,
     connectionsState,
     connectionsProgress,
     connectionsEnd,
