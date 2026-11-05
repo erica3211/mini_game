@@ -9,3 +9,59 @@
   font-variant-numeric: tabular-nums;
   color: var(--text-muted);
 }
+
+.party-timer-target {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  margin-bottom: 1rem;
+}
+
+.party-timer-target-label {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.party-timer-target-value {
+  font-size: 4rem;
+  font-weight: 800;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: var(--accent, var(--text));
+}
+
+/* 상태가 바뀌어도 화면이 움직이지 않도록 시계 영역과 버튼 영역은 높이를 고정한다 */
+.party-timer-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  height: 6rem;
+}
+
+.party-timer-display-label {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.party-timer-display-value {
+  font-size: 3rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.party-timer-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 8rem;
+}
+
+.party-timer-target {
+  height: 6rem;
+  justify-content: center;
+}

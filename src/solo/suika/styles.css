@@ -29,8 +29,8 @@
   border: 2px solid var(--border);
   border-radius: var(--radius);
   cursor: pointer;
-  /* 터치로 조준할 때 페이지가 스크롤되거나 확대되지 않게 한다 */
-  touch-action: none;
+  /* 좌우 움직임은 조준에 쓰고, 위아래 드래그는 브라우저가 페이지 스크롤로 처리한다(이때 포인터가 취소되어 과일은 떨어지지 않는다) */
+  touch-action: pan-y;
   user-select: none;
   -webkit-user-select: none;
 }

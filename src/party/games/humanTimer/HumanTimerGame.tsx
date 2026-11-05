@@ -9,24 +9,38 @@ const FADE_DURATION_MS = 3000
 interface Props {
   socket: Socket<ServerToClientEvents, ClientToServerEvents>
   roundKey: string
-  startSignal: { elapsedMs: number; submitted?: boolean } | null
+  startSignal: { elapsedMs: number; targetMs: number; submitted?: boolean } | null
 }
 
 export function HumanTimerGame({ socket, roundKey, startSignal }: Props) {
-  const { status, stop, startedAt } = useHumanTimerRound(socket, roundKey, startSignal)
+  const { status, stop, startedAt, stoppedMs } = useHumanTimerRound(socket, roundKey, startSignal)
 
   return (
     <div className="party-round-stage">
       {status === 'waiting' && <p className="party-round-hint">곧 시작합니다...</p>}
-      {status === 'running' && (
-        <>
-          {startedAt !== null && <FadingTimer startedAt={startedAt} />}
+      {startSignal && status !== 'waiting' && (
+        <div className="party-timer-target">
+          <span className="party-timer-target-label">목표 시간</span>
+          <span className="party-timer-target-value">{startSignal.targetMs / 1000}초</span>
+        </div>
+      )}
+      <div className="party-timer-display">
+        {status === 'running' && startedAt !== null && <FadingTimer startedAt={startedAt} />}
+        {status === 'submitted' && stoppedMs !== null && (
+          <>
+            <span className="party-timer-display-label">내가 멈춘 시간</span>
+            <span className="party-timer-display-value">{(stoppedMs / 1000).toFixed(2)}초</span>
+          </>
+        )}
+      </div>
+      <div className="party-timer-action">
+        {status === 'running' && (
           <button type="button" className="btn btn-primary party-stop-btn" onClick={stop}>
             정지!
           </button>
-        </>
-      )}
-      {status === 'submitted' && <p className="party-round-hint">제출 완료! 다른 사람들을 기다리는 중...</p>}
+        )}
+        {status === 'submitted' && <p className="party-round-hint">제출 완료! 다른 사람들을 기다리는 중...</p>}
+      </div>
     </div>
   )
 }
@@ -46,10 +60,8 @@ function FadingTimer({ startedAt }: { startedAt: number }) {
     return () => cancelAnimationFrame(frame)
   }, [startedAt])
 
-  if (elapsedMs >= FADE_DURATION_MS) return null
-
   return (
-    <div className="party-fading-timer" style={{ opacity: 1 - elapsedMs / FADE_DURATION_MS }}>
+    <div className="party-fading-timer" style={{ opacity: Math.max(0, 1 - elapsedMs / FADE_DURATION_MS) }}>
       {(elapsedMs / 1000).toFixed(2)}
     </div>
   )

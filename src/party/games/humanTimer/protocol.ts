@@ -1,1 +1,0 @@
-export const HUMAN_TIMER_TARGET_MS = 10_000

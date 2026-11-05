@@ -76,6 +76,20 @@ body {
   line-height: 1.5;
 }
 
+/* 글자 드래그(파란 하이라이트)와 복사를 막는다. 입력창은 글자를 쓰고 지우고 커서를 옮기려면 선택이 되어야 해서 예외다 */
+body {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+input,
+textarea,
+[contenteditable='true'] {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
 /* 라이트 테마 전용 배경 낙서 패턴 — html(캔버스)에 걸어야 body 높이와 무관하게 스크롤 전체를 덮는다.
    body는 투명하게 비워서 카드 사이 여백으로 패턴이 그대로 비쳐 보이게 한다. 다크 테마는 단색 배경 유지 */
 :root[data-theme='light'] {

@@ -64,7 +64,7 @@
   text-align: right;
 }
 
-/* 미로 — 손가락으로 끌어서 굴릴 때 화면이 스크롤되지 않도록 touch-action을 막는다 */
+/* 미로 — 기울기나 방향 버튼으로만 조종하므로 미로 위의 터치는 막지 않는다(페이지 스크롤 가능) */
 .party-mb-board {
   position: relative;
   width: min(100%, 22rem);
@@ -72,7 +72,6 @@
   border: 2px solid var(--border-strong);
   border-radius: 0.5rem;
   overflow: hidden;
-  touch-action: none;
   user-select: none;
   -webkit-user-select: none;
 }

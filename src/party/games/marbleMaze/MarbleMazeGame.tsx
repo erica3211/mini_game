@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { Socket } from 'socket.io-client'
 import type { ClientToServerEvents, PlayerInfo, ServerToClientEvents } from '../../../shared/lib/partyProtocol'
 import { RemainingTime } from '../../../shared/components/RemainingTime'
@@ -19,11 +19,9 @@ interface Props {
   players: PlayerInfo[]
 }
 
-/** 'sensor' 폰을 기울여서, 'touch' 화면을 끌거나 방향키로 */
+/** 'sensor' 폰을 기울여서, 'touch' 방향 버튼이나 방향키로 */
 type ControlMode = 'sensor' | 'touch'
 
-// 터치로 굴릴 때 이만큼(px) 끌면 끝까지 기울인 것이다
-const TOUCH_FULL_PX = 70
 // 폰을 평평하게 두고 기준 자세를 재는 시간 — 이 시간 동안 센서 값의 평균이 기준이 된다 (styles.css의 .party-mb-measure 애니메이션 시간과 같아야 한다)
 const CALIBRATION_MS = 3_000
 
@@ -88,8 +86,6 @@ export function MarbleMazeGame({ socket, roundKey, state, progress, end, playerI
   }, [phase, roundKey])
 
   // ---- 조종: 센서 / 터치로 끌기 / 방향키 ----
-  const touchVector = useRef({ x: 0, y: 0 })
-  const touchOrigin = useRef<{ x: number; y: number } | null>(null)
   const keys = useRef({ left: false, right: false, up: false, down: false })
   useEffect(() => {
     const names: Record<string, keyof typeof keys.current> = { ArrowLeft: 'left', a: 'left', ArrowRight: 'right', d: 'right', ArrowUp: 'up', w: 'up', ArrowDown: 'down', s: 'down' }
@@ -111,28 +107,12 @@ export function MarbleMazeGame({ socket, roundKey, state, progress, end, playerI
   const getTilt = useCallback(() => {
     if (mode === 'sensor') return tilt.read()
     const k = keys.current
-    return { x: touchVector.current.x + (k.right ? 1 : 0) - (k.left ? 1 : 0), y: touchVector.current.y + (k.down ? 1 : 0) - (k.up ? 1 : 0) }
+    return { x: (k.right ? 1 : 0) - (k.left ? 1 : 0), y: (k.down ? 1 : 0) - (k.up ? 1 : 0) }
   }, [mode, tilt])
   /** 상하좌우 버튼 — 누르는 동안 방향키를 누른 것과 같다 */
   const pressKey = (key: DpadKey, down: boolean) => {
     keys.current[key] = down
   }
-  const onPointerDown = (event: PointerEvent<HTMLDivElement>) => {
-    if (mode !== 'touch') return
-    touchOrigin.current = { x: event.clientX, y: event.clientY }
-    event.currentTarget.setPointerCapture(event.pointerId)
-  }
-  const onPointerMove = (event: PointerEvent<HTMLDivElement>) => {
-    const origin = touchOrigin.current
-    if (!origin) return
-    const clampUnit = (v: number) => Math.max(-1, Math.min(1, v / TOUCH_FULL_PX))
-    touchVector.current = { x: clampUnit(event.clientX - origin.x), y: clampUnit(event.clientY - origin.y) }
-  }
-  const onPointerUp = () => {
-    touchOrigin.current = null
-    touchVector.current = { x: 0, y: 0 }
-  }
-
   // ---- 기준 자세: 센서를 켠 직후 폰을 평평하게 두고 3초 동안 센서 값을 모아서 평균을 기준으로 삼는다 ----
   const measureBaseline = () => {
     window.clearTimeout(calibrationTimer.current)
@@ -183,7 +163,7 @@ export function MarbleMazeGame({ socket, roundKey, state, progress, end, playerI
   }
 
   const board = (
-    <div className="party-mb-board" onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onPointerCancel={onPointerUp}>
+    <div className="party-mb-board">
       <MarbleBoard
         world={world}
         running={running}
@@ -290,7 +270,7 @@ export function MarbleMazeGame({ socket, roundKey, state, progress, end, playerI
       {!end && !done && mode === 'touch' && (
         <div className="party-mb-actions">
           <MarbleDpad onKey={pressKey} />
-          <p className="party-mb-note">버튼을 누르고 있으면 그쪽으로 굴러가요. 미로를 손가락으로 끌어도 돼요. (컴퓨터는 방향키)</p>
+          <p className="party-mb-note">버튼을 누르고 있으면 그쪽으로 굴러가요. (컴퓨터는 방향키)</p>
           <button type="button" className="btn btn-secondary" disabled={enabling} onClick={chooseSensor}>
             {enabling ? '센서를 켜는 중…' : '📱 기울기로 바꾸기'}
           </button>

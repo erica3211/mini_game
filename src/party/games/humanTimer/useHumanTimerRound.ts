@@ -11,12 +11,15 @@ type LocalStatus = 'waiting' | 'running' | 'submitted'
  * startSignal은 useGameSession이 세션 내내 미리 구독해둔 humanTimer:roundStart 신호다 —
  * 이 화면이 마운트되기 전에 신호가 먼저 도착해도 놓치지 않도록 여기서 직접 구독하지 않는다.
  */
-export function useHumanTimerRound(socket: PartySocket, roundKey: string, startSignal: { elapsedMs: number; submitted?: boolean } | null) {
+export function useHumanTimerRound(socket: PartySocket, roundKey: string, startSignal: { elapsedMs: number; targetMs: number; submitted?: boolean } | null) {
   const [status, setStatus] = useState<LocalStatus>('waiting')
+  // 내가 정지를 누른 시각(ms) — 제출 후 화면에 다시 보여준다. 새로고침으로 복원된 경우엔 알 수 없어 null
+  const [stoppedMs, setStoppedMs] = useState<number | null>(null)
   const startedAt = useMonotonicStartedAt(roundKey, startSignal, status)
 
   useEffect(() => {
     setStatus('waiting')
+    setStoppedMs(null)
   }, [roundKey])
 
   useEffect(() => {
@@ -29,8 +32,9 @@ export function useHumanTimerRound(socket: PartySocket, roundKey: string, startS
     if (status !== 'running' || startedAt === null) return
     const elapsedMs = performance.now() - startedAt
     socket.emit('humanTimer:submit', { elapsedMs })
+    setStoppedMs(elapsedMs)
     setStatus('submitted')
   }, [socket, status, startedAt])
 
-  return { status, stop, startedAt }
+  return { status, stop, startedAt, stoppedMs }
 }

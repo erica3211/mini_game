@@ -396,7 +396,7 @@ export interface ServerToClientEvents {
   'room:state': (state: RoomState) => void
   'room:error': (message: string) => void
   /** elapsedMs: 새 라운드면 0, 라운드 도중 재접속한 사람에게 다시 보낼 땐 이미 지난 시간 */
-  'humanTimer:roundStart': (data: { elapsedMs: number; submitted?: boolean }) => void
+  'humanTimer:roundStart': (data: { elapsedMs: number; targetMs: number; submitted?: boolean }) => void
   /** board: 이 플레이어 전용으로 섞인 1~25 배치. progress/elapsedMs: 새 라운드면 0, 재접속 시엔 지금까지 진행 상황 */
   'oneToTwentyFive:roundStart': (data: { board: number[]; progress: number; elapsedMs: number; submitted?: boolean }) => void
   /** chosung: 음절별 초성 배열. elapsedMs: 새 라운드면 0, 재접속 시엔 이미 지난 시간 */
