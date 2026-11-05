@@ -67,9 +67,9 @@ export function MarbleMazeGame({ socket, roundKey, state, progress, end, positio
   const myFinishedMs = progress?.players.find((row) => row.playerId === playerId)?.finishedMs ?? null
   const done = finished || myFinishedMs !== null
   const running = state?.phase === 'run' && elapsed !== null && elapsed >= 0 && !done && !end
-  // 탈출을 마친 사람만 다른 사람의 화면을 볼 수 있다 (아직 가는 사람이 남의 길을 보면 안 되니까). 내 이름을 누르면 내 화면으로 돌아온다
-  const canWatch = done && !end
-  const watchedPosition = canWatch && watchingId && watchingId !== playerId ? (positions?.players.find((row) => row.playerId === watchingId) ?? null) : null
+  // 탈출을 마친 사람만 다른 사람의 화면을 볼 수 있다 (아직 가는 사람이 남의 길을 보면 안 되니까). 라운드가 끝난 뒤에는 누구나 볼 수 있다. 내 이름을 누르면 내 화면으로 돌아온다
+  const canWatch = done || !!end
+  const watchedPosition = canWatch && watchingId && watchingId !== playerId ? (positions?.players.find((row) => row.playerId === watchingId) ?? { x: world?.start.x ?? 1.5, y: world?.start.y ?? 1.5 }) : null
   const watchedName = watchingId ? (players.find((p) => p.id === watchingId)?.nickname ?? '???') : ''
   const toggleWatch = (id: string) => setWatchingId((current) => (id === playerId || current === id ? null : id))
 
