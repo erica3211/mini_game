@@ -1,0 +1,339 @@
+/* 쭈꾸미 게임 — 스테이지 1(무궁화 꽃이 피었습니다) 장면과 조종 버튼·참가자 목록. 크기는 모두 rem 고정이라 하단 바가 생겨도 변하지 않는다 */
+
+.jk-stage {
+  gap: 0.6rem;
+}
+
+.jk-title {
+  margin: 0;
+  font-weight: 800;
+  text-align: center;
+}
+
+.jk-title-stage {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+/* 영희가 하는 말 — 높이를 고정해 글자가 나와도 아래가 밀리지 않는다 */
+.jk-say {
+  height: 1.8rem;
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 800;
+  line-height: 1.8rem;
+  text-align: center;
+  white-space: pre;
+}
+
+.jk-say-idle {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.jk-say-stop {
+  color: #e5322d;
+  letter-spacing: 0.15em;
+}
+
+.jk-scene {
+  position: relative;
+  width: min(100%, 22rem);
+  aspect-ratio: 4 / 5;
+  border: 3px solid var(--border-strong);
+  border-radius: 0.6rem;
+  overflow: hidden;
+  background: #d9b58b;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.jk-scene[data-light='back'] {
+  border-color: #4caf50;
+}
+
+.jk-scene[data-light='side'] {
+  border-color: #f1b400;
+}
+
+.jk-scene[data-light='front'] {
+  border-color: #e5322d;
+}
+
+.jk-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.jk-badge {
+  position: absolute;
+  left: 0.5rem;
+  bottom: 0.5rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  color: #222;
+  font-size: 0.95rem;
+  font-weight: 800;
+  pointer-events: none;
+}
+
+.jk-overlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 0.4rem;
+  padding: 1rem;
+  background: rgba(20, 24, 40, 0.5);
+  color: #fff;
+  text-align: center;
+  pointer-events: none;
+}
+
+.jk-overlay strong {
+  font-size: 4rem;
+  line-height: 1;
+}
+
+.jk-prep,
+.jk-controls {
+  display: grid;
+  justify-items: center;
+  gap: 0.5rem;
+  width: min(100%, 22rem);
+}
+
+/* 꾹 눌러서 전진하는 버튼 — 누르는 동안 화면이 스크롤되거나 선택되지 않게 한다 */
+.jk-hold {
+  width: 100%;
+  height: 6rem;
+  border: 3px solid var(--border-strong);
+  border-radius: 1rem;
+  background: var(--accent);
+  color: #fff;
+  font-size: 1.6rem;
+  font-weight: 900;
+  cursor: pointer;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+.jk-hold:active {
+  filter: brightness(0.9);
+  transform: scale(0.98);
+}
+
+.jk-meter {
+  display: grid;
+  gap: 0.3rem;
+  width: 100%;
+}
+
+.jk-meter-label {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.jk-meter-bar {
+  height: 1rem;
+  border-radius: 999px;
+  background: var(--tint-info);
+  overflow: hidden;
+}
+
+.jk-meter-bar i {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--accent);
+  transition: width 0.08s linear;
+}
+
+/* 참가자 목록 */
+.jk-players {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.25rem;
+  width: min(100%, 22rem);
+}
+
+.jk-player {
+  display: grid;
+  grid-template-columns: 1.6rem 5rem 1fr 4.6rem;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.15rem 0.5rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 0.8rem;
+  text-align: left;
+}
+
+.jk-player-mine {
+  background: var(--tint-strike);
+  font-weight: 800;
+}
+
+.jk-player-out {
+  opacity: 0.55;
+}
+
+.jk-player-watchable {
+  cursor: pointer;
+  border-color: var(--border);
+}
+
+.jk-player-watchable:hover {
+  background: var(--tint-info);
+}
+
+.jk-player-watching {
+  background: var(--tint-info);
+  border-color: var(--text-info);
+  font-weight: 800;
+}
+
+.jk-player-face {
+  width: 1.6rem;
+  height: 1.6rem;
+  object-fit: contain;
+  object-position: top;
+}
+
+.jk-player-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.jk-player-bar {
+  height: 0.55rem;
+  border-radius: 999px;
+  background: var(--tint-info);
+  overflow: hidden;
+}
+
+.jk-player-bar-fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: #4caf50;
+}
+
+.jk-player-state {
+  font-size: 0.72rem;
+  text-align: right;
+}
+
+/* 끝난 뒤의 결과 상자 */
+.jk-end {
+  width: min(100%, 22rem);
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border: 2px solid var(--border-strong);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.jk-end-title {
+  margin: 0;
+  font-weight: 800;
+  text-align: center;
+}
+
+.jk-end-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.25rem;
+}
+
+.jk-end-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: var(--radius);
+  font-size: 0.85rem;
+}
+
+.jk-end-detail {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.jk-recap {
+  display: grid;
+  justify-items: center;
+  margin-top: 0.75rem;
+}
+
+/* 로비에서 스테이지를 고르는 창 */
+.jk-stage-picker {
+  list-style: none;
+  margin: 0.5rem 0;
+  padding: 0;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.jk-stage-pick {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5rem 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+
+.jk-stage-pick-off {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.jk-stage-pick-no {
+  display: inline-grid;
+  place-items: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  background: var(--tint-info);
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+.jk-stage-pick-title {
+  flex: 1;
+  font-weight: 700;
+}
+
+.jk-stage-pick-soon {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.jk-stage-warn {
+  margin: 0.5rem 0 0;
+  color: var(--text-danger);
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-align: left;
+}

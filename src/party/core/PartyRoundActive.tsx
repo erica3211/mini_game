@@ -20,6 +20,7 @@ import { TowerGame } from '../games/towerStack/TowerGame'
 import { ConnectionsGame } from '../games/connections/ConnectionsGame'
 import { MarbleMazeGame } from '../games/marbleMaze/MarbleMazeGame'
 import { DarkTreasureGame } from '../games/darkTreasure/DarkTreasureGame'
+import { JjukkumiGame } from '../games/jjukkumi/JjukkumiGame'
 import { SpyWordsGame } from '../games/spyWords/SpyWordsGame'
 import { MouseHunterGame } from '../games/mouseHunter/MouseHunterGame'
 import { OneToTwentyFiveGame } from '../games/oneToTwentyFive/OneToTwentyFiveGame'
@@ -178,6 +179,18 @@ function renderGame(session: GameSession, roundKey: string) {
           progress={session.treasureProgress}
           end={session.treasureEnd}
           positions={session.treasurePositions}
+          playerId={session.playerId}
+          players={state.players}
+        />
+      )
+    case 'jjukkumi':
+      return (
+        <JjukkumiGame
+          socket={session.socket}
+          roundKey={roundKey}
+          state={session.jjukkumiState}
+          positions={session.jjukkumiPositions}
+          end={session.jjukkumiEnd}
           playerId={session.playerId}
           players={state.players}
         />

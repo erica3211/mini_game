@@ -16,6 +16,7 @@ import {
   type PlayerInfo,
 } from '../../shared/lib/partyProtocol'
 import { WORD_CHAIN_MIN_CANDIDATES } from '../games/wordChain/protocol'
+import { JJUKKUMI_STAGE_CATALOG, jjukkumiChosenStages } from '../games/jjukkumi/protocol'
 import { partyBasePath } from './partyPaths'
 import { TeamColorMark } from './PartyTeamColorMark'
 import { teamColorClass, teamEmoji } from './PartyTeamBanner'
@@ -45,6 +46,7 @@ export function PartyLobby({ session }: Props) {
   const [copied, setCopied] = useState(false)
   const [codeCopied, setCodeCopied] = useState(false)
   const [categoryModalOpen, setCategoryModalOpen] = useState(false)
+  const [stageModalOpen, setStageModalOpen] = useState(false)
   const [gamePage, setGamePage] = useState(0)
   const gamesPerPage = useMediaQuery(GAME_LIST_WIDE_QUERY) ? GAMES_PER_PAGE_WIDE : GAMES_PER_PAGE_NARROW
   // 플레이 방법(?)을 보고 있는 게임 (null이면 모달이 닫혀 있다)
@@ -85,6 +87,14 @@ export function PartyLobby({ session }: Props) {
     ? wordChainCategories.filter((c) => selectedCategories.includes(c.category)).reduce((sum, c) => sum + c.count, 0)
     : null
   const tooFewWords = wordChainSelected && candidateCount !== null && candidateCount < WORD_CHAIN_MIN_CANDIDATES
+  // 쭈꾸미 게임: 할 스테이지를 하나는 골라야 시작할 수 있다 (서버도 같은 기준으로 막는다). 고른 스테이지는 항상 1→5 순서로 진행한다
+  const jjukkumiSelected = state.config.selectedGames.includes('jjukkumi')
+  const jjukkumiChosen = jjukkumiChosenStages(state.config.jjukkumiStages)
+  const noJjukkumiStage = jjukkumiSelected && jjukkumiChosen.length === 0
+  const toggleJjukkumiStage = (stageId: string) => {
+    const current = state.config.jjukkumiStages
+    session.updateConfig({ jjukkumiStages: current.includes(stageId) ? current.filter((id) => id !== stageId) : [...current, stageId] })
+  }
   const categorySummary =
     selectedCategories.length === categoryNames.length
       ? '전체'
@@ -106,7 +116,7 @@ export function PartyLobby({ session }: Props) {
   const teamCounts = new Map<number, number>()
   for (const p of state.players) if (p.teamId !== null) teamCounts.set(p.teamId, (teamCounts.get(p.teamId) ?? 0) + 1)
   const canStart =
-    !offline && connectedPlayers.length >= minPlayers && teamIssue === null && allReady && hasSelectedGame && !tooFewWords
+    !offline && connectedPlayers.length >= minPlayers && teamIssue === null && allReady && hasSelectedGame && !tooFewWords && !noJjukkumiStage
   const configLocked = !session.isHost || offline
   // comingSoon 게임과 인원이 모자란 게임은 카드 자체가 선택 불가능하니 "전체 선택"의 대상에서도 제외한다
   const playableGames = state.gameCatalog.filter((g) => !g.comingSoon && !needsMorePlayers(g))
@@ -272,7 +282,9 @@ export function PartyLobby({ session }: Props) {
                   ? '최소 1개 이상의 게임을 선택해주세요.'
                   : tooFewWords
                     ? `초성 퀴즈 문제 후보가 ${WORD_CHAIN_MIN_CANDIDATES}개 이상 되도록 카테고리를 골라주세요.`
-                    : '모든 참가자가 준비완료 상태여야 시작할 수 있어요.'}
+                    : noJjukkumiStage
+                      ? '쭈꾸미 게임은 할 스테이지를 하나 이상 골라주세요.'
+                      : '모든 참가자가 준비완료 상태여야 시작할 수 있어요.'}
             </p>
           )}
         </>
@@ -487,6 +499,20 @@ export function PartyLobby({ session }: Props) {
                     )}
                   </div>
                 )}
+                {game.id === 'jjukkumi' && selected && (
+                  <div className="party-game-extra">
+                    <span className={noJjukkumiStage ? 'party-game-extra-warn' : undefined}>
+                      스테이지:{' '}
+                      <strong>{jjukkumiChosen.length === 0 ? '선택 없음' : jjukkumiChosen.map((stage) => `${stage.emoji} ${stage.title}`).join(' → ')}</strong>
+                      {noJjukkumiStage && ' (하나 이상 필요)'}
+                    </span>
+                    {session.isHost && (
+                      <button type="button" className="btn btn-secondary" disabled={offline} onClick={() => setStageModalOpen(true)}>
+                        변경
+                      </button>
+                    )}
+                  </div>
+                )}
                 {game.id === 'wordChain' && selected && wordChainCategories && (
                   <div className="party-game-extra">
                     <span className={tooFewWords ? 'party-game-extra-warn' : undefined}>
@@ -506,6 +532,28 @@ export function PartyLobby({ session }: Props) {
             </div>
           ))}
         </PartySubRoundCarousel>
+
+        <Modal open={stageModalOpen && session.isHost && jjukkumiSelected} title="쭈꾸미 게임 스테이지" doneLabel="완료" onClose={() => setStageModalOpen(false)}>
+          <p className="party-team-note">할 스테이지를 골라요. 고른 스테이지는 섞이지 않고 항상 아래 순서대로 진행돼요. (아직 만들지 않은 스테이지는 고를 수 없어요)</p>
+          <ol className="jk-stage-picker">
+            {JJUKKUMI_STAGE_CATALOG.map((stage, index) => {
+              const checked = stage.ready && state.config.jjukkumiStages.includes(stage.id)
+              return (
+                <li key={stage.id}>
+                  <label className={`jk-stage-pick${stage.ready ? '' : ' jk-stage-pick-off'}`}>
+                    <input type="checkbox" checked={checked} disabled={!stage.ready || offline} onChange={() => toggleJjukkumiStage(stage.id)} />
+                    <span className="jk-stage-pick-no">{index + 1}</span>
+                    <span className="jk-stage-pick-title">
+                      {stage.emoji} {stage.title}
+                    </span>
+                    {!stage.ready && <span className="jk-stage-pick-soon">준비중</span>}
+                  </label>
+                </li>
+              )
+            })}
+          </ol>
+          {jjukkumiChosen.length === 0 && <p className="jk-stage-warn">하나 이상 골라야 시작할 수 있어요.</p>}
+        </Modal>
 
         <Modal
           open={categoryModalOpen && session.isHost && wordChainSelected && wordChainCategories !== null}

@@ -26,6 +26,7 @@ import type { RecyclingEndSignal, RecyclingEventSignal, RecyclingProgressSignal,
 import type { TetrisAction, TetrisEndSignal, TetrisProgressSignal, TetrisStateSignal } from '../../party/games/tetris/protocol'
 import type { MarbleEndSignal, MarblePositionsSignal, MarbleProgressSignal, MarbleStateSignal } from '../../party/games/marbleMaze/protocol'
 import type { TreasureEndSignal, TreasurePositionsSignal, TreasureProgressSignal, TreasureStateSignal } from '../../party/games/darkTreasure/protocol'
+import type { JjukkumiEndSignal, JjukkumiPositionsSignal, JjukkumiStateSignal } from '../../party/games/jjukkumi/protocol'
 import type { ConnectionsEndSignal, ConnectionsProgressSignal, ConnectionsStateSignal } from '../../party/games/connections/protocol'
 import type { TowerAction, TowerEndSignal, TowerProgressSignal, TowerStateSignal } from '../../party/games/towerStack/protocol'
 import type { StroopQuestionResult, StroopQuestionSignal } from '../../party/games/stroop/protocol'
@@ -102,6 +103,7 @@ export type GameId =
   | 'connections'
   | 'marbleMaze'
   | 'darkTreasure'
+  | 'jjukkumi'
 
 /** 방의 진행 방식 — backend/types.ts와 같아야 한다. /party는 개인전, /teamParty는 팀전 방이다 */
 export type RoomMode = 'individual' | 'team'
@@ -168,6 +170,8 @@ export interface SessionConfig {
   telestrationWordMode: TelestrationWordMode
   /** 거짓말쟁이 퀴즈 문제 방식 — random: 서버가 문항 은행에서 뽑는다, custom: 라운드 시작 직후 참가자가 각자 문제를 하나씩 만든다 */
   liarQuizQuestionMode: LiarQuizQuestionMode
+  /** 쭈꾸미 게임에서 할 스테이지 번호들 — 방장이 로비에서 고른다. 고른 스테이지는 항상 목록의 순서(1→5)대로 진행한다 */
+  jjukkumiStages: string[]
   /** 팀전의 팀 수 (2~4) — 방장이 정한다 */
   teamCount: number
   /** 팀전에서 지금 쓰는 팀 색 번호들 (순서가 팀 순서). 다른 팀이 쓰는 색은 고를 수 없다 */
@@ -391,6 +395,8 @@ export interface ClientToServerEvents {
   'darkTreasure:ready': () => void
   'darkTreasure:found': (data: { index: number }) => void
   'darkTreasure:pos': (data: { x: number; y: number }) => void
+  'jjukkumi:ready': () => void
+  'jjukkumi:level': (data: { level: number }) => void
   'spyWords:hint': (data: { word: string; count: number }) => void
   'spyWords:toggle': (data: { index: number }) => void
   'spyWords:confirm': () => void
@@ -662,6 +668,9 @@ export interface ServerToClientEvents {
   'darkTreasure:progress': (data: TreasureProgressSignal) => void
   'darkTreasure:end': (data: TreasureEndSignal) => void
   'darkTreasure:positions': (data: TreasurePositionsSignal) => void
+  'jjukkumi:state': (data: JjukkumiStateSignal) => void
+  'jjukkumi:positions': (data: JjukkumiPositionsSignal) => void
+  'jjukkumi:end': (data: JjukkumiEndSignal) => void
   'spyWords:state': (data: SpyWordsStateSignal) => void
   'spyWords:end': (data: SpyWordsEndSignal) => void
   'mazeEscape:start': (data: MazeStartSignal) => void

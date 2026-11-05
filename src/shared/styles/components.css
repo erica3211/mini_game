@@ -369,4 +369,5 @@
 
 .category-picker-note .category-picker-warn {
   color: var(--text-danger);
+  text-align: left;
 }

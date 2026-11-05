@@ -42,6 +42,8 @@ import { MarbleMazeRecap } from '../games/marbleMaze/MarbleMazeRecap'
 import { formatMarbleTime, type MarbleRoundMeta } from '../games/marbleMaze/protocol'
 import { DarkTreasureRecap } from '../games/darkTreasure/DarkTreasureRecap'
 import type { TreasureRoundMeta } from '../games/darkTreasure/protocol'
+import { JjukkumiRecap } from '../games/jjukkumi/JjukkumiRecap'
+import { jjukkumiStageTitle, type JjukkumiRoundMeta } from '../games/jjukkumi/protocol'
 import { formatConnectionsTime, type ConnectionsRoundMeta } from '../games/connections/protocol'
 import { SpyWordsRecap } from '../games/spyWords/SpyWordsRecap'
 import type { SpyWordsRoundMeta } from '../games/spyWords/protocol'
@@ -100,6 +102,7 @@ export function PartyRoundResults({ session }: Props) {
   const towerMeta = lastRound.gameId === 'towerStack' || lastRound.gameId === 'towerCount' ? (lastRound.meta as TowerRoundMeta | undefined) : undefined
   const marbleMeta = lastRound.gameId === 'marbleMaze' ? (lastRound.meta as MarbleRoundMeta | undefined) : undefined
   const treasureMeta = lastRound.gameId === 'darkTreasure' ? (lastRound.meta as TreasureRoundMeta | undefined) : undefined
+  const jjukkumiMeta = lastRound.gameId === 'jjukkumi' ? (lastRound.meta as JjukkumiRoundMeta | undefined) : undefined
   const connectionsMeta = lastRound.gameId === 'connections' ? (lastRound.meta as ConnectionsRoundMeta | undefined) : undefined
   const spyWordsMeta = lastRound.gameId === 'spyWords' ? (lastRound.meta as SpyWordsRoundMeta | undefined) : undefined
   const characterDescribeMeta =
@@ -142,6 +145,11 @@ export function PartyRoundResults({ session }: Props) {
       const row = marbleMeta?.end.players.find((player) => player.playerId === entry.playerId)
       if (!row) return ''
       return row.finishedMs !== null ? ` (${formatMarbleTime(row.finishedMs)} · 구멍 ${row.falls}번)` : ` (출구까지 ${Math.round(row.progress * 100)}% · 구멍 ${row.falls}번)`
+    }
+    if (lastRound.gameId === 'jjukkumi' && entry.value !== undefined) {
+      const row = jjukkumiMeta?.end.players.find((player) => player.playerId === entry.playerId)
+      if (!row) return ''
+      return row.survived ? ' (끝까지 생존)' : ` (${jjukkumiStageTitle(row.stageId)} 탈락${row.stageId === 'redLight' && row.progress !== null ? ` · ${Math.round(row.progress * 100)}%` : ''})`
     }
     if (lastRound.gameId === 'darkTreasure' && entry.value !== undefined) {
       const row = treasureMeta?.end.players.find((player) => player.playerId === entry.playerId)
@@ -610,6 +618,7 @@ export function PartyRoundResults({ session }: Props) {
       {recyclingMeta && <RecyclingRecap meta={recyclingMeta} teams={roundTeams} playerId={session.playerId} players={state.players} />}
       {marbleMeta && <MarbleMazeRecap meta={marbleMeta} playerId={session.playerId} players={state.players} />}
       {treasureMeta && <DarkTreasureRecap meta={treasureMeta} playerId={session.playerId} players={state.players} />}
+      {jjukkumiMeta && <JjukkumiRecap meta={jjukkumiMeta} playerId={session.playerId} players={state.players} />}
       {connectionsMeta && <ConnectionsRecap meta={connectionsMeta} playerId={session.playerId} players={state.players} />}
       {towerMeta && <TowerRecap meta={towerMeta} teams={roundTeams} playerId={session.playerId} players={state.players} />}
       {tetrisMeta && <TetrisRecap meta={tetrisMeta} teams={roundTeams} playerId={session.playerId} players={state.players} />}
