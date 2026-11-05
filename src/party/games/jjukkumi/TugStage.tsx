@@ -181,7 +181,8 @@ export function TugStage({ socket, roundKey, state, power, end, playerId, player
       {!result && !countingDown && myTeam && (
         <>
           <button type="button" className="jk-tug-button" disabled={!canPull} onPointerDown={onPointerDown} onKeyDown={onKeyDown} onContextMenu={(event) => event.preventDefault()} aria-label={`${myStyle?.name} 힘으로 당기기`}>
-            {timeUp ? '끝!' : `${myStyle?.emoji} 당겨라!! 💪`}
+            <img className="jk-tug-art" src={myTeam?.color === 'red' ? '/jjukkumi/tug-red.png' : '/jjukkumi/tug-green.png'} alt="" draggable={false} />
+            <span className="jk-tug-label">{timeUp ? '끝!' : '당겨라!!'}</span>
           </button>
           <p className="jk-tug-count">
             내가 누른 횟수 <strong>{myPulls}</strong>번
