@@ -24,8 +24,8 @@ import type { TugEndSignal, TugProgressSignal, TugStartSignal } from '../../part
 import type { SpyWordsEndSignal, SpyWordsStateSignal } from '../../party/games/spyWords/protocol'
 import type { RecyclingEndSignal, RecyclingEventSignal, RecyclingProgressSignal, RecyclingStartSignal } from '../../party/games/recycling/protocol'
 import type { TetrisAction, TetrisEndSignal, TetrisProgressSignal, TetrisStateSignal } from '../../party/games/tetris/protocol'
-import type { MarbleEndSignal, MarbleProgressSignal, MarbleStateSignal } from '../../party/games/marbleMaze/protocol'
-import type { TreasureEndSignal, TreasureProgressSignal, TreasureStateSignal } from '../../party/games/darkTreasure/protocol'
+import type { MarbleEndSignal, MarblePositionsSignal, MarbleProgressSignal, MarbleStateSignal } from '../../party/games/marbleMaze/protocol'
+import type { TreasureEndSignal, TreasurePositionsSignal, TreasureProgressSignal, TreasureStateSignal } from '../../party/games/darkTreasure/protocol'
 import type { ConnectionsEndSignal, ConnectionsProgressSignal, ConnectionsStateSignal } from '../../party/games/connections/protocol'
 import type { TowerAction, TowerEndSignal, TowerProgressSignal, TowerStateSignal } from '../../party/games/towerStack/protocol'
 import type { StroopQuestionResult, StroopQuestionSignal } from '../../party/games/stroop/protocol'
@@ -387,8 +387,10 @@ export interface ClientToServerEvents {
   'marbleMaze:ready': () => void
   'marbleMaze:progress': (data: { progress: number; falls: number }) => void
   'marbleMaze:finish': (data: { falls: number }) => void
+  'marbleMaze:pos': (data: { x: number; y: number }) => void
   'darkTreasure:ready': () => void
   'darkTreasure:found': (data: { index: number }) => void
+  'darkTreasure:pos': (data: { x: number; y: number }) => void
   'spyWords:hint': (data: { word: string; count: number }) => void
   'spyWords:toggle': (data: { index: number }) => void
   'spyWords:confirm': () => void
@@ -655,9 +657,11 @@ export interface ServerToClientEvents {
   'marbleMaze:state': (data: MarbleStateSignal) => void
   'marbleMaze:progress': (data: MarbleProgressSignal) => void
   'marbleMaze:end': (data: MarbleEndSignal) => void
+  'marbleMaze:positions': (data: MarblePositionsSignal) => void
   'darkTreasure:state': (data: TreasureStateSignal) => void
   'darkTreasure:progress': (data: TreasureProgressSignal) => void
   'darkTreasure:end': (data: TreasureEndSignal) => void
+  'darkTreasure:positions': (data: TreasurePositionsSignal) => void
   'spyWords:state': (data: SpyWordsStateSignal) => void
   'spyWords:end': (data: SpyWordsEndSignal) => void
   'mazeEscape:start': (data: MazeStartSignal) => void

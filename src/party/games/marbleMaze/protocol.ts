@@ -34,6 +34,11 @@ export interface MarbleEndSignal {
   players: { playerId: PlayerId; finishedMs: number | null; progress: number; falls: number; rank: number }[]
 }
 
+/** 모두의 구슬 위치(타일 좌표) — 먼저 끝난 사람이 다른 사람의 화면을 구경할 때 쓴다 */
+export interface MarblePositionsSignal {
+  players: { playerId: PlayerId; x: number; y: number }[]
+}
+
 export interface MarbleRoundMeta {
   end: MarbleEndSignal
 }

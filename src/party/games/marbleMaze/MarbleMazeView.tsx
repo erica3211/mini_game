@@ -3,14 +3,39 @@ import { formatMarbleTime, type MarbleEndSignal, type MarbleProgressSignal } fro
 
 // 구슬 탈출 화면 조각 — 게임 화면과 결과 화면이 똑같이 보이도록 같이 쓴다
 
+/** 진행 목록의 한 줄에 붙는 모양(css 클래스) — 내 줄, 눌러서 구경할 수 있는 줄, 지금 구경 중인 줄 */
+export function watchRowClass(playerId: string, myId: string | null, onWatch: ((playerId: string) => void) | undefined, watchingId: string | null | undefined): string | undefined {
+  const classes = [playerId === myId ? 'party-mb-player-mine' : '', onWatch ? 'party-mb-player-watchable' : '', onWatch && watchingId === playerId ? 'party-mb-player-watching' : ''].filter(Boolean)
+  return classes.length > 0 ? classes.join(' ') : undefined
+}
+
+/** 눌러서 구경할 수 있는 줄이면 버튼처럼 동작하게 하는 속성 (키보드로도 누를 수 있다) */
+export function watchRowProps(playerId: string, onWatch: ((playerId: string) => void) | undefined) {
+  if (!onWatch) return {}
+  return {
+    role: 'button' as const,
+    tabIndex: 0,
+    onClick: () => onWatch(playerId),
+    onKeyDown: (event: { key: string; preventDefault: () => void }) => {
+      if (event.key !== 'Enter' && event.key !== ' ') return
+      event.preventDefault()
+      onWatch(playerId)
+    },
+  }
+}
+
 interface PlayersProps {
   players: PlayerInfo[]
   progress: MarbleProgressSignal['players']
   myId: string | null
+  /** 먼저 끝낸 사람이 이름을 눌러 그 사람의 화면을 구경할 수 있다 — 주어지면 이름 줄이 눌러진다 */
+  onWatch?: (playerId: string) => void
+  /** 지금 구경 중인 사람 */
+  watchingId?: string | null
 }
 
 /** 모두의 진행 — 출구까지 어디쯤 왔는지 막대로 보여 준다. 탈출한 사람(빠른 순)이 위, 그다음 멀리 간 순 */
-export function MarblePlayers({ players, progress, myId }: PlayersProps) {
+export function MarblePlayers({ players, progress, myId, onWatch, watchingId }: PlayersProps) {
   const rows = progress
     .map((row) => ({ ...row, nickname: players.find((p) => p.id === row.playerId)?.nickname ?? '???' }))
     .sort((a, b) => {
@@ -20,7 +45,11 @@ export function MarblePlayers({ players, progress, myId }: PlayersProps) {
   return (
     <ul className="party-mb-players">
       {rows.map((row) => (
-        <li key={row.playerId} className={row.playerId === myId ? 'party-mb-player-mine' : undefined}>
+        <li
+          key={row.playerId}
+          className={watchRowClass(row.playerId, myId, onWatch, watchingId)}
+          {...watchRowProps(row.playerId, onWatch)}
+        >
           <span className="party-mb-player-name">{row.playerId === myId ? '나' : row.nickname}</span>
           <span className="party-mb-bar" aria-hidden="true">
             <span className="party-mb-bar-fill" style={{ width: `${Math.round(row.progress * 100)}%` }} />

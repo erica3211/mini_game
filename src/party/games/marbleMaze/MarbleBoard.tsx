@@ -5,6 +5,8 @@ import { EXIT_RADIUS, HOLE_RADIUS, MARBLE_RADIUS, fellInHole, newMarble, progres
 const FALL_MS = 450
 /** 진행 상황을 서버로 보내는 간격 */
 const PROGRESS_EVERY_MS = 250
+/** 내 구슬 위치를 서버로 보내는 간격 — 다른 사람이 내 화면을 구경할 때 쓴다 */
+const POSITION_EVERY_MS = 100
 /** 한 프레임으로 칠 수 있는 최대 시간(초) — 탭을 다른 데 갔다 오면 구슬이 한 번에 튀지 않게 한다 */
 const MAX_FRAME_S = 0.05
 
@@ -19,14 +21,18 @@ interface Props {
   onFall: (falls: number) => void
   onFinish: (falls: number) => void
   onProgress: (progress: number, falls: number) => void
+  /** 내 구슬이 움직였다 (타일 좌표) — 구경하는 사람에게 보여 주려고 서버에 알린다 */
+  onPosition: (x: number, y: number) => void
+  /** 다른 사람의 화면을 구경하는 중이면 그 사람의 구슬 위치 — 이때는 내 구슬을 굴리지도 서버에 알리지도 않는다 */
+  watch: { x: number; y: number } | null
 }
 
 /** 미로와 구슬 — 구슬은 매 프레임 이 안에서 굴리고, 서버에는 진행·구멍에 빠진 횟수·탈출만 알린다 */
-export function MarbleBoard({ world, running, done, getTilt, onFall, onFinish, onProgress }: Props) {
+export function MarbleBoard({ world, running, done, getTilt, onFall, onFinish, onProgress, onPosition, watch }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   // 매 프레임 쓰는 값은 ref에 담아서, 값이 바뀔 때마다 루프를 다시 만들지 않는다
-  const live = useRef({ running, done, getTilt, onFall, onFinish, onProgress })
-  live.current = { running, done, getTilt, onFall, onFinish, onProgress }
+  const live = useRef({ running, done, getTilt, onFall, onFinish, onProgress, onPosition, watch })
+  live.current = { running, done, getTilt, onFall, onFinish, onProgress, onPosition, watch }
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -40,6 +46,10 @@ export function MarbleBoard({ world, running, done, getTilt, onFall, onFinish, o
     let current = 0
     let reported = { progress: -1, falls: -1 }
     let lastReportAt = 0
+    let lastPositionAt = 0
+    let sentPosition = { x: -1, y: -1 }
+    /** 구경 중에 보여 주는 구슬 — 서버가 알려 준 위치로 부드럽게 따라간다 */
+    const watched = { x: world.start.x, y: world.start.y, seeded: false }
     let lastFrame = performance.now()
     let frame = 0
 
@@ -49,8 +59,22 @@ export function MarbleBoard({ world, running, done, getTilt, onFall, onFinish, o
       lastFrame = now
       const state = live.current
 
-      // 굴리기
-      if (finished || state.done) {
+      // 굴리기 — 구경 중이면 내 구슬은 가만히 두고 보는 사람의 구슬만 따라간다
+      if (state.watch) {
+        if (!watched.seeded) {
+          watched.x = state.watch.x
+          watched.y = state.watch.y
+          watched.seeded = true
+        }
+        const follow = Math.min(1, dt * 14)
+        watched.x += (state.watch.x - watched.x) * follow
+        watched.y += (state.watch.y - watched.y) * follow
+      } else {
+        watched.seeded = false
+      }
+      if (state.watch) {
+        // 구경 중에는 내 구슬을 건드리지 않는다
+      } else if (finished || state.done) {
         marble.x += (world.exit.x - marble.x) * Math.min(1, dt * 12)
         marble.y += (world.exit.y - marble.y) * Math.min(1, dt * 12)
       } else if (fallingSince) {
@@ -76,6 +100,13 @@ export function MarbleBoard({ world, running, done, getTilt, onFall, onFinish, o
           state.onFinish(falls)
         }
         if (!fallingSince && !finished) current = progressOf(world, marble)
+      }
+
+      // 내 위치 보내기 (구경하는 사람들이 쓴다 — 움직였을 때만)
+      if (state.running && !fallingSince && now - lastPositionAt >= POSITION_EVERY_MS && Math.hypot(marble.x - sentPosition.x, marble.y - sentPosition.y) > 0.03) {
+        lastPositionAt = now
+        sentPosition = { x: marble.x, y: marble.y }
+        state.onPosition(marble.x, marble.y)
       }
 
       // 진행 상황 보내기 (바뀐 게 있을 때만, 너무 자주는 말고)
@@ -129,10 +160,10 @@ export function MarbleBoard({ world, running, done, getTilt, onFall, onFinish, o
         ctx.fill()
       }
       // 구슬 — 구멍에 빠지는 중이면 구멍 한가운데로 빨려 들어가며 작아진다
-      let drawX = marble.x
-      let drawY = marble.y
+      let drawX = state.watch ? watched.x : marble.x
+      let drawY = state.watch ? watched.y : marble.y
       let scale = 1
-      if (fallingSince) {
+      if (fallingSince && !state.watch) {
         const t = Math.min(1, (now - fallingSince.at) / FALL_MS)
         drawX = marble.x + (fallingSince.x - marble.x) * t
         drawY = marble.y + (fallingSince.y - marble.y) * t

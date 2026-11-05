@@ -318,3 +318,30 @@
     transition: none;
   }
 }
+
+/* 먼저 끝낸 사람이 이름을 눌러 다른 사람의 화면을 구경한다 */
+.party-mb-player-watchable {
+  cursor: pointer;
+  border: 1px solid var(--border);
+}
+
+.party-mb-player-watchable:hover {
+  background: var(--tint-info);
+}
+
+.party-mb-player-watching {
+  background: var(--tint-info);
+  border-color: var(--text-info);
+  font-weight: 800;
+}
+
+.party-mb-watching {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text-info);
+}

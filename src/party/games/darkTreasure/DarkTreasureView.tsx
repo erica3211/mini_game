@@ -1,4 +1,5 @@
 import type { PlayerInfo } from '../../../shared/lib/partyProtocol'
+import { watchRowClass, watchRowProps } from '../marbleMaze/MarbleMazeView'
 import { formatMarbleTime } from '../marbleMaze/protocol'
 import type { TreasureEndSignal, TreasureProgressSignal } from './protocol'
 
@@ -9,10 +10,14 @@ interface PlayersProps {
   progress: TreasureProgressSignal['players']
   total: number
   myId: string | null
+  /** 먼저 끝낸 사람이 이름을 눌러 그 사람의 화면을 구경할 수 있다 — 주어지면 이름 줄이 눌러진다 */
+  onWatch?: (playerId: string) => void
+  /** 지금 구경 중인 사람 */
+  watchingId?: string | null
 }
 
 /** 모두의 진행 — 보물을 몇 개 찾았는지 막대로 보여 준다. 다 찾은 사람(빠른 순)이 위, 그다음 많이 찾은 순 */
-export function TreasurePlayers({ players, progress, total, myId }: PlayersProps) {
+export function TreasurePlayers({ players, progress, total, myId, onWatch, watchingId }: PlayersProps) {
   const rows = progress
     .map((row) => ({ ...row, nickname: players.find((p) => p.id === row.playerId)?.nickname ?? '???' }))
     .sort((a, b) => {
@@ -22,7 +27,11 @@ export function TreasurePlayers({ players, progress, total, myId }: PlayersProps
   return (
     <ul className="party-mb-players">
       {rows.map((row) => (
-        <li key={row.playerId} className={row.playerId === myId ? 'party-mb-player-mine' : undefined}>
+        <li
+          key={row.playerId}
+          className={watchRowClass(row.playerId, myId, onWatch, watchingId)}
+          {...watchRowProps(row.playerId, onWatch)}
+        >
           <span className="party-mb-player-name">{row.playerId === myId ? '나' : row.nickname}</span>
           <span className="party-mb-bar" aria-hidden="true">
             <span className="party-mb-bar-fill" style={{ width: `${total > 0 ? Math.round((row.found / total) * 100) : 0}%` }} />

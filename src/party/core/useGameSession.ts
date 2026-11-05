@@ -12,8 +12,8 @@ import type { OrderCardsEndSignal, OrderCardsStanding, OrderCardsStateSignal } f
 import type { TugStartSignal } from '../games/tugOfWar/protocol'
 import type { RecyclingStartSignal } from '../games/recycling/protocol'
 import type { TetrisEndSignal, TetrisProgressSignal, TetrisStateSignal } from '../games/tetris/protocol'
-import type { MarbleEndSignal, MarbleProgressSignal, MarbleStateSignal } from '../games/marbleMaze/protocol'
-import type { TreasureEndSignal, TreasureProgressSignal, TreasureStateSignal } from '../games/darkTreasure/protocol'
+import type { MarbleEndSignal, MarblePositionsSignal, MarbleProgressSignal, MarbleStateSignal } from '../games/marbleMaze/protocol'
+import type { TreasureEndSignal, TreasurePositionsSignal, TreasureProgressSignal, TreasureStateSignal } from '../games/darkTreasure/protocol'
 import type { ConnectionsEndSignal, ConnectionsProgressSignal, ConnectionsStateSignal } from '../games/connections/protocol'
 import type { TowerEndSignal, TowerProgressSignal, TowerStateSignal } from '../games/towerStack/protocol'
 import type { SpyWordsEndSignal, SpyWordsStateSignal } from '../games/spyWords/protocol'
@@ -137,9 +137,11 @@ export function useGameSession(roomCodeFromUrl?: string) {
   const [marbleState, setMarbleState] = useState<MarbleStateSignal | null>(null)
   const [marbleProgress, setMarbleProgress] = useState<MarbleProgressSignal | null>(null)
   const [marbleEnd, setMarbleEnd] = useState<MarbleEndSignal | null>(null)
+  const [marblePositions, setMarblePositions] = useState<MarblePositionsSignal | null>(null)
   const [treasureState, setTreasureState] = useState<TreasureStateSignal | null>(null)
   const [treasureProgress, setTreasureProgress] = useState<TreasureProgressSignal | null>(null)
   const [treasureEnd, setTreasureEnd] = useState<TreasureEndSignal | null>(null)
+  const [treasurePositions, setTreasurePositions] = useState<TreasurePositionsSignal | null>(null)
   const [connectionsState, setConnectionsState] = useState<ConnectionsStateSignal | null>(null)
   const [connectionsProgress, setConnectionsProgress] = useState<ConnectionsProgressSignal | null>(null)
   const [connectionsEnd, setConnectionsEnd] = useState<ConnectionsEndSignal | null>(null)
@@ -244,9 +246,11 @@ export function useGameSession(roomCodeFromUrl?: string) {
         setMarbleState(null)
         setMarbleProgress(null)
         setMarbleEnd(null)
+        setMarblePositions(null)
         setTreasureState(null)
         setTreasureProgress(null)
         setTreasureEnd(null)
+        setTreasurePositions(null)
         setConnectionsState(null)
         setConnectionsProgress(null)
         setConnectionsEnd(null)
@@ -317,9 +321,11 @@ export function useGameSession(roomCodeFromUrl?: string) {
     const onMarbleState = (data: MarbleStateSignal) => setMarbleState(data)
     const onMarbleProgress = (data: MarbleProgressSignal) => setMarbleProgress(data)
     const onMarbleEnd = (data: MarbleEndSignal) => setMarbleEnd(data)
+    const onMarblePositions = (data: MarblePositionsSignal) => setMarblePositions(data)
     const onTreasureState = (data: TreasureStateSignal) => setTreasureState(data)
     const onTreasureProgress = (data: TreasureProgressSignal) => setTreasureProgress(data)
     const onTreasureEnd = (data: TreasureEndSignal) => setTreasureEnd(data)
+    const onTreasurePositions = (data: TreasurePositionsSignal) => setTreasurePositions(data)
     const onConnectionsState = (data: ConnectionsStateSignal) => setConnectionsState(data)
     const onConnectionsProgress = (data: ConnectionsProgressSignal) => setConnectionsProgress(data)
     const onConnectionsEnd = (data: ConnectionsEndSignal) => setConnectionsEnd(data)
@@ -433,9 +439,11 @@ export function useGameSession(roomCodeFromUrl?: string) {
     socket.on('marbleMaze:state', onMarbleState)
     socket.on('marbleMaze:progress', onMarbleProgress)
     socket.on('marbleMaze:end', onMarbleEnd)
+    socket.on('marbleMaze:positions', onMarblePositions)
     socket.on('darkTreasure:state', onTreasureState)
     socket.on('darkTreasure:progress', onTreasureProgress)
     socket.on('darkTreasure:end', onTreasureEnd)
+    socket.on('darkTreasure:positions', onTreasurePositions)
     socket.on('connections:state', onConnectionsState)
     socket.on('connections:progress', onConnectionsProgress)
     socket.on('connections:end', onConnectionsEnd)
@@ -516,9 +524,11 @@ export function useGameSession(roomCodeFromUrl?: string) {
       socket.off('marbleMaze:state', onMarbleState)
       socket.off('marbleMaze:progress', onMarbleProgress)
       socket.off('marbleMaze:end', onMarbleEnd)
+      socket.off('marbleMaze:positions', onMarblePositions)
       socket.off('darkTreasure:state', onTreasureState)
       socket.off('darkTreasure:progress', onTreasureProgress)
       socket.off('darkTreasure:end', onTreasureEnd)
+      socket.off('darkTreasure:positions', onTreasurePositions)
       socket.off('connections:state', onConnectionsState)
       socket.off('connections:progress', onConnectionsProgress)
       socket.off('connections:end', onConnectionsEnd)
@@ -745,9 +755,11 @@ export function useGameSession(roomCodeFromUrl?: string) {
     marbleState,
     marbleProgress,
     marbleEnd,
+    marblePositions,
     treasureState,
     treasureProgress,
     treasureEnd,
+    treasurePositions,
     connectionsState,
     connectionsProgress,
     connectionsEnd,

@@ -37,6 +37,11 @@ export interface TreasureEndSignal {
   players: { playerId: PlayerId; finishedMs: number | null; found: number; rank: number }[]
 }
 
+/** 모두의 구슬 위치(타일 좌표)와 찾은 보물 번호 — 먼저 끝난 사람이 다른 사람의 화면을 구경할 때 쓴다 */
+export interface TreasurePositionsSignal {
+  players: { playerId: PlayerId; x: number; y: number; found: number[] }[]
+}
+
 export interface TreasureRoundMeta {
   end: TreasureEndSignal
 }

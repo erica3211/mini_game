@@ -6,7 +6,7 @@ import { useMonotonicStartedAt } from '../../core/useMonotonicStartedAt'
 import { MarbleBoard } from './MarbleBoard'
 import { MarbleDpad, MarbleEnd, MarblePlayers, type DpadKey } from './MarbleMazeView'
 import { buildWorld } from './physics'
-import { formatMarbleTime, type MarbleEndSignal, type MarbleProgressSignal, type MarbleStateSignal } from './protocol'
+import { formatMarbleTime, type MarbleEndSignal, type MarblePositionsSignal, type MarbleProgressSignal, type MarbleStateSignal } from './protocol'
 import { useTilt } from './useTilt'
 
 interface Props {
@@ -15,6 +15,8 @@ interface Props {
   state: MarbleStateSignal | null
   progress: MarbleProgressSignal | null
   end: MarbleEndSignal | null
+  /** 모두의 구슬 위치 — 먼저 끝난 뒤 다른 사람의 화면을 구경할 때 쓴다 */
+  positions: MarblePositionsSignal | null
   playerId: string | null
   players: PlayerInfo[]
 }
@@ -25,7 +27,7 @@ type ControlMode = 'sensor' | 'touch'
 // 폰을 평평하게 두고 기준 자세를 재는 시간 — 이 시간 동안 센서 값의 평균이 기준이 된다 (styles.css의 .party-mb-measure 애니메이션 시간과 같아야 한다)
 const CALIBRATION_MS = 3_000
 
-export function MarbleMazeGame({ socket, roundKey, state, progress, end, playerId, players }: Props) {
+export function MarbleMazeGame({ socket, roundKey, state, progress, end, positions, playerId, players }: Props) {
   const tilt = useTilt()
   const [mode, setMode] = useState<ControlMode | null>(null)
   const [enabling, setEnabling] = useState(false)
@@ -33,6 +35,8 @@ export function MarbleMazeGame({ socket, roundKey, state, progress, end, playerI
   const [falls, setFalls] = useState(0)
   const [finished, setFinished] = useState(false)
   const [calibration, setCalibration] = useState<'measuring' | 'steady' | 'shaky' | null>(null)
+  /** 구경 중인 사람 — 먼저 탈출한 뒤 이름을 눌러 고른다 */
+  const [watchingId, setWatchingId] = useState<string | null>(null)
   const calibrationTimer = useRef<number | undefined>(undefined)
   useEffect(() => () => window.clearTimeout(calibrationTimer.current), [])
 
@@ -43,6 +47,7 @@ export function MarbleMazeGame({ socket, roundKey, state, progress, end, playerI
     setFalls(0)
     setFinished(false)
     setCalibration(null)
+    setWatchingId(null)
     window.clearTimeout(calibrationTimer.current)
   }, [roundKey])
 
@@ -62,6 +67,11 @@ export function MarbleMazeGame({ socket, roundKey, state, progress, end, playerI
   const myFinishedMs = progress?.players.find((row) => row.playerId === playerId)?.finishedMs ?? null
   const done = finished || myFinishedMs !== null
   const running = state?.phase === 'run' && elapsed !== null && elapsed >= 0 && !done && !end
+  // 탈출을 마친 사람만 다른 사람의 화면을 볼 수 있다 (아직 가는 사람이 남의 길을 보면 안 되니까). 내 이름을 누르면 내 화면으로 돌아온다
+  const canWatch = done && !end
+  const watchedPosition = canWatch && watchingId && watchingId !== playerId ? (positions?.players.find((row) => row.playerId === watchingId) ?? null) : null
+  const watchedName = watchingId ? (players.find((p) => p.id === watchingId)?.nickname ?? '???') : ''
+  const toggleWatch = (id: string) => setWatchingId((current) => (id === playerId || current === id ? null : id))
 
   // 준비 단계가 끝나기까지 남은 시간 (상태를 받을 때마다 서버가 알려 준 값으로 다시 맞춘다)
   const prepEndsInMs = state?.prepEndsInMs ?? 0
@@ -175,6 +185,8 @@ export function MarbleMazeGame({ socket, roundKey, state, progress, end, playerI
           socket.emit('marbleMaze:finish', { falls: count })
         }}
         onProgress={(p, count) => socket.emit('marbleMaze:progress', { progress: p, falls: count })}
+        onPosition={(x, y) => socket.emit('marbleMaze:pos', { x, y })}
+        watch={watchedPosition}
       />
       {countingDown && (
         <div className="party-mb-overlay party-mb-overlay-count" role="timer">
@@ -244,7 +256,16 @@ export function MarbleMazeGame({ socket, roundKey, state, progress, end, playerI
     <div ref={playRef} className="party-round-stage party-mb-stage">
       {startedAt !== null && !countingDown && !end && !done && <RemainingTime startedAt={startedAt} timeoutMs={state.durationMs} />}
 
-      <MarblePlayers players={players} progress={progress?.players ?? []} myId={playerId} />
+      <MarblePlayers players={players} progress={progress?.players ?? []} myId={playerId} onWatch={canWatch ? toggleWatch : undefined} watchingId={watchingId} />
+      {canWatch && !watchedPosition && <p className="party-mb-note">👀 다른 사람의 이름을 누르면 그 사람의 화면을 구경할 수 있어요</p>}
+      {canWatch && watchedPosition && (
+        <p className="party-mb-watching">
+          👀 {watchedName}님의 화면을 보는 중
+          <button type="button" className="btn btn-secondary" onClick={() => setWatchingId(null)}>
+            내 화면으로
+          </button>
+        </p>
+      )}
 
       {board}
 

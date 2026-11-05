@@ -164,6 +164,7 @@ function renderGame(session: GameSession, roundKey: string) {
           state={session.marbleState}
           progress={session.marbleProgress}
           end={session.marbleEnd}
+          positions={session.marblePositions}
           playerId={session.playerId}
           players={state.players}
         />
@@ -176,6 +177,7 @@ function renderGame(session: GameSession, roundKey: string) {
           state={session.treasureState}
           progress={session.treasureProgress}
           end={session.treasureEnd}
+          positions={session.treasurePositions}
           playerId={session.playerId}
           players={state.players}
         />
