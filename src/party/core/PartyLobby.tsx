@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useMediaQuery } from '../../shared/hooks/useMediaQuery'
 import { useNavigate } from 'react-router-dom'
 import { CategoryPicker } from '../../shared/components/CategoryPicker'
 import { ConfirmModal } from '../../shared/components/ConfirmModal'
@@ -22,7 +23,11 @@ import { teamProblem } from './teamUtils'
 import { PartySubRoundCarousel } from './PartySubRoundCarousel'
 import type { GameSession } from './useGameSession'
 
-const GAMES_PER_PAGE = 10
+// 게임 목록은 넓은 화면(PC)에서 한 줄에 2개씩, 좁은 화면(모바일)에서 1개씩 보인다 — styles.css의 .party-game-list와 같은 기준이다.
+// 한 페이지에 PC는 5줄(10개), 모바일은 5줄(5개)이 보이도록 나눈다
+const GAME_LIST_WIDE_QUERY = '(min-width: 520px)'
+const GAMES_PER_PAGE_WIDE = 10
+const GAMES_PER_PAGE_NARROW = 5
 
 interface Props {
   session: GameSession
@@ -41,6 +46,7 @@ export function PartyLobby({ session }: Props) {
   const [codeCopied, setCodeCopied] = useState(false)
   const [categoryModalOpen, setCategoryModalOpen] = useState(false)
   const [gamePage, setGamePage] = useState(0)
+  const gamesPerPage = useMediaQuery(GAME_LIST_WIDE_QUERY) ? GAMES_PER_PAGE_WIDE : GAMES_PER_PAGE_NARROW
   // 플레이 방법(?)을 보고 있는 게임 (null이면 모달이 닫혀 있다)
   const [helpGame, setHelpGame] = useState<GameMeta | null>(null)
   // 내 팀 색을 고르는 창이 열려 있는가
@@ -64,10 +70,10 @@ export function PartyLobby({ session }: Props) {
       (a.minPlayers ?? DEFAULT_GAME_MIN_PLAYERS) - (b.minPlayers ?? DEFAULT_GAME_MIN_PLAYERS) ||
       a.playTimeSeconds - b.playTimeSeconds,
   )
-  const pageCount = Math.max(1, Math.ceil(sortedGames.length / GAMES_PER_PAGE))
+  const pageCount = Math.max(1, Math.ceil(sortedGames.length / gamesPerPage))
   const currentPage = Math.min(gamePage, pageCount - 1)
   const gamePages = Array.from({ length: pageCount }, (_, page) =>
-    sortedGames.slice(page * GAMES_PER_PAGE, (page + 1) * GAMES_PER_PAGE),
+    sortedGames.slice(page * gamesPerPage, (page + 1) * gamesPerPage),
   )
   const hasSelectedGame = state.gameCatalog.some((g) => state.config.selectedGames.includes(g.id) && !needsMorePlayers(g))
   // 초성 퀴즈 카테고리: null은 전체. 고른 카테고리의 문제가 너무 적으면 같은 문제가 반복되므로 시작할 수 없다 (서버도 같은 기준으로 막는다)

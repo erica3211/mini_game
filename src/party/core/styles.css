@@ -208,9 +208,16 @@ label.party-config-row input[type='checkbox'] {
 
 .party-game-list {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  grid-template-columns: 1fr;
   gap: 0.6rem;
   margin: 0.75rem 0;
+}
+
+/* PartyLobby.tsx의 GAME_LIST_WIDE_QUERY와 같은 기준 */
+@media (min-width: 520px) {
+  .party-game-list {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 /* "현재 선택된 게임" 줄의 오른쪽 끝에 붙는 작은 페이저 */
